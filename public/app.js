@@ -1,17 +1,34 @@
 const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);let licenses=[];
-async function requestApi(url,opt={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});
+async function requestApi(url,opt={}) {
+    const r = await fetch(url, {
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(opt.headers || {})
+        },
+        ...opt
+    });
+
+    const d = await r.json().catch(() => ({}));
+
+    if (!r.ok) {
+        throw new Error(d.error || d.message || 'Có lỗi');
+    }
+
+    return d;
+}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function fmt(v){return v?v.replace('T',' ').slice(0,19):'Vĩnh viễn';}
 function status(row){if(row.status==='banned')return '<span class="badge ban">Bị khóa</span>';if(row.status==='disabled'||(row.expires_at&&new Date(row.expires_at)<=new Date()))return '<span class="badge off">Vô hiệu</span>';return '<span class="badge on">Hoạt động</span>';}
-async function stats(){const d=await api('/api/admin/stats');['Total','Active','Banned','Bound'].forEach(k=>$('#s'+k).textContent=d[k.toLowerCase()]??0);}
-async function loadKeys(){licenses=await api('/api/admin/licenses?q='+encodeURIComponent($('#search').value)+'&status='+$('#filter').value);renderKeys();}
+async function stats(){const d=await requestApi('/api/admin/stats');['Total','Active','Banned','Bound'].forEach(k=>$('#s'+k).textContent=d[k.toLowerCase()]??0);}
+async function loadKeys(){licenses=await requestApi('/api/admin/licenses?q='+encodeURIComponent($('#search').value)+'&status='+$('#filter').value);renderKeys();}
 function renderKeys(){const rows=$('#rows');rows.innerHTML=licenses.map(r=>`<tr><td><code>${esc(r.key)}</code></td><td>${status(r)}</td><td>${fmt(r.expires_at)}</td><td>${r.hwid?'<code>'+esc(r.hwid.slice(0,20))+'…</code>':'—'}</td><td>${esc(r.note)}</td><td class="actionsCell"><button onclick="toggleKey(${r.id},'${r.status==='banned'?'active':'banned'}')">${r.status==='banned'?'Mở khóa':'Khóa'}</button><button onclick="resetHwid(${r.id})">Reset HWID</button><button class="danger" onclick="delKey(${r.id})">Xóa</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Chưa có key</td></tr>';}
-async function logs(){const d=await api('/api/admin/logs');$('#logsRows').innerHTML=d.map(x=>`<tr><td>${fmt(x.created_at)}</td><td>${esc(x.action)}</td><td>${esc(x.key||'—')}</td><td>${esc(x.detail)}</td><td>${esc(x.ip)}</td></tr>`).join('');}
+async function logs(){const d=await requestApi('/api/admin/logs');$('#logsRows').innerHTML=d.map(x=>`<tr><td>${fmt(x.created_at)}</td><td>${esc(x.action)}</td><td>${esc(x.key||'—')}</td><td>${esc(x.detail)}</td><td>${esc(x.ip)}</td></tr>`).join('');}
 function openCreate(bulk=false){$('#dialogTitle').textContent=bulk?'Tạo Key hàng loạt':'Tạo License Key';$('#count').value=bulk?10:1;$('#created').textContent='';$('#dialog').showModal();}
-$('#form').addEventListener('submit',async e=>{e.preventDefault();try{const count=Number($('#count').value),body={count,duration_days:Number($('#duration').value),note:$('#note').value};const d=count>1?await api('/api/admin/licenses/bulk',{method:'POST',body:JSON.stringify(body)}):await api('/api/admin/licenses',{method:'POST',body:JSON.stringify(body)});$('#created').textContent=d.licenses?d.licenses.map(x=>x.key).join('\n'):d.license.key;await stats();await loadKeys();await logs();}catch(e){alert(e.message)}});
+$('#form').addEventListener('submit',async e=>{e.preventDefault();try{const count=Number($('#count').value),body={count,duration_days:Number($('#duration').value),note:$('#note').value};const d=count>1?await requestApi('/api/admin/licenses/bulk',{method:'POST',body:JSON.stringify(body)}):await requestApi('/api/admin/licenses',{method:'POST',body:JSON.stringify(body)});$('#created').textContent=d.licenses?d.licenses.map(x=>x.key).join('\n'):d.license.key;await stats();await loadKeys();await logs();}catch(e){alert(e.message)}});
 $('#cancel').onclick=()=>$('#dialog').close();$('#quickCreate').onclick=()=>openCreate(false);$('#createKey').onclick=()=>openCreate(false);$('#bulkCreate').onclick=()=>openCreate(true);$('#search').oninput=loadKeys;$('#filter').onchange=loadKeys;
-window.toggleKey=async(id,status)=>{await api('/api/admin/licenses/'+id,{method:'PATCH',body:JSON.stringify({status})});await stats();await loadKeys();await logs();};window.resetHwid=async id=>{if(confirm('Reset HWID của key này?')){await api('/api/admin/licenses/'+id+'/reset-hwid',{method:'POST'});await loadKeys();await logs();}};window.delKey=async id=>{if(confirm('Xóa key vĩnh viễn?')){await api('/api/admin/licenses/'+id,{method:'DELETE'});await stats();await loadKeys();await logs();}};
+window.toggleKey=async(id,status)=>{await requestApi('/api/admin/licenses/'+id,{method:'PATCH',body:JSON.stringify({status})});await stats();await loadKeys();await logs();};window.resetHwid=async id=>{if(confirm('Reset HWID của key này?')){await requestApi('/api/admin/licenses/'+id+'/reset-hwid',{method:'POST'});await loadKeys();await logs();}};window.delKey=async id=>{if(confirm('Xóa key vĩnh viễn?')){await requestApi('/api/admin/licenses/'+id,{method:'DELETE'});await stats();await loadKeys();await logs();}};
 $$('.nav').forEach(b=>b.onclick=()=>{ $$('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.page').forEach(p=>p.classList.add('hidden'));$('#'+b.dataset.page).classList.remove('hidden');$('#title').textContent=b.textContent.trim();if(b.dataset.page==='keys')loadKeys();if(b.dataset.page==='logs')logs();});
-$('#logout').onclick=async()=>{await api('/api/admin/logout',{method:'POST'});location.reload();};
-$('#loginForm').onsubmit=async e=>{e.preventDefault();try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({username:$('#username').value,password:$('#password').value})});location.reload();}catch(e){$('#loginMsg').textContent=e.message;}};
-(async()=>{try{await api('/api/admin/me');$('#loginView').classList.add('hidden');$('#appView').classList.remove('hidden');await stats();await loadKeys();}catch{}})();
+$('#logout').onclick=async()=>{await requestApi('/api/admin/logout',{method:'POST'});location.reload();};
+$('#loginForm').onsubmit=async e=>{e.preventDefault();try{await requestApi('/api/admin/login',{method:'POST',body:JSON.stringify({username:$('#username').value,password:$('#password').value})});location.reload();}catch(e){$('#loginMsg').textContent=e.message;}};
+(async()=>{try{await requestApi('/api/admin/me');$('#loginView').classList.add('hidden');$('#appView').classList.remove('hidden');await stats();await loadKeys();}catch{}})();
