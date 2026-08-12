@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);let licenses=[];
-async function api(url,opt={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});
+async function requestApi(url,opt={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function fmt(v){return v?v.replace('T',' ').slice(0,19):'Vĩnh viễn';}
 function status(row){if(row.status==='banned')return '<span class="badge ban">Bị khóa</span>';if(row.status==='disabled'||(row.expires_at&&new Date(row.expires_at)<=new Date()))return '<span class="badge off">Vô hiệu</span>';return '<span class="badge on">Hoạt động</span>';}
