@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express=require('express'),session=require('express-session'),bcrypt=require('bcryptjs'),Database=require('better-sqlite3'),crypto=require('crypto'),path=require('path');
 const app=express(),PORT=Number(process.env.PORT||3000),db=new Database('licenses.db');
+app.set('trust proxy', 1);
 db.pragma('journal_mode=WAL');db.exec(`CREATE TABLE IF NOT EXISTS licenses(id INTEGER PRIMARY KEY AUTOINCREMENT,key TEXT UNIQUE NOT NULL,status TEXT NOT NULL DEFAULT 'active',expires_at TEXT,hwid TEXT,note TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL);CREATE TABLE IF NOT EXISTS audit_logs(id INTEGER PRIMARY KEY AUTOINCREMENT,action TEXT NOT NULL,license_id INTEGER,key TEXT,detail TEXT NOT NULL DEFAULT '',ip TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL);`);
 app.use(express.json({limit:'64kb'}));app.use(express.urlencoded({extended:false}));app.use(session({secret:process.env.SESSION_SECRET||'change-this-secret',resave:false,saveUninitialized:false,cookie:{httpOnly:true,sameSite:'lax',secure:process.env.COOKIE_SECURE==='true',maxAge:8*60*60*1000}}));app.use(express.static(path.join(__dirname,'public')));
 const now=()=>new Date().toISOString(),ip=req=>String(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0].trim();
