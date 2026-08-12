@@ -1,8 +1,5 @@
 node_modules/
 .env
-*.db
 *.db-shm
 *.db-wal
-*.sqlite
-*.sqlite3
-npm-debug.log*
+licenses.db
