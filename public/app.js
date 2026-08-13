@@ -1,1094 +1,1397 @@
+```javascript
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
 let licenses = [];
-let authMode = 'login';
 let currentUser = null;
+let adminLoggedIn = false;
 
-async function api(url, opt = {}) {
- const r = await fetch(url, {
-  credentials: 'same-origin',
-  headers: {
-   'Content-Type': 'application/json',
-   ...(opt.headers || {})
-  },
-  ...opt
- });
-
- const d = await r.json().catch(() => ({}));
-
- if (!r.ok) {
-  throw Error(d.error || 'Có lỗi xảy ra');
- }
-
- return d;
-}
-
-const esc = v =>
- String(v ?? '').replace(
-  /[&<>"']/g,
-  m => ({
-   '&': '&amp;',
-   '<': '&lt;',
-   '>': '&gt;',
-   '"': '&quot;',
-   "'": '&#39;'
-  }[m])
- );
 
 /* =========================
-   PUBLIC
+   API
 ========================= */
 
-async function loadPublicDownloads() {
- const items = await api('/api/downloads');
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
 
- const html = items.map(x => `
-  <article class="download-card">
+  const data = await response.json().catch(() => ({}));
 
-   ${
-    x.image_url
-     ? `<img
-        src="${esc(x.image_url)}"
-        alt="${esc(x.title)}"
-        onerror="this.style.display='none'">`
-     : ''
-   }
-
-   <div class="download-body">
-
-    <h3>${esc(x.title)}</h3>
-
-    <p>
-     ${esc(
-      x.description ||
-      'Không có mô tả'
-     )}
-    </p>
-
-    <div class="download-links">
-
-     <button
-      onclick="downloadItem(${x.id})">
-      Cài đặt / Tải xuống
-     </button>
-
-    </div>
-
-   </div>
-
-  </article>
- `).join('');
-
- $('#publicDownloadList').innerHTML =
-  html ||
-  '<div class="panel empty-state">Chưa có phần mềm.</div>';
-}
-
-window.downloadItem = async id => {
- try {
-  const d = await api(
-   `/api/downloads/${id}/access`
-  );
-
-  window.open(
-   d.download_url,
-   '_blank',
-   'noopener'
-  );
- } catch (e) {
-
-  if (e.message.includes('đăng nhập')) {
-   openGuestLogin();
-   return;
+  if (!response.ok) {
+    throw new Error(data.error || 'Có lỗi xảy ra');
   }
 
-  alert(e.message);
- }
-};
+  return data;
+}
+
+
+/* =========================
+   UTILITIES
+========================= */
+
+function esc(value) {
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char])
+  );
+}
+
+function showToast(message, type = 'normal') {
+  const toast = $('#toast');
+
+  toast.textContent = message;
+  toast.className = `show ${type}`;
+
+  setTimeout(() => {
+    toast.className = '';
+  }, 3000);
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+
+  try {
+    return new Date(value).toLocaleString('vi-VN');
+  } catch {
+    return value;
+  }
+}
+
+
+/* =========================
+   PUBLIC NAVIGATION
+========================= */
 
 function showPublicPage(page) {
- $('#homePage').classList.toggle(
-  'hidden',
-  page !== 'home'
- );
 
- $('#publicDownloadsPage').classList.toggle(
-  'hidden',
-  page !== 'downloads'
- );
+  $$('.page').forEach(x => {
+    x.classList.add('hidden');
+  });
 
- if (page === 'downloads') {
-  loadPublicDownloads();
- }
-}
+  const target = $(`#${page}Page`);
 
-/* =========================
-   GUEST AUTH
-========================= */
-
-function openGuestLogin() {
- authMode = 'login';
-
- $('#authTitle').textContent =
-  'Đăng nhập tài khoản khách';
-
- $('#authDescription').textContent =
-  'Đăng nhập để tải phần mềm.';
-
- $('#authSubmit').textContent =
-  'Đăng nhập';
-
- $('#authMsg').textContent = '';
-
- $('#authUsername').value = '';
- $('#authPassword').value = '';
-
- $('#authDialog').showModal();
-}
-
-function openGuestRegister() {
- authMode = 'register';
-
- $('#authTitle').textContent =
-  'Tạo tài khoản khách';
-
- $('#authDescription').textContent =
-  'Đăng ký miễn phí để tải phần mềm.';
-
- $('#authSubmit').textContent =
-  'Đăng ký';
-
- $('#authMsg').textContent = '';
-
- $('#authUsername').value = '';
- $('#authPassword').value = '';
-
- $('#authDialog').showModal();
-}
-
-$('#guestLoginBtn').onclick =
- openGuestLogin;
-
-$('#guestRegisterBtn').onclick =
- openGuestRegister;
-
-$('#authCancel').onclick =
- () => $('#authDialog').close();
-
-$('#authForm').onsubmit = async e => {
- e.preventDefault();
-
- const username =
-  $('#authUsername').value.trim();
-
- const password =
-  $('#authPassword').value;
-
- $('#authMsg').textContent =
-  'Đang xử lý...';
-
- try {
-
-  const endpoint =
-   authMode === 'register'
-    ? '/api/auth/register'
-    : '/api/auth/login';
-
-  const d = await api(
-   endpoint,
-   {
-    method: 'POST',
-    body: JSON.stringify({
-     username,
-     password
-    })
-   }
-  );
-
-  $('#authDialog').close();
-
-  await loadCurrentUser();
-
-  if (d.role === 'guest') {
-   showGuest();
+  if (target) {
+    target.classList.remove('hidden');
   }
 
- } catch (e) {
-  $('#authMsg').textContent =
-   e.message;
- }
-};
+  $$('.nav-btn').forEach(btn => {
+    btn.classList.toggle(
+      'active',
+      btn.dataset.page === page
+    );
+  });
+
+  if (page === 'downloads') {
+    loadPublicDownloads();
+  }
+
+  if (page === 'account') {
+    loadAccount();
+  }
+}
+
+$$('.nav-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    showPublicPage(button.dataset.page);
+  });
+});
+
+$$('[data-page-target]').forEach(button => {
+  button.addEventListener('click', () => {
+    showPublicPage(button.dataset.pageTarget);
+  });
+});
+
 
 /* =========================
-   ADMIN LOGIN
+   DIALOGS
 ========================= */
 
-$('#adminLoginBtn').onclick =
- () => $('#adminLoginDialog').showModal();
+function openDialog(id) {
+  const dialog = $(`#${id}`);
 
-$('#adminLoginCancel').onclick =
- () => $('#adminLoginDialog').close();
+  if (dialog) {
+    dialog.showModal();
+  }
+}
 
-$('#adminLoginForm').onsubmit =
- async e => {
+function closeDialog(id) {
+  const dialog = $(`#${id}`);
 
-  e.preventDefault();
+  if (dialog) {
+    dialog.close();
+  }
+}
 
-  $('#adminLoginMsg').textContent =
-   'Đang đăng nhập...';
+$$('[data-close]').forEach(button => {
+  button.addEventListener('click', () => {
+    closeDialog(button.dataset.close);
+  });
+});
+
+
+/* =========================
+   LOGIN
+========================= */
+
+$('#loginBtn').onclick = () => {
+  $('#loginMsg').textContent = '';
+  $('#loginForm').reset();
+  openDialog('loginDialog');
+};
+
+$('#heroRegister').onclick = () => {
+  if (currentUser) {
+    showPublicPage('account');
+    return;
+  }
+
+  $('#registerMsg').textContent = '';
+  $('#registerForm').reset();
+  openDialog('registerDialog');
+};
+
+$('#registerBtn').onclick = () => {
+  $('#registerMsg').textContent = '';
+  $('#registerForm').reset();
+  openDialog('registerDialog');
+};
+
+$('#switchRegister').onclick = () => {
+  closeDialog('loginDialog');
+
+  setTimeout(() => {
+    openDialog('registerDialog');
+  }, 150);
+};
+
+$('#switchLogin').onclick = () => {
+  closeDialog('registerDialog');
+
+  setTimeout(() => {
+    openDialog('loginDialog');
+  }, 150);
+};
+
+
+$('#loginForm').onsubmit = async event => {
+  event.preventDefault();
+
+  const username = $('#loginUsername').value.trim();
+  const password = $('#loginPassword').value;
+
+  $('#loginMsg').textContent = 'Đang đăng nhập...';
+
+  try {
+    const result = await api('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password
+      })
+    });
+
+    currentUser = result;
+
+    closeDialog('loginDialog');
+
+    updateUserUI();
+
+    showToast(
+      `Đăng nhập thành công. Xin chào ${result.username}!`,
+      'success'
+    );
+
+  } catch (error) {
+    $('#loginMsg').textContent = error.message;
+  }
+};
+
+
+/* =========================
+   REGISTER
+========================= */
+
+$('#registerForm').onsubmit = async event => {
+  event.preventDefault();
+
+  const username = $('#registerUsername').value.trim();
+  const password = $('#registerPassword').value;
+
+  $('#registerMsg').textContent = 'Đang tạo tài khoản...';
 
   try {
 
-   await api(
-    '/api/admin/login',
-    {
-     method: 'POST',
-     body: JSON.stringify({
-      username:
-       $('#adminUsername').value,
-      password:
-       $('#adminPassword').value
-     })
-    }
-   );
+    const result = await api('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password
+      })
+    });
 
-   $('#adminLoginDialog').close();
+    currentUser = result;
 
-   await loadCurrentUser();
+    closeDialog('registerDialog');
 
-   showAdmin();
+    updateUserUI();
 
-  } catch (e) {
+    showToast(
+      'Đăng ký thành công!',
+      'success'
+    );
 
-   $('#adminLoginMsg').textContent =
-    e.message;
+  } catch (error) {
+    $('#registerMsg').textContent = error.message;
   }
- };
+};
+
+
+/* =========================
+   USER UI
+========================= */
+
+function updateUserUI() {
+
+  if (!currentUser) {
+
+    $('#guestActions').classList.remove('hidden');
+    $('#userActions').classList.add('hidden');
+    $('#accountNav').classList.add('hidden');
+
+    return;
+  }
+
+  $('#guestActions').classList.add('hidden');
+  $('#userActions').classList.remove('hidden');
+  $('#accountNav').classList.remove('hidden');
+
+  const name = currentUser.username || 'User';
+  const first = name.charAt(0).toUpperCase();
+
+  $('#sideUsername').textContent = name;
+  $('#userAvatar').textContent = first;
+
+  $('#accountUsername').textContent = name;
+  $('#accountNameInfo').textContent = name;
+  $('#accountAvatar').textContent = first;
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+$('#logoutBtn').onclick = async () => {
+
+  try {
+    await api('/api/auth/logout', {
+      method: 'POST'
+    });
+
+    currentUser = null;
+
+    updateUserUI();
+
+    showPublicPage('home');
+
+    showToast(
+      'Đã đăng xuất',
+      'success'
+    );
+
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
 
 /* =========================
    CURRENT USER
 ========================= */
 
-async function loadCurrentUser() {
- try {
-  currentUser =
-   await api('/api/auth/me');
+async function checkUser() {
 
-  return currentUser;
+  try {
 
- } catch {
-  currentUser = null;
-  return null;
- }
+    const result = await api('/api/auth/me');
+
+    currentUser = result;
+
+    updateUserUI();
+
+  } catch {
+
+    currentUser = null;
+
+    updateUserUI();
+  }
 }
+
 
 /* =========================
-   VIEW SWITCHING
+   PUBLIC DOWNLOADS
 ========================= */
 
-function showPublic() {
+async function getDownloads() {
 
- $('#publicView')
-  .classList.remove('hidden');
-
- $('#guestView')
-  .classList.add('hidden');
-
- $('#adminView')
-  .classList.add('hidden');
+  return await api('/api/downloads');
 }
 
-function showGuest() {
 
- $('#publicView')
-  .classList.add('hidden');
+function downloadCard(item) {
 
- $('#guestView')
-  .classList.remove('hidden');
+  const image = item.image_url
+    ? `
+      <div class="download-image">
+        <img
+          src="${esc(item.image_url)}"
+          alt="${esc(item.title)}"
+          onerror="this.parentElement.classList.add('image-error')"
+        >
+      </div>
+    `
+    : `
+      <div class="download-image no-image">
+        <span>AV</span>
+      </div>
+    `;
 
- $('#adminView')
-  .classList.add('hidden');
+  return `
+    <article class="download-card">
 
- $('#guestUsername').textContent =
-  currentUser?.username || '';
+      ${image}
 
- showGuestPage('downloads');
+      <div class="download-body">
 
- loadGuestDownloads();
+        <div class="download-title-row">
+          <h3>${esc(item.title)}</h3>
+          <span class="download-badge">SOFTWARE</span>
+        </div>
+
+        <p>
+          ${esc(item.description || 'Chưa có mô tả.')}
+        </p>
+
+        <button
+          class="download-button"
+          onclick="downloadItem(${item.id})"
+        >
+          <span>↓</span>
+          Tải xuống
+        </button>
+
+      </div>
+
+    </article>
+  `;
 }
+
+
+async function loadPublicDownloads() {
+
+  const containers = [
+    $('#homeDownloads'),
+    $('#downloadsList')
+  ];
+
+  containers.forEach(container => {
+    if (container) {
+      container.innerHTML = `
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      `;
+    }
+  });
+
+  try {
+
+    const data = await getDownloads();
+
+    const html = data.length
+      ? data.map(downloadCard).join('')
+      : `
+        <div class="empty-card">
+          Hiện chưa có phần mềm nào được đăng tải.
+        </div>
+      `;
+
+    containers.forEach(container => {
+      if (container) {
+        container.innerHTML = html;
+      }
+    });
+
+  } catch (error) {
+
+    containers.forEach(container => {
+      if (container) {
+        container.innerHTML = `
+          <div class="empty-card">
+            Không thể tải danh sách.
+          </div>
+        `;
+      }
+    });
+  }
+}
+
+
+/* =========================
+   DOWNLOAD ACCESS
+========================= */
+
+window.downloadItem = async id => {
+
+  if (!currentUser) {
+
+    showToast(
+      'Bạn cần đăng ký hoặc đăng nhập để tải xuống.',
+      'error'
+    );
+
+    openDialog('loginDialog');
+
+    return;
+  }
+
+  try {
+
+    const result = await api(
+      `/api/downloads/${id}/access`
+    );
+
+    if (result.download_url) {
+
+      window.open(
+        result.download_url,
+        '_blank',
+        'noopener'
+      );
+
+      showToast(
+        'Đang mở link tải xuống...',
+        'success'
+      );
+    }
+
+  } catch (error) {
+
+    if (
+      error.message.includes('đăng nhập') ||
+      error.message.includes('tài khoản')
+    ) {
+      currentUser = null;
+      updateUserUI();
+
+      openDialog('loginDialog');
+
+      return;
+    }
+
+    showToast(
+      error.message,
+      'error'
+    );
+  }
+};
+
+
+/* =========================
+   ACCOUNT
+========================= */
+
+async function loadAccount() {
+
+  if (!currentUser) {
+
+    showPublicPage('home');
+
+    openDialog('loginDialog');
+
+    return;
+  }
+
+  $('#accountUsername').textContent =
+    currentUser.username;
+
+  $('#accountNameInfo').textContent =
+    currentUser.username;
+
+  try {
+
+    const logs = await api(
+      '/api/account/logs'
+    );
+
+    $('#accountLogs').innerHTML =
+      logs.length
+        ? logs.map(row => `
+          <tr>
+            <td>${formatDate(row.created_at)}</td>
+            <td>${esc(row.action)}</td>
+            <td>${esc(row.detail || '—')}</td>
+            <td>${esc(row.ip || '—')}</td>
+          </tr>
+        `).join('')
+        : `
+          <tr>
+            <td colspan="4">
+              Chưa có hoạt động.
+            </td>
+          </tr>
+        `;
+
+  } catch {
+
+    $('#accountLogs').innerHTML = `
+      <tr>
+        <td colspan="4">
+          Không thể tải nhật ký.
+        </td>
+      </tr>
+    `;
+  }
+}
+
+
+/* =========================
+   ADMIN LOGIN
+========================= */
+
+$('#adminBtn').onclick = () => {
+
+  if (adminLoggedIn) {
+    showAdmin();
+    return;
+  }
+
+  $('#adminLoginMsg').textContent = '';
+  $('#adminLoginForm').reset();
+
+  openDialog('adminLoginDialog');
+};
+
+
+$('#adminLoginForm').onsubmit = async event => {
+
+  event.preventDefault();
+
+  $('#adminLoginMsg').textContent =
+    'Đang kiểm tra...';
+
+  try {
+
+    const result = await api(
+      '/api/admin/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          username:
+            $('#adminUsernameInput').value.trim(),
+
+          password:
+            $('#adminPasswordInput').value
+        })
+      }
+    );
+
+    adminLoggedIn = true;
+
+    closeDialog('adminLoginDialog');
+
+    showAdmin();
+
+    showToast(
+      'Đăng nhập Admin thành công',
+      'success'
+    );
+
+  } catch (error) {
+
+    $('#adminLoginMsg').textContent =
+      error.message;
+  }
+};
+
+
+/* =========================
+   SHOW ADMIN
+========================= */
 
 function showAdmin() {
 
- $('#publicView')
-  .classList.add('hidden');
+  $('#publicApp').classList.add('hidden');
+  $('#adminApp').classList.remove('hidden');
 
- $('#guestView')
-  .classList.add('hidden');
-
- $('#adminView')
-  .classList.remove('hidden');
-
- loadAdmin();
-
+  loadAdminDashboard();
 }
+
 
 /* =========================
-   GUEST PAGES
+   BACK TO WEB
 ========================= */
 
-function showGuestPage(page) {
+$('#backToWeb').onclick = () => {
 
- $('#guestDownloadsPage')
-  .classList.toggle(
-   'hidden',
-   page !== 'downloads'
-  );
+  $('#adminApp').classList.add('hidden');
+  $('#publicApp').classList.remove('hidden');
 
- $('#accountPage')
-  .classList.toggle(
-   'hidden',
-   page !== 'account'
-  );
-
- $('#guestLogsPage')
-  .classList.toggle(
-   'hidden',
-   page !== 'logs'
-  );
-
- if (page === 'downloads')
-  loadGuestDownloads();
-
- if (page === 'logs')
-  loadGuestLogs();
-}
-
-$('#guestDownloadsNav').onclick =
- () => showGuestPage('downloads');
-
-$('#guestAccountNav').onclick =
- () => showGuestPage('account');
-
-$('#guestLogsNav').onclick =
- () => showGuestPage('logs');
-
-$('#guestLogout').onclick =
- async () => {
-
-  await api(
-   '/api/auth/logout',
-   { method: 'POST' }
-  );
-
-  currentUser = null;
-
-  showPublic();
   showPublicPage('home');
- };
+};
+
 
 /* =========================
-   GUEST DOWNLOADS
+   ADMIN NAVIGATION
 ========================= */
 
-async function loadGuestDownloads() {
+$$('.admin-nav').forEach(button => {
 
- const items =
-  await api('/api/downloads');
+  button.addEventListener('click', () => {
 
- const html =
-  items.map(x => `
+    const page = button.dataset.adminPage;
 
-   <article class="download-card">
+    $$('.admin-page').forEach(section => {
+      section.classList.add('hidden');
+    });
 
-    ${
-     x.image_url
-      ? `<img
-         src="${esc(x.image_url)}"
-         alt="${esc(x.title)}"
-         onerror="this.style.display='none'">`
-      : ''
+    const target = {
+      dashboard: '#adminDashboard',
+      keys: '#adminKeys',
+      adminDownloads: '#adminDownloads',
+      logs: '#adminLogs',
+      api: '#adminApi'
+    }[page];
+
+    if (target) {
+      $(target).classList.remove('hidden');
     }
 
-    <div class="download-body">
+    $$('.admin-nav').forEach(x => {
+      x.classList.remove('active');
+    });
 
-     <h3>
-      ${esc(x.title)}
-     </h3>
+    button.classList.add('active');
 
-     <p>
-      ${esc(
-       x.description ||
-       'Không có mô tả'
-      )}
-     </p>
+    if (page === 'dashboard') {
+      loadAdminDashboard();
+    }
 
-     <div class="download-links">
+    if (page === 'keys') {
+      loadKeys();
+    }
 
-      <button
-       onclick="downloadItem(${x.id})">
-       Cài đặt / Tải xuống
-      </button>
+    if (page === 'adminDownloads') {
+      loadAdminDownloads();
+    }
 
-     </div>
+    if (page === 'logs') {
+      loadAdminLogs();
+    }
+  });
+});
 
-    </div>
-
-   </article>
-
-  `).join('');
-
- $('#guestDownloadList').innerHTML =
-  html ||
-  '<div class="panel empty-state">Chưa có phần mềm.</div>';
-}
 
 /* =========================
-   GUEST LOGS
+   ADMIN DASHBOARD
 ========================= */
 
-async function loadGuestLogs() {
+async function loadAdminDashboard() {
 
- const rows =
-  await api('/api/account/logs');
+  try {
 
- $('#guestLogsRows').innerHTML =
-  rows.map(x => `
+    const data =
+      await api('/api/admin/stats');
 
-   <tr>
-    <td>
-     ${esc(
-      x.created_at
-       .replace('T', ' ')
-       .slice(0, 19)
-     )}
-    </td>
+    $('#sTotal').textContent =
+      data.total ?? 0;
 
-    <td>
-     ${esc(x.action)}
-    </td>
+    $('#sActive').textContent =
+      data.active ?? 0;
 
-    <td>
-     ${esc(x.detail)}
-    </td>
+    $('#sBanned').textContent =
+      data.banned ?? 0;
 
-    <td>
-     ${esc(x.ip)}
-    </td>
-   </tr>
+    $('#sBound').textContent =
+      data.bound ?? 0;
 
-  `).join('') ||
-  '<tr><td colspan="4">Chưa có nhật ký</td></tr>';
-}
+  } catch (error) {
 
-/* =========================
-   PUBLIC NAV
-========================= */
-
-$('#publicHomeBtn').onclick =
- () => showPublicPage('home');
-
-$('#publicDownloadsBtn').onclick =
- () => showPublicPage('downloads');
-
-$('#heroDownloadBtn').onclick =
- () => showPublicPage('downloads');
-
-/* =========================
-   ADMIN
-========================= */
-
-async function loadAdmin() {
-
- try {
-  await stats();
-  await loadKeys();
- } catch (e) {
-  console.error(e);
- }
-}
-
-async function stats() {
-
- const d =
-  await api('/api/admin/stats');
-
- for (
-  const k of [
-   'Total',
-   'Active',
-   'Banned',
-   'Bound'
-  ]
- ) {
-  const el =
-   $('#s' + k);
-
-  if (el) {
-   el.textContent =
-    d[k.toLowerCase()] ?? 0;
+    if (error.message.includes('Admin')) {
+      adminLoggedIn = false;
+      return;
+    }
   }
- }
 }
+
+
+/* =========================
+   ADMIN KEYS
+========================= */
 
 async function loadKeys() {
 
- licenses =
-  await api(
-   '/api/admin/licenses?q=' +
-   encodeURIComponent(
-    $('#search').value
-   ) +
-   '&status=' +
-   $('#filter').value
-  );
-
- $('#rows').innerHTML =
-  licenses.map(r => `
-
-   <tr>
-
-    <td>
-     <code>${esc(r.key)}</code>
-
-     <button
-      class="copy-key"
-      onclick="copyKey(${r.id})">
-      📋 Sao chép
-     </button>
-    </td>
-
-    <td>
-     ${esc(r.status)}
-    </td>
-
-    <td>
-     ${
-      r.expires_at
-       ? new Date(
-          r.expires_at
-         ).toLocaleString('vi-VN')
-       : 'Vĩnh viễn'
-     }
-    </td>
-
-    <td>
-     ${esc(r.hwid || '—')}
-    </td>
-
-    <td>
-     ${esc(r.note)}
-    </td>
-
-    <td class="actions">
-
-     <button
-      onclick="toggleKey(
-       ${r.id},
-       '${r.status === 'banned'
-        ? 'active'
-        : 'banned'}'
-      )">
-
-      ${
-       r.status === 'banned'
-        ? 'Mở khóa'
-        : 'Khóa'
-      }
-
-     </button>
-
-     <button
-      onclick="resetHwid(${r.id})">
-      Reset HWID
-     </button>
-
-     <button
-      onclick="delKey(${r.id})">
-      Xóa
-     </button>
-
-    </td>
-
-   </tr>
-
-  `).join('') ||
-  '<tr><td colspan="6">Chưa có key</td></tr>';
-}
-
-/* =========================
-   ADMIN DOWNLOADS
-========================= */
-
-async function loadDownloads() {
-
- const d =
-  await api('/api/admin/downloads');
-
- $('#downloadList').innerHTML =
-  d.map(x => `
-
-   <article class="download-card">
-
-    ${
-     x.image_url
-      ? `<img
-         src="${esc(x.image_url)}"
-         alt="${esc(x.title)}"
-         onerror="this.style.display='none'">`
-      : ''
-    }
-
-    <div class="download-body">
-
-     <h3>
-      ${esc(x.title)}
-     </h3>
-
-     <p>
-      ${esc(
-       x.description ||
-       'Không có mô tả'
-      )}
-     </p>
-
-     <div class="download-links">
-
-      <a
-       href="${esc(x.download_url)}"
-       target="_blank"
-       rel="noopener">
-       Tải xuống ↗
-      </a>
-
-      <button
-       onclick="editDownload(${x.id})">
-       Sửa
-      </button>
-
-      <button
-       onclick="deleteDownload(${x.id})">
-       Xóa
-      </button>
-
-     </div>
-
-    </div>
-
-   </article>
-
-  `).join('') ||
-  '<div class="panel empty-state">Chưa có mục tải xuống.</div>';
-}
-
-function openDownloadForm(item = null) {
-
- $('#downloadDialogTitle').textContent =
-  item
-   ? 'Sửa mục tải xuống'
-   : 'Thêm mục tải xuống';
-
- $('#downloadId').value =
-  item?.id || '';
-
- $('#downloadTitle').value =
-  item?.title || '';
-
- $('#downloadDescription').value =
-  item?.description || '';
-
- $('#downloadImage').value =
-  item?.image_url || '';
-
- $('#downloadUrl').value =
-  item?.download_url || '';
-
- $('#downloadDialog').showModal();
-}
-
-window.editDownload =
- async id => {
-
-  const d =
-   await api('/api/admin/downloads');
-
-  openDownloadForm(
-   d.find(x => x.id === id)
-  );
- };
-
-window.deleteDownload =
- async id => {
-
-  if (
-   !confirm(
-    'Xóa mục tải xuống này?'
-   )
-  ) return;
-
-  await api(
-   '/api/admin/downloads/' + id,
-   { method: 'DELETE' }
-  );
-
-  await loadDownloads();
- };
-
-$('#addDownload').onclick =
- () => openDownloadForm();
-
-$('#downloadCancel').onclick =
- () => $('#downloadDialog').close();
-
-$('#downloadForm').onsubmit =
- async e => {
-
-  e.preventDefault();
-
   try {
 
-   const body = {
-    title:
-     $('#downloadTitle').value,
+    licenses = await api(
+      '/api/admin/licenses?q=' +
+      encodeURIComponent($('#search').value) +
+      '&status=' +
+      $('#filter').value
+    );
 
-    description:
-     $('#downloadDescription').value,
+    $('#rows').innerHTML =
+      licenses.length
+        ? licenses.map(row => `
 
-    image_url:
-     $('#downloadImage').value,
+          <tr>
 
-    download_url:
-     $('#downloadUrl').value
-   };
+            <td>
+              <code>${esc(row.key)}</code>
 
-   const id =
-    $('#downloadId').value;
+              <button
+                class="small-btn copy-key"
+                onclick="copyKey(${row.id})"
+              >
+                Sao chép
+              </button>
+            </td>
 
-   await api(
-    '/api/admin/downloads' +
-    (id ? '/' + id : ''),
-    {
-     method: id
-      ? 'PATCH'
-      : 'POST',
+            <td>
+              <span class="status ${esc(row.status)}">
+                ${esc(row.status)}
+              </span>
+            </td>
 
-     body:
-      JSON.stringify(body)
-    }
-   );
+            <td>
+              ${
+                row.expires_at
+                  ? formatDate(row.expires_at)
+                  : 'Vĩnh viễn'
+              }
+            </td>
 
-   $('#downloadDialog').close();
+            <td>
+              ${esc(row.hwid || '—')}
+            </td>
 
-   await loadDownloads();
+            <td>
+              ${esc(row.note || '—')}
+            </td>
 
-  } catch (e) {
-   alert(e.message);
+            <td class="actions">
+
+              <button
+                class="small-btn"
+                onclick="toggleKey(
+                  ${row.id},
+                  '${row.status === 'banned' ? 'active' : 'banned'}'
+                )"
+              >
+                ${
+                  row.status === 'banned'
+                    ? 'Mở khóa'
+                    : 'Khóa'
+                }
+              </button>
+
+              <button
+                class="small-btn"
+                onclick="resetHwid(${row.id})"
+              >
+                Reset HWID
+              </button>
+
+              <button
+                class="small-btn danger-btn"
+                onclick="deleteKey(${row.id})"
+              >
+                Xóa
+              </button>
+
+            </td>
+
+          </tr>
+
+        `).join('')
+        : `
+          <tr>
+            <td colspan="6">
+              Chưa có key.
+            </td>
+          </tr>
+        `;
+
+  } catch (error) {
+
+    showToast(
+      error.message,
+      'error'
+    );
   }
- };
-
-/* =========================
-   ADMIN LICENSE CREATE
-========================= */
-
-function create(bulk = false) {
-
- $('#dialogTitle').textContent =
-  bulk
-   ? 'Tạo Key hàng loạt'
-   : 'Tạo License Key';
-
- $('#count').value =
-  bulk ? 10 : 1;
-
- $('#created').textContent = '';
-
- $('#dialog').showModal();
 }
 
-$('#form').onsubmit =
- async e => {
 
-  e.preventDefault();
+$('#search').oninput = loadKeys;
+$('#filter').onchange = loadKeys;
 
-  try {
-
-   const body = {
-    count:
-     +$('#count').value,
-
-    duration_days:
-     +$('#duration').value,
-
-    note:
-     $('#note').value
-   };
-
-   const d =
-    body.count > 1
-     ? await api(
-        '/api/admin/licenses/bulk',
-        {
-         method: 'POST',
-         body:
-          JSON.stringify(body)
-        }
-       )
-     : await api(
-        '/api/admin/licenses',
-        {
-         method: 'POST',
-         body:
-          JSON.stringify(body)
-        }
-       );
-
-   $('#created').textContent =
-    d.licenses
-     ? d.licenses
-       .map(x => x.key)
-       .join('\n')
-     : d.license.key;
-
-   await stats();
-   await loadKeys();
-   await logs();
-
-  } catch (e) {
-   alert(e.message);
-  }
- };
-
-$('#cancel').onclick =
- () => $('#dialog').close();
-
-$('#quickCreate').onclick =
- () => create();
-
-$('#createKey').onclick =
- () => create();
-
-$('#bulkCreate').onclick =
- () => create(true);
-
-$('#search').oninput =
- loadKeys;
-
-$('#filter').onchange =
- loadKeys;
 
 /* =========================
-   COPY / LICENSE ACTIONS
+   COPY KEY
 ========================= */
 
-window.copyKey =
- async id => {
+window.copyKey = async id => {
 
   const row =
-   licenses.find(
-    x => x.id === id
-   );
+    licenses.find(x => x.id === id);
 
   if (!row) return;
 
   try {
 
-   await navigator.clipboard
-    .writeText(row.key);
+    await navigator.clipboard.writeText(
+      row.key
+    );
 
-   alert('Đã sao chép key');
+    showToast(
+      'Đã sao chép key',
+      'success'
+    );
 
   } catch {
 
-   prompt(
-    'Sao chép key:',
-    row.key
-   );
+    prompt(
+      'Sao chép key:',
+      row.key
+    );
   }
- };
+};
 
-window.toggleKey =
- async (id, status) => {
-
-  await api(
-   '/api/admin/licenses/' + id,
-   {
-    method: 'PATCH',
-    body:
-     JSON.stringify({ status })
-   }
-  );
-
-  await stats();
-  await loadKeys();
-  await logs();
- };
-
-window.resetHwid =
- async id => {
-
-  if (!confirm('Reset HWID?'))
-   return;
-
-  await api(
-   '/api/admin/licenses/' +
-   id +
-   '/reset-hwid',
-   { method: 'POST' }
-  );
-
-  await loadKeys();
-  await logs();
- };
-
-window.delKey =
- async id => {
-
-  if (!confirm('Xóa key?'))
-   return;
-
-  await api(
-   '/api/admin/licenses/' + id,
-   { method: 'DELETE' }
-  );
-
-  await stats();
-  await loadKeys();
-  await logs();
- };
 
 /* =========================
-   ADMIN NAV
+   CREATE KEY
 ========================= */
 
-$$('.nav').forEach(b => {
+function openLicenseForm(bulk = false) {
 
- b.onclick = () => {
+  $('#licenseDialogTitle').textContent =
+    bulk
+      ? 'Tạo License Key hàng loạt'
+      : 'Tạo License Key';
 
-  $$('.nav').forEach(x =>
-   x.classList.remove('active')
-  );
+  $('#count').value =
+    bulk ? 10 : 1;
 
-  b.classList.add('active');
+  $('#created').textContent = '';
 
-  $$('.page').forEach(x =>
-   x.classList.add('hidden')
-  );
+  openDialog('licenseDialog');
+}
 
-  const page =
-   $('#' + b.dataset.page);
 
-  page.classList.remove('hidden');
+$('#quickCreate').onclick =
+  () => openLicenseForm(false);
 
-  $('#title').textContent =
-   b.textContent.trim();
+$('#createKey').onclick =
+  () => openLicenseForm(false);
 
-  if (
-   b.dataset.page === 'keys'
-  )
-   loadKeys();
+$('#bulkCreate').onclick =
+  () => openLicenseForm(true);
 
-  if (
-   b.dataset.page === 'logs'
-  )
-   logs();
 
-  if (
-   b.dataset.page === 'downloads'
-  )
-   loadDownloads();
- };
-});
+$('#licenseCancel').onclick =
+  () => closeDialog('licenseDialog');
 
-$('#adminLogout').onclick =
- async () => {
 
-  await api(
-   '/api/admin/logout',
-   { method: 'POST' }
-  );
+$('#licenseForm').onsubmit =
+  async event => {
 
-  currentUser = null;
+    event.preventDefault();
 
-  showPublic();
-  showPublicPage('home');
- };
+    const count =
+      Number($('#count').value);
+
+    const duration =
+      Number($('#duration').value);
+
+    const note =
+      $('#note').value;
+
+    try {
+
+      const body = {
+        count,
+        duration_days: duration,
+        note
+      };
+
+      const result =
+        count > 1
+          ? await api(
+              '/api/admin/licenses/bulk',
+              {
+                method: 'POST',
+                body: JSON.stringify(body)
+              }
+            )
+          : await api(
+              '/api/admin/licenses',
+              {
+                method: 'POST',
+                body: JSON.stringify(body)
+              }
+            );
+
+      $('#created').textContent =
+        result.licenses
+          ? result.licenses
+              .map(x => x.key)
+              .join('\n')
+          : result.license.key;
+
+      await loadAdminDashboard();
+      await loadKeys();
+
+      showToast(
+        'Tạo key thành công',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+/* =========================
+   KEY ACTIONS
+========================= */
+
+window.toggleKey =
+  async (id, status) => {
+
+    try {
+
+      await api(
+        `/api/admin/licenses/${id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ status })
+        }
+      );
+
+      await loadAdminDashboard();
+      await loadKeys();
+      await loadAdminLogs();
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+window.resetHwid =
+  async id => {
+
+    if (!confirm('Reset HWID của key này?')) {
+      return;
+    }
+
+    try {
+
+      await api(
+        `/api/admin/licenses/${id}/reset-hwid`,
+        {
+          method: 'POST'
+        }
+      );
+
+      await loadKeys();
+      await loadAdminLogs();
+
+      showToast(
+        'Đã reset HWID',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+window.deleteKey =
+  async id => {
+
+    if (!confirm('Xóa key này?')) {
+      return;
+    }
+
+    try {
+
+      await api(
+        `/api/admin/licenses/${id}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      await loadAdminDashboard();
+      await loadKeys();
+      await loadAdminLogs();
+
+      showToast(
+        'Đã xóa key',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
 
 /* =========================
    ADMIN LOGS
 ========================= */
 
-async function logs() {
+async function loadAdminLogs() {
 
- const d =
-  await api('/api/admin/logs');
+  try {
 
- $('#logsRows').innerHTML =
-  d.map(x => `
+    const data =
+      await api('/api/admin/logs');
 
-   <tr>
+    $('#logsRows').innerHTML =
+      data.length
+        ? data.map(row => `
+          <tr>
+            <td>${formatDate(row.created_at)}</td>
+            <td>${esc(row.action)}</td>
+            <td>${esc(row.key || '—')}</td>
+            <td>${esc(row.detail || '—')}</td>
+            <td>${esc(row.ip || '—')}</td>
+          </tr>
+        `).join('')
+        : `
+          <tr>
+            <td colspan="5">
+              Chưa có nhật ký.
+            </td>
+          </tr>
+        `;
 
-    <td>
-     ${esc(
-      x.created_at
-       .replace('T', ' ')
-       .slice(0, 19)
-     )}
-    </td>
+  } catch (error) {
 
-    <td>
-     ${esc(x.action)}
-    </td>
-
-    <td>
-     ${esc(x.key || '—')}
-    </td>
-
-    <td>
-     ${esc(x.detail)}
-    </td>
-
-    <td>
-     ${esc(x.ip)}
-    </td>
-
-   </tr>
-
-  `).join('');
+    showToast(
+      error.message,
+      'error'
+    );
+  }
 }
 
+
 /* =========================
-   START
+   ADMIN DOWNLOADS
 ========================= */
 
-(async () => {
+async function loadAdminDownloads() {
 
- await loadPublicDownloads();
+  try {
 
- try {
+    const data =
+      await api('/api/admin/downloads');
 
-  const user =
-   await api('/api/auth/me');
+    $('#adminDownloadList').innerHTML =
+      data.length
+        ? data.map(item => `
+          <article class="download-card">
 
-  currentUser = user;
+            ${
+              item.image_url
+                ? `
+                  <div class="download-image">
+                    <img
+                      src="${esc(item.image_url)}"
+                      alt="${esc(item.title)}"
+                    >
+                  </div>
+                `
+                : `
+                  <div class="download-image no-image">
+                    <span>AV</span>
+                  </div>
+                `
+            }
 
-  if (
-   user.role === 'admin'
-  ) {
-   showAdmin();
+            <div class="download-body">
 
-  } else if (
-   user.role === 'guest'
-  ) {
-   showGuest();
+              <div class="download-title-row">
+                <h3>${esc(item.title)}</h3>
+                <span class="download-badge">
+                  SOFTWARE
+                </span>
+              </div>
 
-  } else {
-   showPublic();
+              <p>
+                ${esc(item.description || 'Không có mô tả')}
+              </p>
+
+              <div class="admin-download-actions">
+
+                <button
+                  class="small-btn"
+                  onclick="editDownload(${item.id})"
+                >
+                  Sửa
+                </button>
+
+                <button
+                  class="small-btn danger-btn"
+                  onclick="deleteDownload(${item.id})"
+                >
+                  Xóa
+                </button>
+
+              </div>
+
+            </div>
+
+          </article>
+        `).join('')
+        : `
+          <div class="empty-card">
+            Chưa có mục tải xuống.
+          </div>
+        `;
+
+  } catch (error) {
+
+    showToast(
+      error.message,
+      'error'
+    );
   }
+}
 
- } catch {
 
-  showPublic();
-  showPublicPage('home');
- }
+function openDownloadForm(item = null) {
+
+  $('#downloadDialogTitle').textContent =
+    item
+      ? 'Sửa mục tải xuống'
+      : 'Thêm mục tải xuống';
+
+  $('#downloadId').value =
+    item?.id || '';
+
+  $('#downloadTitle').value =
+    item?.title || '';
+
+  $('#downloadDescription').value =
+    item?.description || '';
+
+  $('#downloadImage').value =
+    item?.image_url || '';
+
+  $('#downloadUrl').value =
+    item?.download_url || '';
+
+  openDialog('downloadDialog');
+}
+
+
+$('#addDownload').onclick =
+  () => openDownloadForm();
+
+
+$('#downloadCancel').onclick =
+  () => closeDialog('downloadDialog');
+
+
+$('#downloadForm').onsubmit =
+  async event => {
+
+    event.preventDefault();
+
+    const id =
+      $('#downloadId').value;
+
+    const body = {
+      title: $('#downloadTitle').value,
+      description: $('#downloadDescription').value,
+      image_url: $('#downloadImage').value,
+      download_url: $('#downloadUrl').value
+    };
+
+    try {
+
+      await api(
+        '/api/admin/downloads' +
+        (id ? `/${id}` : ''),
+        {
+          method: id ? 'PATCH' : 'POST',
+          body: JSON.stringify(body)
+        }
+      );
+
+      closeDialog('downloadDialog');
+
+      await loadAdminDownloads();
+
+      await loadPublicDownloads();
+
+      showToast(
+        id
+          ? 'Đã cập nhật mục tải xuống'
+          : 'Đã thêm mục tải xuống',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+window.editDownload =
+  async id => {
+
+    try {
+
+      const data =
+        await api('/api/admin/downloads');
+
+      const item =
+        data.find(x => x.id === id);
+
+      if (item) {
+        openDownloadForm(item);
+      }
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+window.deleteDownload =
+  async id => {
+
+    if (!confirm('Xóa mục tải xuống này?')) {
+      return;
+    }
+
+    try {
+
+      await api(
+        `/api/admin/downloads/${id}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      await loadAdminDownloads();
+      await loadPublicDownloads();
+
+      showToast(
+        'Đã xóa mục tải xuống',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+/* =========================
+   ADMIN LOGOUT
+========================= */
+
+$('#adminLogout').onclick =
+  async () => {
+
+    try {
+
+      await api(
+        '/api/admin/logout',
+        {
+          method: 'POST'
+        }
+      );
+
+      adminLoggedIn = false;
+
+      $('#adminApp').classList.add('hidden');
+      $('#publicApp').classList.remove('hidden');
+
+      showPublicPage('home');
+
+      showToast(
+        'Đã đăng xuất Admin',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+
+/* =========================
+   INIT
+========================= */
+
+(async function init() {
+
+  await checkUser();
+
+  await loadPublicDownloads();
 
 })();
+```

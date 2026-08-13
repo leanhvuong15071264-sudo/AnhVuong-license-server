@@ -1,588 +1,712 @@
+```html
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AnhVuong License</title>
-<link rel="stylesheet" href="/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.">
+  <title>AnhVuong License</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
 
-<div id="publicView">
+<div id="toast"></div>
 
-<header class="public-header">
- <div class="brand">AV<span>LICENSE</span></div>
+<!-- =========================
+     PUBLIC APP
+========================= -->
+<div id="publicApp">
 
- <nav>
-  <button id="publicHomeBtn">Trang chủ</button>
-  <button id="publicDownloadsBtn">Tải xuống</button>
- </nav>
+  <aside class="sidebar">
 
- <div class="public-account">
-  <button id="guestLoginBtn">Đăng nhập</button>
-  <button id="guestRegisterBtn">Đăng ký</button>
-  <button id="adminLoginBtn">Admin</button>
- </div>
-</header>
+    <div class="sidebar-brand">
+      <div class="brand-mark">AV</div>
+      <div>
+        <strong>AnhVuong</strong>
+        <span>LICENSE</span>
+      </div>
+    </div>
 
-<main class="public-main">
+    <nav class="main-nav">
+      <button class="nav-btn active" data-page="home">
+        <span>⌂</span>
+        Trang chủ
+      </button>
 
-<section id="homePage" class="public-page">
+      <button class="nav-btn" data-page="downloads">
+        <span>↓</span>
+        Tải xuống
+      </button>
 
- <div class="hero">
-  <div>
-   <small>ANHVUONG LICENSE</small>
-   <h1>Nền tảng<br>phần mềm AnhVuong.</h1>
-   <p>
-    Xem phần mềm, thông tin và tải xuống
-    từ hệ thống AnhVuong.
-   </p>
+      <button class="nav-btn hidden" id="accountNav" data-page="account">
+        <span>♙</span>
+        Tài khoản
+      </button>
+    </nav>
 
-   <button id="heroDownloadBtn">
-    Khám phá tải xuống
-   </button>
-  </div>
+    <div class="sidebar-bottom">
 
-  <b>AV</b>
- </div>
+      <div id="guestActions">
+        <button class="side-action" id="loginBtn">
+          Đăng nhập
+        </button>
 
-</section>
+        <button class="side-action primary" id="registerBtn">
+          Đăng ký tài khoản
+        </button>
+      </div>
 
-<section id="publicDownloadsPage"
- class="public-page hidden">
+      <div id="userActions" class="hidden">
+        <div class="user-mini">
+          <div class="avatar" id="userAvatar">U</div>
+          <div>
+            <strong id="sideUsername">Khách</strong>
+            <span>Tài khoản khách</span>
+          </div>
+        </div>
 
- <div class="download-toolbar">
-  <div>
-   <h2>Kho tải xuống</h2>
-   <p>
-    Xem thông tin phần mềm và nội dung mới nhất.
-    Đăng nhập tài khoản khách để tải xuống.
-   </p>
-  </div>
- </div>
+        <button class="side-action" id="logoutBtn">
+          Đăng xuất
+        </button>
+      </div>
 
- <div id="publicDownloadList"
-      class="download-grid"></div>
+      <button class="admin-link" id="adminBtn">
+        ⚙ Admin
+      </button>
 
-</section>
+    </div>
 
-</main>
+  </aside>
+
+  <main class="content">
+
+    <!-- HOME -->
+    <section id="homePage" class="page">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Trang chủ</h1>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div class="hero-content">
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+
+          <h2>
+            Hệ thống dịch vụ hỗ trợ game
+            <span>uy tín & chất lượng.</span>
+          </h2>
+
+          <p>
+            AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.
+          </p>
+
+          <div class="hero-description">
+            <p>
+              Chúng tôi cung cấp các giải pháp hỗ trợ kỹ thuật,
+              tối ưu hệ thống và tư vấn cấu hình game.
+            </p>
+
+            <p>
+              Hoàn toàn không can thiệp vào game, đảm bảo an toàn
+              cho tài khoản và thiết bị của bạn.
+            </p>
+          </div>
+
+          <div class="hero-buttons">
+            <button class="primary-btn" data-page-target="downloads">
+              Xem sản phẩm
+            </button>
+
+            <button class="secondary-btn" id="heroRegister">
+              Đăng ký tài khoản
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-logo">
+          <div class="hero-logo-inner">
+            <span>AV</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">SOFTWARE</span>
+          <h2>Tải xuống</h2>
+        </div>
+
+        <button class="text-btn" data-page-target="downloads">
+          Xem tất cả →
+        </button>
+      </div>
+
+      <div id="homeDownloads" class="download-grid">
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- DOWNLOADS -->
+    <section id="downloadsPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Tải xuống</h1>
+          <p class="top-description">
+            Xem thông tin phần mềm và tải xuống sau khi đăng nhập.
+          </p>
+        </div>
+      </div>
+
+      <div id="downloadsList" class="download-grid large-grid">
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ACCOUNT -->
+    <section id="accountPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ACCOUNT</span>
+          <h1>Tài khoản</h1>
+        </div>
+      </div>
+
+      <div class="account-card">
+
+        <div class="account-header">
+          <div class="big-avatar" id="accountAvatar">U</div>
+
+          <div>
+            <span class="eyebrow">TÀI KHOẢN KHÁCH</span>
+            <h2 id="accountUsername">Khách</h2>
+            <p>Tài khoản khách AnhVuong License</p>
+          </div>
+        </div>
+
+        <div class="account-info">
+          <div>
+            <span>Tên tài khoản</span>
+            <strong id="accountNameInfo">—</strong>
+          </div>
+
+          <div>
+            <span>Loại tài khoản</span>
+            <strong>Tài khoản khách</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">ACTIVITY</span>
+          <h2>Nhật ký tài khoản</h2>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Chi tiết</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+
+          <tbody id="accountLogs">
+            <tr>
+              <td colspan="4">Đang tải...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
 
 </div>
 
 
-<!-- GUEST ACCOUNT -->
+<!-- =========================
+     ADMIN APP
+========================= -->
+<div id="adminApp" class="hidden">
 
-<div id="guestView" class="hidden">
+  <aside class="sidebar admin-sidebar">
 
-<header class="public-header">
- <div class="brand">AV<span>LICENSE</span></div>
+    <div class="sidebar-brand">
+      <div class="brand-mark">AV</div>
+      <div>
+        <strong>AnhVuong</strong>
+        <span>ADMIN</span>
+      </div>
+    </div>
 
- <nav>
-  <button id="guestDownloadsNav">Tải xuống</button>
-  <button id="guestAccountNav">Tài khoản</button>
-  <button id="guestLogsNav">Nhật ký</button>
- </nav>
+    <nav class="main-nav">
 
- <button id="guestLogout">
-  Đăng xuất
- </button>
-</header>
+      <button class="admin-nav active" data-admin-page="dashboard">
+        <span>⌂</span>
+        Tổng quan
+      </button>
 
-<main class="public-main">
+      <button class="admin-nav" data-admin-page="keys">
+        <span>◆</span>
+        License Keys
+      </button>
 
-<section id="guestDownloadsPage"
- class="public-page">
+      <button class="admin-nav" data-admin-page="adminDownloads">
+        <span>↓</span>
+        Tải xuống
+      </button>
 
- <div class="download-toolbar">
-  <div>
-   <h2>Kho tải xuống</h2>
-   <p>
-    Bạn đã đăng nhập và có thể tải xuống.
-   </p>
-  </div>
- </div>
+      <button class="admin-nav" data-admin-page="logs">
+        <span>≡</span>
+        Nhật ký
+      </button>
 
- <div id="guestDownloadList"
-      class="download-grid"></div>
+      <button class="admin-nav" data-admin-page="api">
+        <span>&lt;/&gt;</span>
+        API
+      </button>
 
-</section>
+    </nav>
 
-<section id="accountPage"
- class="public-page hidden">
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong id="adminUsername">Admin</strong>
+          <span>Quản trị viên</span>
+        </div>
+      </div>
 
- <div class="panel">
-  <h2>Tài khoản khách</h2>
-  <p>
-   Tên tài khoản:
-   <strong id="guestUsername"></strong>
-  </p>
+      <button class="side-action" id="backToWeb">
+        ← Về trang chủ
+      </button>
 
-  <span class="role-badge">
-   GUEST
-  </span>
- </div>
+      <button class="side-action danger" id="adminLogout">
+        Đăng xuất Admin
+      </button>
+    </div>
 
-</section>
+  </aside>
 
-<section id="guestLogsPage"
- class="public-page hidden">
 
- <div class="panel table">
-  <h2>Nhật ký tài khoản</h2>
+  <main class="content admin-content">
 
-  <table>
-   <thead>
-    <tr>
-     <th>Thời gian</th>
-     <th>Hoạt động</th>
-     <th>Chi tiết</th>
-     <th>IP</th>
-    </tr>
-   </thead>
+    <!-- ADMIN DASHBOARD -->
+    <section id="adminDashboard" class="admin-page">
 
-   <tbody id="guestLogsRows"></tbody>
-  </table>
- </div>
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ADMIN CONSOLE</span>
+          <h1>Tổng quan</h1>
+        </div>
 
-</section>
+        <button class="primary-btn" id="quickCreate">
+          + Tạo Key
+        </button>
+      </div>
 
-</main>
+      <section class="admin-hero">
+        <div>
+          <span class="eyebrow">LICENSE CONTROL</span>
+          <h2>Quản lý license<br>đơn giản hơn.</h2>
+          <p>
+            Kiểm soát key, HWID và thời hạn từ một bảng điều khiển.
+          </p>
+        </div>
+
+        <div class="admin-hero-logo">AV</div>
+      </section>
+
+      <div class="stats">
+
+        <div class="stat-card">
+          <span>Tổng Key</span>
+          <strong id="sTotal">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Hoạt động</span>
+          <strong id="sActive">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Bị khóa</span>
+          <strong id="sBanned">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Đã bind HWID</span>
+          <strong id="sBound">0</strong>
+        </div>
+
+      </div>
+
+      <div class="panel status-panel">
+        <span class="status-dot"></span>
+        API đang hoạt động
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN KEYS -->
+    <section id="adminKeys" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LICENSE MANAGEMENT</span>
+          <h1>License Keys</h1>
+        </div>
+
+        <button class="primary-btn" id="createKey">
+          + Tạo Key
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" placeholder="Tìm key, HWID hoặc ghi chú...">
+
+        <select id="filter">
+          <option value="all">Tất cả</option>
+          <option value="active">Hoạt động</option>
+          <option value="banned">Bị khóa</option>
+          <option value="disabled">Vô hiệu</option>
+        </select>
+
+        <button class="secondary-btn" id="bulkCreate">
+          Tạo hàng loạt
+        </button>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Trạng thái</th>
+              <th>Hạn</th>
+              <th>HWID</th>
+              <th>Ghi chú</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN DOWNLOADS -->
+    <section id="adminDownloads" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">DOWNLOAD MANAGEMENT</span>
+          <h1>Tải xuống</h1>
+        </div>
+
+        <button class="primary-btn" id="addDownload">
+          + Thêm mục
+        </button>
+      </div>
+
+      <div id="adminDownloadList" class="download-grid">
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN LOGS -->
+    <section id="adminLogs" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">AUDIT</span>
+          <h1>Nhật ký</h1>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Key</th>
+              <th>Chi tiết</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+
+          <tbody id="logsRows"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN API -->
+    <section id="adminApi" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">DEVELOPER</span>
+          <h1>Client API</h1>
+        </div>
+      </div>
+
+      <div class="panel api-panel">
+
+        <h3>Kích hoạt License</h3>
+
+        <pre>POST /api/license/activate
+
+{
+  "key": "AAAAA-BBBBB-CCCCC-DDDDD",
+  "hwid": "client-hwid"
+}</pre>
+
+        <h3>Kiểm tra License</h3>
+
+        <pre>POST /api/license/validate
+
+{
+  "key": "AAAAA-BBBBB-CCCCC-DDDDD",
+  "hwid": "client-hwid"
+}</pre>
+
+      </div>
+
+    </section>
+
+  </main>
 
 </div>
 
 
-<!-- ADMIN -->
+<!-- =========================
+     LOGIN DIALOG
+========================= -->
+<dialog id="loginDialog">
 
-<div id="adminView" class="hidden">
+  <form id="loginForm" class="dialog">
 
-<aside>
+    <button type="button" class="dialog-close" data-close="loginDialog">
+      ×
+    </button>
 
- <div class="brand">
-  AV<span>LICENSE</span>
- </div>
+    <span class="eyebrow">ANHVUONG ACCOUNT</span>
+    <h2>Đăng nhập</h2>
+    <p>Đăng nhập tài khoản khách để tải xuống.</p>
 
- <nav>
-  <button class="nav active"
-   data-page="dashboard">
-   Tổng quan
-  </button>
+    <label>Tên tài khoản</label>
+    <input id="loginUsername" required autocomplete="username">
 
-  <button class="nav"
-   data-page="keys">
-   License Keys
-  </button>
+    <label>Mật khẩu</label>
+    <input id="loginPassword" type="password" required autocomplete="current-password">
 
-  <button class="nav"
-   data-page="downloads">
-   Tải xuống
-  </button>
+    <div id="loginMsg" class="form-message"></div>
 
-  <button class="nav"
-   data-page="logs">
-   Nhật ký
-  </button>
+    <button class="primary-btn full" type="submit">
+      Đăng nhập
+    </button>
 
-  <button class="nav"
-   data-page="api">
-   API
-  </button>
- </nav>
+    <button type="button" class="dialog-link" id="switchRegister">
+      Chưa có tài khoản? Đăng ký
+    </button>
 
- <button id="adminLogout">
-  Đăng xuất
- </button>
-
-</aside>
-
-<main>
-
-<header>
- <div>
-  <small>ANHVUONG LICENSE</small>
-  <h2 id="title">Tổng quan</h2>
- </div>
-
- <button id="quickCreate">
-  + Tạo Key
- </button>
-</header>
-
-<section id="dashboard"
- class="page">
-
- <div class="hero">
-  <div>
-   <small>LICENSE CONTROL</small>
-
-   <h1>
-    Quản lý license<br>
-    đơn giản hơn.
-   </h1>
-
-   <p>
-    Kiểm soát key, HWID và thời hạn
-    từ một bảng điều khiển.
-   </p>
-  </div>
-
-  <b>AV</b>
- </div>
-
- <div class="stats">
-
-  <div>
-   <span>Tổng Key</span>
-   <b id="sTotal">0</b>
-  </div>
-
-  <div>
-   <span>Hoạt động</span>
-   <b id="sActive">0</b>
-  </div>
-
-  <div>
-   <span>Bị khóa</span>
-   <b id="sBanned">0</b>
-  </div>
-
-  <div>
-   <span>Đã bind HWID</span>
-   <b id="sBound">0</b>
-  </div>
-
- </div>
-
- <div class="panel">
-  <h3>Trạng thái hệ thống</h3>
-  <p>🟢 API đang hoạt động</p>
- </div>
-
-</section>
-
-
-<section id="keys"
- class="page hidden">
-
- <div class="toolbar">
-
-  <input id="search"
-   placeholder="Tìm key, HWID hoặc ghi chú...">
-
-  <select id="filter">
-   <option value="all">Tất cả</option>
-   <option value="active">Hoạt động</option>
-   <option value="banned">Bị khóa</option>
-   <option value="disabled">Vô hiệu</option>
-  </select>
-
-  <button id="createKey">
-   + Tạo Key
-  </button>
-
-  <button id="bulkCreate">
-   Tạo hàng loạt
-  </button>
-
- </div>
-
- <div class="panel table">
-
-  <table>
-
-   <thead>
-    <tr>
-     <th>Key</th>
-     <th>Trạng thái</th>
-     <th>Hạn</th>
-     <th>HWID</th>
-     <th>Ghi chú</th>
-     <th>Thao tác</th>
-    </tr>
-   </thead>
-
-   <tbody id="rows"></tbody>
-
-  </table>
-
- </div>
-
-</section>
-
-
-<section id="downloads"
- class="page hidden">
-
- <div class="download-toolbar">
-
-  <div>
-   <h3>Kho tải xuống</h3>
-   <p>
-    Quản lý phần mềm, hình ảnh,
-    mô tả và link tải.
-   </p>
-  </div>
-
-  <button id="addDownload">
-   + Thêm mục
-  </button>
-
- </div>
-
- <div id="downloadList"
-      class="download-grid">
- </div>
-
-</section>
-
-
-<section id="logs"
- class="page hidden">
-
- <div class="panel table">
-
-  <table>
-
-   <thead>
-    <tr>
-     <th>Thời gian</th>
-     <th>Hành động</th>
-     <th>Key</th>
-     <th>Chi tiết</th>
-     <th>IP</th>
-    </tr>
-   </thead>
-
-   <tbody id="logsRows"></tbody>
-
-  </table>
-
- </div>
-
-</section>
-
-
-<section id="api"
- class="page hidden">
-
- <div class="panel">
-
-  <h3>Client API</h3>
-
-  <pre>POST /api/license/activate
-{"key":"AAAAA-BBBBB-CCCCC-DDDDD","hwid":"client-hwid"}</pre>
-
-  <pre>POST /api/license/validate
-{"key":"AAAAA-BBBBB-CCCCC-DDDDD","hwid":"client-hwid"}</pre>
-
- </div>
-
-</section>
-
-</main>
-
-</div>
-
-
-<!-- LOGIN / REGISTER -->
-
-<dialog id="authDialog">
-
- <form id="authForm"
-       class="dialog">
-
-  <h2 id="authTitle">
-   Đăng nhập tài khoản khách
-  </h2>
-
-  <p id="authDescription">
-   Đăng nhập để tải phần mềm.
-  </p>
-
-  <label>Tên tài khoản</label>
-
-  <input id="authUsername"
-   required
-   minlength="3"
-   maxlength="32"
-   placeholder="Tên tài khoản">
-
-  <label>Mật khẩu</label>
-
-  <input id="authPassword"
-   type="password"
-   required
-   minlength="6"
-   placeholder="Mật khẩu">
-
-  <div id="authMsg"></div>
-
-  <div>
-   <button type="button"
-    id="authCancel">
-    Hủy
-   </button>
-
-   <button id="authSubmit">
-    Đăng nhập
-   </button>
-  </div>
-
- </form>
+  </form>
 
 </dialog>
 
 
-<!-- ADMIN LOGIN -->
+<!-- =========================
+     REGISTER DIALOG
+========================= -->
+<dialog id="registerDialog">
 
+  <form id="registerForm" class="dialog">
+
+    <button type="button" class="dialog-close" data-close="registerDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">CREATE ACCOUNT</span>
+    <h2>Tạo tài khoản</h2>
+    <p>Tạo tài khoản khách miễn phí để tải xuống.</p>
+
+    <label>Tên tài khoản</label>
+    <input id="registerUsername" minlength="3" maxlength="32" required>
+
+    <label>Mật khẩu</label>
+    <input id="registerPassword" type="password" minlength="6" required>
+
+    <div class="form-hint">
+      Tên tài khoản: 3-32 ký tự, chỉ chữ, số và dấu _.
+    </div>
+
+    <div id="registerMsg" class="form-message"></div>
+
+    <button class="primary-btn full" type="submit">
+      Đăng ký
+    </button>
+
+    <button type="button" class="dialog-link" id="switchLogin">
+      Đã có tài khoản? Đăng nhập
+    </button>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================
+     ADMIN LOGIN
+========================= -->
 <dialog id="adminLoginDialog">
 
- <form id="adminLoginForm"
-       class="dialog">
+  <form id="adminLoginForm" class="dialog">
 
-  <h2>Admin Console</h2>
+    <button type="button" class="dialog-close" data-close="adminLoginDialog">
+      ×
+    </button>
 
-  <label>Tài khoản Admin</label>
+    <span class="eyebrow">ADMIN CONSOLE</span>
+    <h2>Đăng nhập Admin</h2>
+    <p>Khu vực dành riêng cho quản trị viên.</p>
 
-  <input id="adminUsername"
-   required>
+    <label>Tài khoản Admin</label>
+    <input id="adminUsernameInput" required>
 
-  <label>Mật khẩu</label>
+    <label>Mật khẩu</label>
+    <input id="adminPasswordInput" type="password" required>
 
-  <input id="adminPassword"
-   type="password"
-   required>
+    <div id="adminLoginMsg" class="form-message"></div>
 
-  <div id="adminLoginMsg"></div>
+    <button class="primary-btn full" type="submit">
+      Vào Admin
+    </button>
 
-  <div>
-   <button type="button"
-    id="adminLoginCancel">
-    Hủy
-   </button>
-
-   <button>
-    Đăng nhập
-   </button>
-  </div>
-
- </form>
+  </form>
 
 </dialog>
 
 
-<!-- DOWNLOAD ADMIN DIALOG -->
-
+<!-- =========================
+     DOWNLOAD DIALOG
+========================= -->
 <dialog id="downloadDialog">
 
- <form id="downloadForm"
-       class="dialog">
+  <form id="downloadForm" class="dialog">
 
-  <h2 id="downloadDialogTitle">
-   Thêm mục tải xuống
-  </h2>
+    <button type="button" class="dialog-close" data-close="downloadDialog">
+      ×
+    </button>
 
-  <label>Tên</label>
+    <span class="eyebrow">DOWNLOAD MANAGER</span>
+    <h2 id="downloadDialogTitle">Thêm mục tải xuống</h2>
 
-  <input id="downloadTitle"
-   maxlength="120"
-   placeholder="Tên phần mềm">
+    <label>Tên</label>
+    <input id="downloadTitle" maxlength="120" required>
 
-  <label>Mô tả</label>
+    <label>Mô tả</label>
+    <textarea id="downloadDescription" maxlength="2000"></textarea>
 
-  <textarea id="downloadDescription"
-   maxlength="2000"
-   placeholder="Mô tả ngắn..."></textarea>
+    <label>Link hình ảnh</label>
+    <input id="downloadImage" maxlength="2000" placeholder="https://...">
 
-  <label>Link hình ảnh</label>
+    <label>Link tải xuống</label>
+    <input id="downloadUrl" maxlength="2000" placeholder="https://..." required>
 
-  <input id="downloadImage"
-   maxlength="2000"
-   placeholder="https://.../image.png">
+    <input id="downloadId" type="hidden">
 
-  <label>Link tải xuống</label>
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="downloadCancel">
+        Hủy
+      </button>
 
-  <input id="downloadUrl"
-   maxlength="2000"
-   placeholder="https://.../file.zip"
-   required>
+      <button class="primary-btn" type="submit">
+        Lưu
+      </button>
+    </div>
 
-  <input id="downloadId"
-   type="hidden">
-
-  <div>
-
-   <button type="button"
-    id="downloadCancel">
-    Hủy
-   </button>
-
-   <button>
-    Lưu
-   </button>
-
-  </div>
-
- </form>
+  </form>
 
 </dialog>
 
 
-<!-- KEY DIALOG -->
+<!-- =========================
+     LICENSE DIALOG
+========================= -->
+<dialog id="licenseDialog">
 
-<dialog id="dialog">
+  <form id="licenseForm" class="dialog">
 
- <form id="form"
-       class="dialog">
+    <button type="button" class="dialog-close" data-close="licenseDialog">
+      ×
+    </button>
 
-  <h2 id="dialogTitle">
-   Tạo License Key
-  </h2>
+    <span class="eyebrow">LICENSE MANAGER</span>
 
-  <label>Số lượng</label>
+    <h2 id="licenseDialogTitle">
+      Tạo License Key
+    </h2>
 
-  <input id="count"
-   type="number"
-   min="1"
-   max="500"
-   value="1">
+    <label>Số lượng</label>
+    <input id="count" type="number" min="1" max="500" value="1">
 
-  <label>
-   Thời hạn
-   (ngày, 0 = vĩnh viễn)
-  </label>
+    <label>Thời hạn (ngày)</label>
+    <input id="duration" type="number" min="0" value="30">
 
-  <input id="duration"
-   type="number"
-   min="0"
-   value="30">
+    <div class="form-hint">
+      Nhập 0 nếu muốn tạo key vĩnh viễn.
+    </div>
 
-  <label>Ghi chú</label>
+    <label>Ghi chú</label>
+    <input id="note" maxlength="500" placeholder="Khách hàng #001">
 
-  <input id="note"
-   placeholder="Khách hàng #001">
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="licenseCancel">
+        Hủy
+      </button>
 
-  <div>
+      <button class="primary-btn" type="submit">
+        Tạo Key
+      </button>
+    </div>
 
-   <button type="button"
-    id="cancel">
-    Hủy
-   </button>
+    <pre id="created" class="created-keys"></pre>
 
-   <button>
-    Tạo Key
-   </button>
-
-  </div>
-
-  <pre id="created"></pre>
-
- </form>
+  </form>
 
 </dialog>
+
 
 <script src="/app.js"></script>
 
 </body>
 </html>
+```
