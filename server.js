@@ -9,7 +9,7 @@ const path = require('path');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
-const db = new Database('licenses.db');
+const db = new Database('/data/licenses.db');
 
 app.set('trust proxy', 1);
 
