@@ -1,3 +1,588 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AnhVuong License</title><link rel="stylesheet" href="/styles.css"></head><body><div id="loginView" class="auth"><form id="loginForm" class="card"><div class="brand">AV<span>LICENSE</span></div><small>ADMIN CONSOLE</small><h1>Chào mừng trở lại</h1><p>Quản lý license của AnhVuong.</p><input id="username" placeholder="Tên đăng nhập" required><input id="password" type="password" placeholder="Mật khẩu" required><button>Đăng nhập</button><div id="loginMsg"></div></form></div><div id="appView" class="hidden"><aside><div class="brand">AV<span>LICENSE</span></div><nav><button class="nav active" data-page="dashboard">Tổng quan</button><button class="nav" data-page="keys">License Keys</button><button class="nav" data-page="downloads">Tải xuống</button><button class="nav" data-page="logs">Nhật ký</button><button class="nav" data-page="api">API</button></nav><button id="logout">Đăng xuất</button></aside><main><header><div><small>ANHVUONG LICENSE</small><h2 id="title">Tổng quan</h2></div><button id="quickCreate">+ Tạo Key</button></header><section id="dashboard" class="page"><div class="hero"><div><small>LICENSE CONTROL</small><h1>Quản lý license<br>đơn giản hơn.</h1><p>Kiểm soát key, HWID và thời hạn từ một bảng điều khiển.</p></div><b>AV</b></div><div class="stats"><div><span>Tổng Key</span><b id="sTotal">0</b></div><div><span>Hoạt động</span><b id="sActive">0</b></div><div><span>Bị khóa</span><b id="sBanned">0</b></div><div><span>Đã bind HWID</span><b id="sBound">0</b></div></div><div class="panel"><h3>Trạng thái hệ thống</h3><p>🟢 API đang hoạt động</p></div></section><section id="keys" class="page hidden"><div class="toolbar"><input id="search" placeholder="Tìm key, HWID hoặc ghi chú..."><select id="filter"><option value="all">Tất cả</option><option value="active">Hoạt động</option><option value="banned">Bị khóa</option><option value="disabled">Vô hiệu</option></select><button id="createKey">+ Tạo Key</button><button id="bulkCreate">Tạo hàng loạt</button></div><div class="panel table"><table><thead><tr><th>Key</th><th>Trạng thái</th><th>Hạn</th><th>HWID</th><th>Ghi chú</th><th>Thao tác</th></tr></thead><tbody id="rows"></tbody></table></div></section><section id="downloads" class="page hidden"><div class="download-toolbar"><div><h3>Kho tải xuống</h3><p>Thêm link phần mềm, ảnh xem trước và mô tả cho người dùng.</p></div><button id="addDownload">+ Thêm mục</button></div><div id="downloadList" class="download-grid"></div></section><section id="logs" class="page hidden"><div class="panel table"><table><thead><tr><th>Thời gian</th><th>Hành động</th><th>Key</th><th>Chi tiết</th><th>IP</th></tr></thead><tbody id="logsRows"></tbody></table></div></section><section id="api" class="page hidden"><div class="panel"><h3>Client API</h3><pre>POST /api/license/activate
-{"key":"AAAAA-BBBBB-CCCCC-DDDDD","hwid":"client-hwid"}</pre><pre>POST /api/license/validate
-{"key":"AAAAA-BBBBB-CCCCC-DDDDD","hwid":"client-hwid"}</pre></div></section></main></div><dialog id="downloadDialog"><form id="downloadForm" class="dialog"><h2 id="downloadDialogTitle">Thêm mục tải xuống</h2><label>Tên</label><input id="downloadTitle" maxlength="120" placeholder="Tên phần mềm"><label>Mô tả</label><textarea id="downloadDescription" maxlength="2000" placeholder="Mô tả ngắn..."></textarea><label>Link hình ảnh</label><input id="downloadImage" maxlength="2000" placeholder="https://.../image.png"><label>Link tải xuống</label><input id="downloadUrl" maxlength="2000" placeholder="https://.../file.zip" required><input id="downloadId" type="hidden"><div><button type="button" id="downloadCancel">Hủy</button><button>Lưu</button></div></form></dialog><dialog id="dialog"><form id="form" class="dialog"><h2 id="dialogTitle">Tạo License Key</h2><label>Số lượng</label><input id="count" type="number" min="1" max="500" value="1"><label>Thời hạn (ngày, 0 = vĩnh viễn)</label><input id="duration" type="number" min="0" value="30"><label>Ghi chú</label><input id="note" placeholder="Khách hàng #001"><div><button type="button" id="cancel">Hủy</button><button>Tạo Key</button></div><pre id="created"></pre></form></dialog><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AnhVuong License</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+
+<div id="publicView">
+
+<header class="public-header">
+ <div class="brand">AV<span>LICENSE</span></div>
+
+ <nav>
+  <button id="publicHomeBtn">Trang chủ</button>
+  <button id="publicDownloadsBtn">Tải xuống</button>
+ </nav>
+
+ <div class="public-account">
+  <button id="guestLoginBtn">Đăng nhập</button>
+  <button id="guestRegisterBtn">Đăng ký</button>
+  <button id="adminLoginBtn">Admin</button>
+ </div>
+</header>
+
+<main class="public-main">
+
+<section id="homePage" class="public-page">
+
+ <div class="hero">
+  <div>
+   <small>ANHVUONG LICENSE</small>
+   <h1>Nền tảng<br>phần mềm AnhVuong.</h1>
+   <p>
+    Xem phần mềm, thông tin và tải xuống
+    từ hệ thống AnhVuong.
+   </p>
+
+   <button id="heroDownloadBtn">
+    Khám phá tải xuống
+   </button>
+  </div>
+
+  <b>AV</b>
+ </div>
+
+</section>
+
+<section id="publicDownloadsPage"
+ class="public-page hidden">
+
+ <div class="download-toolbar">
+  <div>
+   <h2>Kho tải xuống</h2>
+   <p>
+    Xem thông tin phần mềm và nội dung mới nhất.
+    Đăng nhập tài khoản khách để tải xuống.
+   </p>
+  </div>
+ </div>
+
+ <div id="publicDownloadList"
+      class="download-grid"></div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- GUEST ACCOUNT -->
+
+<div id="guestView" class="hidden">
+
+<header class="public-header">
+ <div class="brand">AV<span>LICENSE</span></div>
+
+ <nav>
+  <button id="guestDownloadsNav">Tải xuống</button>
+  <button id="guestAccountNav">Tài khoản</button>
+  <button id="guestLogsNav">Nhật ký</button>
+ </nav>
+
+ <button id="guestLogout">
+  Đăng xuất
+ </button>
+</header>
+
+<main class="public-main">
+
+<section id="guestDownloadsPage"
+ class="public-page">
+
+ <div class="download-toolbar">
+  <div>
+   <h2>Kho tải xuống</h2>
+   <p>
+    Bạn đã đăng nhập và có thể tải xuống.
+   </p>
+  </div>
+ </div>
+
+ <div id="guestDownloadList"
+      class="download-grid"></div>
+
+</section>
+
+<section id="accountPage"
+ class="public-page hidden">
+
+ <div class="panel">
+  <h2>Tài khoản khách</h2>
+  <p>
+   Tên tài khoản:
+   <strong id="guestUsername"></strong>
+  </p>
+
+  <span class="role-badge">
+   GUEST
+  </span>
+ </div>
+
+</section>
+
+<section id="guestLogsPage"
+ class="public-page hidden">
+
+ <div class="panel table">
+  <h2>Nhật ký tài khoản</h2>
+
+  <table>
+   <thead>
+    <tr>
+     <th>Thời gian</th>
+     <th>Hoạt động</th>
+     <th>Chi tiết</th>
+     <th>IP</th>
+    </tr>
+   </thead>
+
+   <tbody id="guestLogsRows"></tbody>
+  </table>
+ </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- ADMIN -->
+
+<div id="adminView" class="hidden">
+
+<aside>
+
+ <div class="brand">
+  AV<span>LICENSE</span>
+ </div>
+
+ <nav>
+  <button class="nav active"
+   data-page="dashboard">
+   Tổng quan
+  </button>
+
+  <button class="nav"
+   data-page="keys">
+   License Keys
+  </button>
+
+  <button class="nav"
+   data-page="downloads">
+   Tải xuống
+  </button>
+
+  <button class="nav"
+   data-page="logs">
+   Nhật ký
+  </button>
+
+  <button class="nav"
+   data-page="api">
+   API
+  </button>
+ </nav>
+
+ <button id="adminLogout">
+  Đăng xuất
+ </button>
+
+</aside>
+
+<main>
+
+<header>
+ <div>
+  <small>ANHVUONG LICENSE</small>
+  <h2 id="title">Tổng quan</h2>
+ </div>
+
+ <button id="quickCreate">
+  + Tạo Key
+ </button>
+</header>
+
+<section id="dashboard"
+ class="page">
+
+ <div class="hero">
+  <div>
+   <small>LICENSE CONTROL</small>
+
+   <h1>
+    Quản lý license<br>
+    đơn giản hơn.
+   </h1>
+
+   <p>
+    Kiểm soát key, HWID và thời hạn
+    từ một bảng điều khiển.
+   </p>
+  </div>
+
+  <b>AV</b>
+ </div>
+
+ <div class="stats">
+
+  <div>
+   <span>Tổng Key</span>
+   <b id="sTotal">0</b>
+  </div>
+
+  <div>
+   <span>Hoạt động</span>
+   <b id="sActive">0</b>
+  </div>
+
+  <div>
+   <span>Bị khóa</span>
+   <b id="sBanned">0</b>
+  </div>
+
+  <div>
+   <span>Đã bind HWID</span>
+   <b id="sBound">0</b>
+  </div>
+
+ </div>
+
+ <div class="panel">
+  <h3>Trạng thái hệ thống</h3>
+  <p>🟢 API đang hoạt động</p>
+ </div>
+
+</section>
+
+
+<section id="keys"
+ class="page hidden">
+
+ <div class="toolbar">
+
+  <input id="search"
+   placeholder="Tìm key, HWID hoặc ghi chú...">
+
+  <select id="filter">
+   <option value="all">Tất cả</option>
+   <option value="active">Hoạt động</option>
+   <option value="banned">Bị khóa</option>
+   <option value="disabled">Vô hiệu</option>
+  </select>
+
+  <button id="createKey">
+   + Tạo Key
+  </button>
+
+  <button id="bulkCreate">
+   Tạo hàng loạt
+  </button>
+
+ </div>
+
+ <div class="panel table">
+
+  <table>
+
+   <thead>
+    <tr>
+     <th>Key</th>
+     <th>Trạng thái</th>
+     <th>Hạn</th>
+     <th>HWID</th>
+     <th>Ghi chú</th>
+     <th>Thao tác</th>
+    </tr>
+   </thead>
+
+   <tbody id="rows"></tbody>
+
+  </table>
+
+ </div>
+
+</section>
+
+
+<section id="downloads"
+ class="page hidden">
+
+ <div class="download-toolbar">
+
+  <div>
+   <h3>Kho tải xuống</h3>
+   <p>
+    Quản lý phần mềm, hình ảnh,
+    mô tả và link tải.
+   </p>
+  </div>
+
+  <button id="addDownload">
+   + Thêm mục
+  </button>
+
+ </div>
+
+ <div id="downloadList"
+      class="download-grid">
+ </div>
+
+</section>
+
+
+<section id="logs"
+ class="page hidden">
+
+ <div class="panel table">
+
+  <table>
+
+   <thead>
+    <tr>
+     <th>Thời gian</th>
+     <th>Hành động</th>
+     <th>Key</th>
+     <th>Chi tiết</th>
+     <th>IP</th>
+    </tr>
+   </thead>
+
+   <tbody id="logsRows"></tbody>
+
+  </table>
+
+ </div>
+
+</section>
+
+
+<section id="api"
+ class="page hidden">
+
+ <div class="panel">
+
+  <h3>Client API</h3>
+
+  <pre>POST /api/license/activate
+{"key":"AAAAA-BBBBB-CCCCC-DDDDD","hwid":"client-hwid"}</pre>
+
+  <pre>POST /api/license/validate
+{"key":"AAAAA-BBBBB-CCCCC-DDDDD","hwid":"client-hwid"}</pre>
+
+ </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- LOGIN / REGISTER -->
+
+<dialog id="authDialog">
+
+ <form id="authForm"
+       class="dialog">
+
+  <h2 id="authTitle">
+   Đăng nhập tài khoản khách
+  </h2>
+
+  <p id="authDescription">
+   Đăng nhập để tải phần mềm.
+  </p>
+
+  <label>Tên tài khoản</label>
+
+  <input id="authUsername"
+   required
+   minlength="3"
+   maxlength="32"
+   placeholder="Tên tài khoản">
+
+  <label>Mật khẩu</label>
+
+  <input id="authPassword"
+   type="password"
+   required
+   minlength="6"
+   placeholder="Mật khẩu">
+
+  <div id="authMsg"></div>
+
+  <div>
+   <button type="button"
+    id="authCancel">
+    Hủy
+   </button>
+
+   <button id="authSubmit">
+    Đăng nhập
+   </button>
+  </div>
+
+ </form>
+
+</dialog>
+
+
+<!-- ADMIN LOGIN -->
+
+<dialog id="adminLoginDialog">
+
+ <form id="adminLoginForm"
+       class="dialog">
+
+  <h2>Admin Console</h2>
+
+  <label>Tài khoản Admin</label>
+
+  <input id="adminUsername"
+   required>
+
+  <label>Mật khẩu</label>
+
+  <input id="adminPassword"
+   type="password"
+   required>
+
+  <div id="adminLoginMsg"></div>
+
+  <div>
+   <button type="button"
+    id="adminLoginCancel">
+    Hủy
+   </button>
+
+   <button>
+    Đăng nhập
+   </button>
+  </div>
+
+ </form>
+
+</dialog>
+
+
+<!-- DOWNLOAD ADMIN DIALOG -->
+
+<dialog id="downloadDialog">
+
+ <form id="downloadForm"
+       class="dialog">
+
+  <h2 id="downloadDialogTitle">
+   Thêm mục tải xuống
+  </h2>
+
+  <label>Tên</label>
+
+  <input id="downloadTitle"
+   maxlength="120"
+   placeholder="Tên phần mềm">
+
+  <label>Mô tả</label>
+
+  <textarea id="downloadDescription"
+   maxlength="2000"
+   placeholder="Mô tả ngắn..."></textarea>
+
+  <label>Link hình ảnh</label>
+
+  <input id="downloadImage"
+   maxlength="2000"
+   placeholder="https://.../image.png">
+
+  <label>Link tải xuống</label>
+
+  <input id="downloadUrl"
+   maxlength="2000"
+   placeholder="https://.../file.zip"
+   required>
+
+  <input id="downloadId"
+   type="hidden">
+
+  <div>
+
+   <button type="button"
+    id="downloadCancel">
+    Hủy
+   </button>
+
+   <button>
+    Lưu
+   </button>
+
+  </div>
+
+ </form>
+
+</dialog>
+
+
+<!-- KEY DIALOG -->
+
+<dialog id="dialog">
+
+ <form id="form"
+       class="dialog">
+
+  <h2 id="dialogTitle">
+   Tạo License Key
+  </h2>
+
+  <label>Số lượng</label>
+
+  <input id="count"
+   type="number"
+   min="1"
+   max="500"
+   value="1">
+
+  <label>
+   Thời hạn
+   (ngày, 0 = vĩnh viễn)
+  </label>
+
+  <input id="duration"
+   type="number"
+   min="0"
+   value="30">
+
+  <label>Ghi chú</label>
+
+  <input id="note"
+   placeholder="Khách hàng #001">
+
+  <div>
+
+   <button type="button"
+    id="cancel">
+    Hủy
+   </button>
+
+   <button>
+    Tạo Key
+   </button>
+
+  </div>
+
+  <pre id="created"></pre>
+
+ </form>
+
+</dialog>
+
+<script src="/app.js"></script>
+
+</body>
+</html>
