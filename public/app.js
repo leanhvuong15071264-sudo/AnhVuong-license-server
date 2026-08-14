@@ -130,25 +130,60 @@ if (switchLogin) {
   };
 }
 
+// =========================================================
+// LOGIN — TỰ ĐỘNG PHÂN BIỆT ADMIN / KHÁCH
+// =========================================================
+
 const loginForm = $('#loginForm');
 if (loginForm) {
   loginForm.onsubmit = async (event) => {
     event.preventDefault();
+
     const username = $('#loginUsername')?.value.trim() || '';
     const password = $('#loginPassword')?.value || '';
+
     const message = $('#loginMsg');
     if (message) { message.textContent = 'Đang đăng nhập...'; }
+
     try {
-      const result = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+      // Thử đăng nhập admin trước
+      try {
+        const adminResult = await api('/api/admin/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password })
+        });
+
+        if (adminResult && adminResult.role === 'admin') {
+          adminLoggedIn = true;
+          closeDialog('loginDialog');
+          showAdmin();
+          showToast('Đăng nhập Admin thành công', 'success');
+          return;
+        }
+      } catch (adminError) {
+        // Không phải admin, tiếp tục thử đăng nhập khách
+      }
+
+      // Thử đăng nhập khách
+      const result = await api('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+
       currentUser = result;
       closeDialog('loginDialog');
       updateUserUI();
       showToast(`Đăng nhập thành công. Xin chào ${result.username}!`, 'success');
+
     } catch (error) {
       if (message) { message.textContent = error.message; }
     }
   };
 }
+
+// =========================================================
+// REGISTER
+// =========================================================
 
 const registerForm = $('#registerForm');
 if (registerForm) {
@@ -396,43 +431,6 @@ async function loadAccount() {
   } catch {
     if ($('#accountLogs')) { $('#accountLogs').innerHTML = `<tr><td colspan="4">Không thể tải nhật ký.</td></tr>`; }
   }
-}
-
-const adminBtn = $('#adminBtn');
-if (adminBtn) {
-  adminBtn.onclick = async () => {
-    if (adminLoggedIn) { showAdmin(); return; }
-    try {
-      const me = await api('/api/admin/me');
-      if (me && me.role === 'admin') { adminLoggedIn = true; showAdmin(); return; }
-    } catch {}
-    const message = $('#adminLoginMsg');
-    if (message) { message.textContent = ''; }
-    const form = $('#adminLoginForm');
-    if (form) { form.reset(); }
-    openDialog('adminLoginDialog');
-  };
-}
-
-const adminLoginForm = $('#adminLoginForm');
-if (adminLoginForm) {
-  adminLoginForm.onsubmit = async (event) => {
-    event.preventDefault();
-    const message = $('#adminLoginMsg');
-    if (message) { message.textContent = 'Đang kiểm tra...'; }
-    const username = $('#adminUsernameInput')?.value.trim() || '';
-    const password = $('#adminPasswordInput')?.value || '';
-    try {
-      const result = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-      if (!result || result.role !== 'admin') { throw new Error('Không xác nhận được quyền Admin'); }
-      adminLoggedIn = true;
-      closeDialog('adminLoginDialog');
-      showAdmin();
-      showToast('Đăng nhập Admin thành công', 'success');
-    } catch (error) {
-      if (message) { message.textContent = error.message; }
-    }
-  };
 }
 
 async function checkAdmin() {
