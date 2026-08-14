@@ -650,7 +650,9 @@ async function loadPublicDownloads() {
       }
     });
   }
-}/* =========================================================
+}
+
+/* =========================================================
    DOWNLOAD DETAIL — Mở modal chi tiết
 ========================================================= */
 
@@ -1842,4 +1844,12 @@ function openDownloadForm(item = null) {
 
   if ($('#downloadId')) {
     $('#downloadId').value =
-     
+      item?.id || '';
+  }
+
+  if ($('#downloadTitle')) {
+    $('#downloadTitle').value =
+      item?.title || '';
+  }
+
+  if
