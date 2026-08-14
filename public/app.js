@@ -287,41 +287,62 @@ window.downloadItem = async function (id) {
     if (!item) { showToast('Không tìm thấy sản phẩm.', 'error'); return; }
     currentDetailItem = item;
 
-    const img = $('#detailImage');
+    // ẢNH — FIX FALLBACK
+    const img = $('#detailImageV2');
     if (img) {
-      img.src = item.image_url || '';
-      img.alt = item.title || '';
-      if (!item.image_url) { img.parentElement.classList.add('image-error'); } else { img.parentElement.classList.remove('image-error'); }
+      if (item.image_url && item.image_url.trim() !== '') {
+        img.src = item.image_url;
+        img.alt = item.title || '';
+        img.style.display = 'block';
+        img.parentElement.classList.remove('image-error');
+      } else {
+        img.src = '';
+        img.alt = '';
+        img.style.display = 'none';
+        img.parentElement.classList.add('image-error');
+      }
     }
 
-    const breadcrumb = $('#detailTitleBreadcrumb');
+    // Breadcrumb + Title
+    const breadcrumb = $('#detailTitleBreadcrumbV2');
     if (breadcrumb) breadcrumb.textContent = item.title || 'Sản phẩm';
 
-    const title = $('#detailTitleNew');
+    const title = $('#detailTitleV2');
     if (title) title.textContent = item.title || 'Không có tên';
 
-    const price = $('#detailPriceNew');
+    // Giá
+    const price = $('#detailPriceV2');
     if (price) price.textContent = 'MIỄN PHÍ';
 
-    const metaPrice = $('#detailMetaPrice');
+    const metaPrice = $('#detailMetaPriceV2');
     if (metaPrice) metaPrice.textContent = 'MIỄN PHÍ';
 
-    const desc = $('#detailDescriptionNew');
+    // Mô tả
+    const desc = $('#detailDescriptionV2');
     if (desc) desc.textContent = item.description || 'Tài khoản của bạn có quyền truy cập vào sản phẩm này.';
 
-    const version = $('#detailMetaVersion');
+    // Mô tả thêm
+    const extraDesc = $('#detailExtraDescV2');
+    if (extraDesc) extraDesc.textContent = item.extra_description || 'Thạch Chi Khong Biet';
+
+    // Version
+    const version = $('#detailMetaVersionV2');
     if (version) version.textContent = item.version || item.version_name || '—';
 
-    const files = $('#detailMetaFiles');
+    // Files
+    const files = $('#detailMetaFilesV2');
     if (files) files.textContent = '1 tập tin';
 
-    const discord = $('#detailMetaDiscord');
+    // Discord
+    const discord = $('#detailMetaDiscordV2');
     if (discord) discord.textContent = 'Vai trò + kênh';
 
-    const keyDisplay = $('#detailKeyDisplayNew');
+    // Key display
+    const keyDisplay = $('#detailKeyDisplayV2');
     if (keyDisplay) keyDisplay.textContent = 'VNT-XXXX-XXXX-XXXX';
 
-    const downloadBtn = $('#detailDownloadBtnNew');
+    // Nút tải xuống
+    const downloadBtn = $('#detailDownloadBtnV2');
     if (downloadBtn) {
       downloadBtn.dataset.url = item.download_url || '';
       downloadBtn.onclick = function () {
@@ -336,10 +357,11 @@ window.downloadItem = async function (id) {
       };
     }
 
-    const keyInput = $('#detailKeyInput');
+    // Reset key input
+    const keyInput = $('#detailKeyInputV2');
     if (keyInput) keyInput.value = '';
 
-    const keyMsg = $('#detailKeyMsg');
+    const keyMsg = $('#detailKeyMsgV2');
     if (keyMsg) keyMsg.textContent = '';
 
     openDialog('downloadDetailDialog');
@@ -349,11 +371,11 @@ window.downloadItem = async function (id) {
   }
 };
 
-const detailKeySubmitNew = $('#detailKeySubmitNew');
-if (detailKeySubmitNew) {
-  detailKeySubmitNew.onclick = function () {
-    const input = $('#detailKeyInput');
-    const msg = $('#detailKeyMsg');
+const detailKeySubmitV2 = $('#detailKeySubmitV2');
+if (detailKeySubmitV2) {
+  detailKeySubmitV2.onclick = function () {
+    const input = $('#detailKeyInputV2');
+    const msg = $('#detailKeyMsgV2');
     const key = input?.value?.trim() || '';
     if (!key) { if (msg) msg.textContent = 'Vui lòng nhập mã khóa.'; return; }
     if (msg) {

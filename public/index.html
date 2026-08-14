@@ -515,7 +515,7 @@
 
 
 <!-- =========================
-     LOGIN DIALOG — NEW
+     LOGIN DIALOG
 ========================= -->
 <dialog id="loginDialog">
   <div class="login-dialog-wrapper">
@@ -559,7 +559,7 @@
 
 
 <!-- =========================
-     REGISTER DIALOG — NEW
+     REGISTER DIALOG
 ========================= -->
 <dialog id="registerDialog">
   <div class="login-dialog-wrapper">
@@ -725,7 +725,7 @@
 
 
 <!-- =========================
-     DOWNLOAD DETAIL DIALOG — CHUẨN MẪU 2
+     DOWNLOAD DETAIL DIALOG — CHUẨN MẪU 2 (FIX ẢNH)
 ========================= -->
 <dialog id="downloadDetailDialog">
   <div class="detail-dialog-wrapper-v2">
@@ -738,7 +738,10 @@
 
       <!-- ẢNH BÊN TRÁI — RIÊNG 1 CỘT -->
       <div class="detail-dialog-image-v2">
-        <img id="detailImageV2" src="" alt="" onerror="this.parentElement.classList.add('image-error')">
+        <img id="detailImageV2" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')">
+        <div class="detail-image-placeholder" id="detailImagePlaceholder">
+          <span>AV</span>
+        </div>
       </div>
 
       <!-- NỘI DUNG BÊN PHẢI -->
