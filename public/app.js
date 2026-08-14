@@ -650,9 +650,7 @@ async function loadPublicDownloads() {
       }
     });
   }
-}
-
-/* =========================================================
+}/* =========================================================
    DOWNLOAD DETAIL — Mở modal chi tiết
 ========================================================= */
 
@@ -1844,42 +1842,4 @@ function openDownloadForm(item = null) {
 
   if ($('#downloadId')) {
     $('#downloadId').value =
-      item?.id || '';
-  }
-
-  if ($('#downloadTitle')) {
-    $('#downloadTitle').value =
-      item?.title || '';
-  }
-
-  if ($('#downloadDescription')) {
-    $('#downloadDescription').value =
-      item?.description || '';
-  }
-
-  if ($('#downloadImage')) {
-    $('#downloadImage').value =
-      item?.image_url || '';
-  }
-
-  if ($('#downloadUrl')) {
-    $('#downloadUrl').value =
-      item?.download_url || '';
-  }
-
-  openDialog('downloadDialog');
-}
-
-const addDownload =
-  $('#addDownload');
-
-if (addDownload) {
-  addDownload.onclick =
-    () => openDownloadForm();
-}
-
-const downloadCancel =
-  $('#downloadCancel');
-
-if (downloadCancel) {
-  downloadCancel.onclick =
+     
