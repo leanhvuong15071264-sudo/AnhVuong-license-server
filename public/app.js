@@ -671,14 +671,14 @@ function openDownloadForm(item = null) {
   if ($('#downloadDescription')) { $('#downloadDescription').value = item?.description || ''; }
   if ($('#downloadImage')) { $('#downloadImage').value = item?.image_url || ''; }
   if ($('#downloadUrl')) { $('#downloadUrl').value = item?.download_url || ''; }
-  if ($('#downloadPrice')) { $('#downloadPrice').value = item?.price || ''; }
+  if ($('#downloadPrice')) { $('#downloadPrice').value = item?.price || 'MIỄN PHÍ'; }
   if ($('#downloadVersion')) { $('#downloadVersion').value = item?.version || ''; }
-  if ($('#downloadFileSize')) { $('#downloadFileSize').value = item?.file_size || ''; }
-  if ($('#downloadDiscord')) { $('#downloadDiscord').value = item?.discord_info || ''; }
-  if ($('#downloadExtraTitle')) { $('#downloadExtraTitle').value = item?.extra_title || ''; }
-  if ($('#downloadExtraDescription')) { $('#downloadExtraDescription').value = item?.extra_description || ''; }
-  if ($('#downloadLicenseKey')) { $('#downloadLicenseKey').value = item?.license_key_display || ''; }
-  if ($('#downloadShipping')) { $('#downloadShipping').value = item?.shipping_info || ''; }
+  if ($('#downloadFileSize')) { $('#downloadFileSize').value = item?.file_size || '1 tập tin'; }
+  if ($('#downloadDiscord')) { $('#downloadDiscord').value = item?.discord_info || 'Vai trò + kênh'; }
+  if ($('#downloadExtraTitle')) { $('#downloadExtraTitle').value = item?.extra_title || 'GIỚI THIỆU VỀ BẢN MOD NÀY'; }
+  if ($('#downloadExtraDescription')) { $('#downloadExtraDescription').value = item?.extra_description || 'Thạch Chi Khong Biet'; }
+  if ($('#downloadLicenseKey')) { $('#downloadLicenseKey').value = item?.license_key_display || 'VNT-XXXX-XXXX-XXXX'; }
+  if ($('#downloadShipping')) { $('#downloadShipping').value = item?.shipping_info || 'truy cập tức'; }
   openDialog('downloadDialog');
 }
 
@@ -692,7 +692,9 @@ const downloadForm = $('#downloadForm');
 if (downloadForm) {
   downloadForm.onsubmit = async (event) => {
     event.preventDefault();
+
     const id = $('#downloadId')?.value || '';
+
     const body = {
       title: $('#downloadTitle')?.value || '',
       description: $('#downloadDescription')?.value || '',
@@ -707,13 +709,28 @@ if (downloadForm) {
       license_key_display: $('#downloadLicenseKey')?.value || 'VNT-XXXX-XXXX-XXXX',
       shipping_info: $('#downloadShipping')?.value || 'truy cập tức'
     };
+
+    console.log('Sending data:', body);
+
     try {
-      await api('/api/admin/downloads' + (id ? `/${id}` : ''), { method: id ? 'PATCH' : 'POST', body: JSON.stringify(body) });
+      const url = '/api/admin/downloads' + (id ? `/${id}` : '');
+      const method = id ? 'PATCH' : 'POST';
+
+      const result = await api(url, {
+        method: method,
+        body: JSON.stringify(body)
+      });
+
+      console.log('Result:', result);
+
       closeDialog('downloadDialog');
       await loadAdminDownloads();
       await loadPublicDownloads();
+
       showToast(id ? 'Đã cập nhật mục tải xuống' : 'Đã thêm mục tải xuống', 'success');
+
     } catch (error) {
+      console.error('Error:', error);
       showToast(error.message, 'error');
     }
   };
