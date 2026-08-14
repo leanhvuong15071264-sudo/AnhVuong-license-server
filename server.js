@@ -139,17 +139,24 @@ async function initDatabase() {
       ('zalo_personal_name', 'Zalo Cá Nhân', $1),
       ('zalo_personal_desc', 'Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất', $1),
       ('zalo_personal_tag', 'Cá Nhân · Phản hồi nhanh', $1),
+      ('zalo_personal_label', 'Zalo', $1),
+
       ('zalo_group_phone', '0987654322', $1),
       ('zalo_group_name', 'Zalo Cộng Đồng', $1),
       ('zalo_group_desc', 'Tham gia nhóm Zalo để cập nhật thông tin và ưu đãi mới nhất', $1),
       ('zalo_group_tag', 'Cộng Đồng · Cập nhật ưu đãi', $1),
+      ('zalo_group_label', 'Zalo', $1),
+
       ('telegram_phone', '0987654323', $1),
       ('telegram_name', 'Telegram Cá Nhân', $1),
       ('telegram_desc', 'Liên hệ qua Telegram để được hỗ trợ nhanh chóng', $1),
       ('telegram_tag', 'Cá Nhân · Phản hồi nhanh', $1),
+      ('telegram_label', 'Telegram', $1),
+
       ('contact_title', 'Liên Hệ Hỗ Trợ', $1),
       ('contact_subtitle', 'Chọn kênh phù hợp để liên hệ với chúng tôi', $1),
       ('contact_hours', 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn', $1),
+
       ('feature_fast', 'Phản hồi nhanh', $1),
       ('feature_fast_desc', 'Thường trong vòng 5–15 phút trong giờ hỗ trợ', $1),
       ('feature_professional', 'Hỗ trợ chuyên nghiệp', $1),
@@ -762,9 +769,9 @@ app.get('/api/settings', async (req, res) => {
 app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
   try {
     const {
-      zalo_personal_phone, zalo_personal_name, zalo_personal_desc, zalo_personal_tag,
-      zalo_group_phone, zalo_group_name, zalo_group_desc, zalo_group_tag,
-      telegram_phone, telegram_name, telegram_desc, telegram_tag,
+      zalo_personal_phone, zalo_personal_name, zalo_personal_desc, zalo_personal_tag, zalo_personal_label,
+      zalo_group_phone, zalo_group_name, zalo_group_desc, zalo_group_tag, zalo_group_label,
+      telegram_phone, telegram_name, telegram_desc, telegram_tag, telegram_label,
       contact_title, contact_subtitle, contact_hours,
       feature_fast, feature_fast_desc,
       feature_professional, feature_professional_desc,
@@ -776,17 +783,24 @@ app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
       { key: 'zalo_personal_name', value: zalo_personal_name },
       { key: 'zalo_personal_desc', value: zalo_personal_desc },
       { key: 'zalo_personal_tag', value: zalo_personal_tag },
+      { key: 'zalo_personal_label', value: zalo_personal_label },
+
       { key: 'zalo_group_phone', value: zalo_group_phone },
       { key: 'zalo_group_name', value: zalo_group_name },
       { key: 'zalo_group_desc', value: zalo_group_desc },
       { key: 'zalo_group_tag', value: zalo_group_tag },
+      { key: 'zalo_group_label', value: zalo_group_label },
+
       { key: 'telegram_phone', value: telegram_phone },
       { key: 'telegram_name', value: telegram_name },
       { key: 'telegram_desc', value: telegram_desc },
       { key: 'telegram_tag', value: telegram_tag },
+      { key: 'telegram_label', value: telegram_label },
+
       { key: 'contact_title', value: contact_title },
       { key: 'contact_subtitle', value: contact_subtitle },
       { key: 'contact_hours', value: contact_hours },
+
       { key: 'feature_fast', value: feature_fast },
       { key: 'feature_fast_desc', value: feature_fast_desc },
       { key: 'feature_professional', value: feature_professional },
@@ -1466,7 +1480,8 @@ app.post(
             req,
             days,
             note,
-            client          )
+            client
+          )
         );
       }
 

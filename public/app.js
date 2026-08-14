@@ -494,16 +494,19 @@ async function loadSettings() {
     setText('contactSubtitle', data.contact_subtitle || 'Chọn kênh phù hợp để liên hệ với chúng tôi');
     setText('contactHours', data.contact_hours || 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn');
 
+    setText('zaloPersonalLabel', data.zalo_personal_label || 'Zalo');
     setText('zaloPersonalName', data.zalo_personal_name || 'Zalo Cá Nhân');
     setText('zaloPersonalDesc', data.zalo_personal_desc || 'Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất');
     setText('zaloPersonalTag', data.zalo_personal_tag || 'Cá Nhân · Phản hồi nhanh');
     setLink('zaloPersonalBtn', `https://zalo.me/${data.zalo_personal_phone || '0987654321'}`);
 
+    setText('zaloGroupLabel', data.zalo_group_label || 'Zalo');
     setText('zaloGroupName', data.zalo_group_name || 'Zalo Cộng Đồng');
     setText('zaloGroupDesc', data.zalo_group_desc || 'Tham gia nhóm Zalo để cập nhật thông tin và ưu đãi mới nhất');
     setText('zaloGroupTag', data.zalo_group_tag || 'Cộng Đồng · Cập nhật ưu đãi');
     setLink('zaloGroupBtn', `https://zalo.me/${data.zalo_group_phone || '0987654322'}`);
 
+    setText('telegramLabel', data.telegram_label || 'Telegram');
     setText('telegramName', data.telegram_name || 'Telegram Cá Nhân');
     setText('telegramDesc', data.telegram_desc || 'Liên hệ qua Telegram để được hỗ trợ nhanh chóng');
     setText('telegramTag', data.telegram_tag || 'Cá Nhân · Phản hồi nhanh');
@@ -536,18 +539,22 @@ function setLink(id, value) {
 async function loadSettingsAdmin() {
   try {
     const data = await api('/api/settings');
+
     const fields = {
       settingsContactTitle: 'contact_title',
       settingsContactSubtitle: 'contact_subtitle',
       settingsContactHours: 'contact_hours',
+      settingsZaloPersonalLabel: 'zalo_personal_label',
       settingsZaloPersonalPhone: 'zalo_personal_phone',
       settingsZaloPersonalName: 'zalo_personal_name',
       settingsZaloPersonalDesc: 'zalo_personal_desc',
       settingsZaloPersonalTag: 'zalo_personal_tag',
+      settingsZaloGroupLabel: 'zalo_group_label',
       settingsZaloGroupPhone: 'zalo_group_phone',
       settingsZaloGroupName: 'zalo_group_name',
       settingsZaloGroupDesc: 'zalo_group_desc',
       settingsZaloGroupTag: 'zalo_group_tag',
+      settingsTelegramLabel: 'telegram_label',
       settingsTelegramPhone: 'telegram_phone',
       settingsTelegramName: 'telegram_name',
       settingsTelegramDesc: 'telegram_desc',
@@ -588,14 +595,17 @@ if (settingsForm) {
           contact_title: $('#settingsContactTitle').value.trim(),
           contact_subtitle: $('#settingsContactSubtitle').value.trim(),
           contact_hours: $('#settingsContactHours').value.trim(),
+          zalo_personal_label: $('#settingsZaloPersonalLabel').value.trim(),
           zalo_personal_phone: $('#settingsZaloPersonalPhone').value.trim(),
           zalo_personal_name: $('#settingsZaloPersonalName').value.trim(),
           zalo_personal_desc: $('#settingsZaloPersonalDesc').value.trim(),
           zalo_personal_tag: $('#settingsZaloPersonalTag').value.trim(),
+          zalo_group_label: $('#settingsZaloGroupLabel').value.trim(),
           zalo_group_phone: $('#settingsZaloGroupPhone').value.trim(),
           zalo_group_name: $('#settingsZaloGroupName').value.trim(),
           zalo_group_desc: $('#settingsZaloGroupDesc').value.trim(),
           zalo_group_tag: $('#settingsZaloGroupTag').value.trim(),
+          telegram_label: $('#settingsTelegramLabel').value.trim(),
           telegram_phone: $('#settingsTelegramPhone').value.trim(),
           telegram_name: $('#settingsTelegramName').value.trim(),
           telegram_desc: $('#settingsTelegramDesc').value.trim(),
