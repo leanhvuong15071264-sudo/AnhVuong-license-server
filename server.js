@@ -77,6 +77,14 @@ async function initDatabase() {
       description TEXT NOT NULL DEFAULT '',
       image_url TEXT NOT NULL DEFAULT '',
       download_url TEXT NOT NULL,
+      price TEXT NOT NULL DEFAULT 'MIỄN PHÍ',
+      version TEXT NOT NULL DEFAULT '',
+      file_size TEXT NOT NULL DEFAULT '1 tập tin',
+      discord_info TEXT NOT NULL DEFAULT 'Vai trò + kênh',
+      extra_title TEXT NOT NULL DEFAULT 'GIỚI THIỆU VỀ BẢN MOD NÀY',
+      extra_description TEXT NOT NULL DEFAULT 'Thạch Chi Khong Biet',
+      license_key_display TEXT NOT NULL DEFAULT 'VNT-XXXX-XXXX-XXXX',
+      shipping_info TEXT NOT NULL DEFAULT 'truy cập tức',
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
@@ -550,6 +558,15 @@ app.get(
           title,
           description,
           image_url,
+          download_url,
+          price,
+          version,
+          file_size,
+          discord_info,
+          extra_title,
+          extra_description,
+          license_key_display,
+          shipping_info,
           created_at,
           updated_at
         FROM downloads
@@ -669,6 +686,38 @@ app.post(
         .trim()
         .slice(0, 2000);
 
+      const price = String(
+        req.body.price || 'MIỄN PHÍ'
+      ).trim().slice(0, 50);
+
+      const version = String(
+        req.body.version || ''
+      ).trim().slice(0, 50);
+
+      const file_size = String(
+        req.body.file_size || '1 tập tin'
+      ).trim().slice(0, 50);
+
+      const discord_info = String(
+        req.body.discord_info || 'Vai trò + kênh'
+      ).trim().slice(0, 200);
+
+      const extra_title = String(
+        req.body.extra_title || 'GIỚI THIỆU VỀ BẢN MOD NÀY'
+      ).trim().slice(0, 100);
+
+      const extra_description = String(
+        req.body.extra_description || 'Thạch Chi Khong Biet'
+      ).trim().slice(0, 500);
+
+      const license_key_display = String(
+        req.body.license_key_display || 'VNT-XXXX-XXXX-XXXX'
+      ).trim().slice(0, 50);
+
+      const shipping_info = String(
+        req.body.shipping_info || 'truy cập tức'
+      ).trim().slice(0, 100);
+
       if (!title || !download_url) {
         return res.status(400).json({
           error:
@@ -698,16 +747,32 @@ app.post(
           description,
           image_url,
           download_url,
+          price,
+          version,
+          file_size,
+          discord_info,
+          extra_title,
+          extra_description,
+          license_key_display,
+          shipping_info,
           created_at,
           updated_at
         )
-        VALUES ($1,$2,$3,$4,$5,$6)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
         RETURNING *
       `, [
         title,
         description,
         image_url,
         download_url,
+        price,
+        version,
+        file_size,
+        discord_info,
+        extra_title,
+        extra_description,
+        license_key_display,
+        shipping_info,
         t,
         t
       ]);
@@ -771,6 +836,38 @@ app.patch(
         .trim()
         .slice(0, 2000);
 
+      const price = String(
+        req.body.price ?? old.price
+      ).trim().slice(0, 50);
+
+      const version = String(
+        req.body.version ?? old.version
+      ).trim().slice(0, 50);
+
+      const file_size = String(
+        req.body.file_size ?? old.file_size
+      ).trim().slice(0, 50);
+
+      const discord_info = String(
+        req.body.discord_info ?? old.discord_info
+      ).trim().slice(0, 200);
+
+      const extra_title = String(
+        req.body.extra_title ?? old.extra_title
+      ).trim().slice(0, 100);
+
+      const extra_description = String(
+        req.body.extra_description ?? old.extra_description
+      ).trim().slice(0, 500);
+
+      const license_key_display = String(
+        req.body.license_key_display ?? old.license_key_display
+      ).trim().slice(0, 50);
+
+      const shipping_info = String(
+        req.body.shipping_info ?? old.shipping_info
+      ).trim().slice(0, 100);
+
       if (!title || !download_url) {
         return res.status(400).json({
           error:
@@ -798,14 +895,30 @@ app.patch(
           description=$2,
           image_url=$3,
           download_url=$4,
-          updated_at=$5
-        WHERE id=$6
+          price=$5,
+          version=$6,
+          file_size=$7,
+          discord_info=$8,
+          extra_title=$9,
+          extra_description=$10,
+          license_key_display=$11,
+          shipping_info=$12,
+          updated_at=$13
+        WHERE id=$14
         RETURNING *
       `, [
         title,
         description,
         image_url,
         download_url,
+        price,
+        version,
+        file_size,
+        discord_info,
+        extra_title,
+        extra_description,
+        license_key_display,
+        shipping_info,
         now(),
         old.id
       ]);
