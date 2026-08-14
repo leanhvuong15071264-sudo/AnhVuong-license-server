@@ -125,6 +125,24 @@ async function initDatabase() {
     )
   `);
 
+  await query(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  // Insert default settings
+  await query(`
+    INSERT INTO settings (key, value, updated_at) VALUES 
+      ('facebook_url', 'https://facebook.com/anhvuong.license', $1),
+      ('zalo_url', 'https://zalo.me/anhvuong.license', $1),
+      ('tiktok_url', 'https://tiktok.com/@anhvuong.license', $1),
+      ('email_address', 'support@anhvuong.com', $1)
+    ON CONFLICT (key) DO NOTHING
+  `, [now()]);
+
   console.log('PostgreSQL database initialized');
 }
 
@@ -702,6 +720,56 @@ app.get(
     }
   }
 );
+
+/* =========================================================
+   SETTINGS API
+========================================================= */
+
+app.get('/api/settings', async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT key, value FROM settings
+    `);
+
+    const settings = {};
+    result.rows.forEach(row => {
+      settings[row.key] = row.value;
+    });
+
+    res.json(settings);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy cài đặt' });
+  }
+});
+
+app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
+  try {
+    const { facebook_url, zalo_url, tiktok_url, email_address } = req.body;
+
+    const updates = [
+      { key: 'facebook_url', value: facebook_url },
+      { key: 'zalo_url', value: zalo_url },
+      { key: 'tiktok_url', value: tiktok_url },
+      { key: 'email_address', value: email_address }
+    ];
+
+    for (const item of updates) {
+      await query(`
+        INSERT INTO settings (key, value, updated_at)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = $3
+      `, [item.key, item.value, now()]);
+    }
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể cập nhật cài đặt' });
+  }
+});
 
 /* =========================================================
    ADMIN DOWNLOADS

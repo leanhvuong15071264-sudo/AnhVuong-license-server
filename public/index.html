@@ -301,38 +301,38 @@
 
       <div class="contact-grid">
 
-        <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="contact-card facebook">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="contact-card facebook" id="contactFacebook">
           <div class="contact-icon">📘</div>
           <div>
             <h3>Facebook</h3>
-            <p>AnhVuong Service</p>
+            <p id="contactFacebookText">AnhVuong Service</p>
           </div>
           <span class="contact-arrow">→</span>
         </a>
 
-        <a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="contact-card zalo">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="contact-card zalo" id="contactZalo">
           <div class="contact-icon">💬</div>
           <div>
             <h3>Zalo</h3>
-            <p>Liên hệ qua Zalo</p>
+            <p id="contactZaloText">Liên hệ qua Zalo</p>
           </div>
           <span class="contact-arrow">→</span>
         </a>
 
-        <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="contact-card tiktok">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="contact-card tiktok" id="contactTiktok">
           <div class="contact-icon">🎵</div>
           <div>
             <h3>TikTok</h3>
-            <p>@anhvuong.license</p>
+            <p id="contactTiktokText">@anhvuong.license</p>
           </div>
           <span class="contact-arrow">→</span>
         </a>
 
-        <a href="mailto:support@anhvuong.com" class="contact-card email">
+        <a href="#" class="contact-card email" id="contactEmail">
           <div class="contact-icon">✉</div>
           <div>
             <h3>Email</h3>
-            <p>support@anhvuong.com</p>
+            <p id="contactEmailText">support@anhvuong.com</p>
           </div>
           <span class="contact-arrow">→</span>
         </a>
@@ -383,6 +383,11 @@
       <button class="admin-nav" data-admin-page="logs">
         <span>≡</span>
         Nhật ký
+      </button>
+
+      <button class="admin-nav" data-admin-page="settings">
+        <span>⚙</span>
+        Cài đặt
       </button>
 
       <button class="admin-nav" data-admin-page="api">
@@ -568,6 +573,49 @@
 
           <tbody id="logsRows"></tbody>
         </table>
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN SETTINGS -->
+    <section id="adminSettings" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">CÀI ĐẶT</span>
+          <h1>Cài đặt liên hệ</h1>
+          <p class="top-description">Cập nhật link Facebook, Zalo, TikTok và Email.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="padding: 28px;">
+        <form id="settingsForm">
+          <div style="display:grid; gap:16px;">
+            <div>
+              <label style="display:block;font-weight:600;margin-bottom:4px;">🔵 Facebook</label>
+              <input id="settingsFacebook" type="url" placeholder="https://facebook.com/..." class="settings-input">
+            </div>
+            <div>
+              <label style="display:block;font-weight:600;margin-bottom:4px;">💬 Zalo</label>
+              <input id="settingsZalo" type="url" placeholder="https://zalo.me/..." class="settings-input">
+            </div>
+            <div>
+              <label style="display:block;font-weight:600;margin-bottom:4px;">🎵 TikTok</label>
+              <input id="settingsTiktok" type="url" placeholder="https://tiktok.com/@..." class="settings-input">
+            </div>
+            <div>
+              <label style="display:block;font-weight:600;margin-bottom:4px;">✉️ Email</label>
+              <input id="settingsEmail" type="email" placeholder="support@anhvuong.com" class="settings-input">
+            </div>
+          </div>
+
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button type="submit" class="primary-btn">💾 Lưu cài đặt</button>
+            <button type="button" class="secondary-btn" onclick="loadSettingsAdmin()">🔄 Tải lại</button>
+          </div>
+          <div id="settingsMsg" class="form-message"></div>
+        </form>
       </div>
 
     </section>

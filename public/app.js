@@ -4,6 +4,7 @@ const $$ = (selector) => document.querySelectorAll(selector);
 let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
+let siteSettings = {};
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -71,6 +72,7 @@ function showPublicPage(page) {
   if (page === 'downloads') { loadPublicDownloads(); }
   if (page === 'account') { loadAccount(); }
   if (page === 'history') { loadHistory(); }
+  if (page === 'contact') { loadSettings(); }
 }
 
 $$('.nav-btn').forEach((button) => {
@@ -312,7 +314,7 @@ window.downloadItem = async function (id) {
     return;
   }
   try {
-    const data = await api('/api/downloads');
+    const data = await getDownloads();
     const item = data.find(x => Number(x.id) === Number(id));
     if (!item) { showToast('Không tìm thấy sản phẩm.', 'error'); return; }
     currentDetailItem = item;
@@ -481,6 +483,96 @@ async function loadHistory() {
   }
 }
 
+// =========================================================
+// SETTINGS
+// =========================================================
+
+async function loadSettings() {
+  try {
+    const data = await api('/api/settings');
+    siteSettings = data;
+
+    // Cập nhật link contact
+    const fb = data.facebook_url || 'https://facebook.com/anhvuong.license';
+    const zalo = data.zalo_url || 'https://zalo.me/anhvuong.license';
+    const tiktok = data.tiktok_url || 'https://tiktok.com/@anhvuong.license';
+    const email = data.email_address || 'support@anhvuong.com';
+
+    const fbLink = document.getElementById('contactFacebook');
+    const zaloLink = document.getElementById('contactZalo');
+    const tiktokLink = document.getElementById('contactTiktok');
+    const emailLink = document.getElementById('contactEmail');
+
+    const fbText = document.getElementById('contactFacebookText');
+    const zaloText = document.getElementById('contactZaloText');
+    const tiktokText = document.getElementById('contactTiktokText');
+    const emailText = document.getElementById('contactEmailText');
+
+    if (fbLink) fbLink.href = fb;
+    if (zaloLink) zaloLink.href = zalo;
+    if (tiktokLink) tiktokLink.href = tiktok;
+    if (emailLink) emailLink.href = `mailto:${email}`;
+
+    if (fbText) fbText.textContent = fb.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (zaloText) zaloText.textContent = zalo.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (tiktokText) tiktokText.textContent = tiktok.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (emailText) emailText.textContent = email;
+
+    return data;
+  } catch (error) {
+    console.error('Lỗi load settings:', error);
+    return {};
+  }
+}
+
+async function loadSettingsAdmin() {
+  try {
+    const data = await api('/api/settings');
+    if (data.facebook_url) $('#settingsFacebook').value = data.facebook_url;
+    if (data.zalo_url) $('#settingsZalo').value = data.zalo_url;
+    if (data.tiktok_url) $('#settingsTiktok').value = data.tiktok_url;
+    if (data.email_address) $('#settingsEmail').value = data.email_address;
+    showToast('Đã tải cài đặt', 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+// Settings form
+const settingsForm = $('#settingsForm');
+if (settingsForm) {
+  settingsForm.onsubmit = async (event) => {
+    event.preventDefault();
+    const msg = $('#settingsMsg');
+    if (msg) msg.textContent = 'Đang lưu...';
+
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          facebook_url: $('#settingsFacebook').value.trim(),
+          zalo_url: $('#settingsZalo').value.trim(),
+          tiktok_url: $('#settingsTiktok').value.trim(),
+          email_address: $('#settingsEmail').value.trim()
+        })
+      });
+
+      showToast('Đã lưu cài đặt thành công!', 'success');
+      if (msg) msg.textContent = '';
+      await loadSettingsAdmin();
+      await loadSettings();
+
+    } catch (error) {
+      if (msg) msg.textContent = error.message;
+      showToast(error.message, 'error');
+    }
+  };
+}
+
+// =========================================================
+// ADMIN
+// =========================================================
+
 async function checkAdmin() {
   try {
     const result = await api('/api/admin/me');
@@ -510,7 +602,7 @@ $$('.admin-nav').forEach((button) => {
   button.addEventListener('click', () => {
     const page = button.dataset.adminPage;
     $$('.admin-page').forEach((section) => { section.classList.add('hidden'); });
-    const targets = { dashboard: '#adminDashboard', keys: '#adminKeys', adminDownloads: '#adminDownloads', logs: '#adminLogs', api: '#adminApi' };
+    const targets = { dashboard: '#adminDashboard', keys: '#adminKeys', adminDownloads: '#adminDownloads', logs: '#adminLogs', settings: '#adminSettings', api: '#adminApi' };
     const target = targets[page];
     if (target) { $(target)?.classList.remove('hidden'); }
     $$('.admin-nav').forEach((item) => { item.classList.remove('active'); });
@@ -519,6 +611,7 @@ $$('.admin-nav').forEach((button) => {
     if (page === 'keys') { loadKeys(); }
     if (page === 'adminDownloads') { loadAdminDownloads(); }
     if (page === 'logs') { loadAdminLogs(); }
+    if (page === 'settings') { loadSettingsAdmin(); }
   });
 });
 
@@ -827,4 +920,5 @@ if (adminLogout) {
   await checkUser();
   await checkAdmin();
   await loadPublicDownloads();
+  await loadSettings();
 })();
