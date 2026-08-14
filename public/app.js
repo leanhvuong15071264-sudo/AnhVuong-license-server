@@ -287,7 +287,6 @@ window.downloadItem = async function (id) {
     if (!item) { showToast('Không tìm thấy sản phẩm.', 'error'); return; }
     currentDetailItem = item;
 
-    // ẢNH — FIX FALLBACK
     const img = $('#detailImageV2');
     if (img) {
       if (item.image_url && item.image_url.trim() !== '') {
@@ -303,45 +302,42 @@ window.downloadItem = async function (id) {
       }
     }
 
-    // Breadcrumb + Title
     const breadcrumb = $('#detailTitleBreadcrumbV2');
     if (breadcrumb) breadcrumb.textContent = item.title || 'Sản phẩm';
 
     const title = $('#detailTitleV2');
     if (title) title.textContent = item.title || 'Không có tên';
 
-    // Giá
     const price = $('#detailPriceV2');
-    if (price) price.textContent = 'MIỄN PHÍ';
+    if (price) price.textContent = item.price || 'MIỄN PHÍ';
 
     const metaPrice = $('#detailMetaPriceV2');
-    if (metaPrice) metaPrice.textContent = 'MIỄN PHÍ';
+    if (metaPrice) metaPrice.textContent = item.price || 'MIỄN PHÍ';
 
-    // Mô tả
     const desc = $('#detailDescriptionV2');
     if (desc) desc.textContent = item.description || 'Tài khoản của bạn có quyền truy cập vào sản phẩm này.';
 
-    // Mô tả thêm
+    const extraTitle = document.querySelector('.detail-dialog-extra-desc-v2 span');
+    if (extraTitle) extraTitle.textContent = item.extra_title || 'GIỚI THIỆU VỀ BẢN MOD NÀY';
+
     const extraDesc = $('#detailExtraDescV2');
     if (extraDesc) extraDesc.textContent = item.extra_description || 'Thạch Chi Khong Biet';
 
-    // Version
     const version = $('#detailMetaVersionV2');
-    if (version) version.textContent = item.version || item.version_name || '—';
+    if (version) version.textContent = item.version || '—';
 
-    // Files
     const files = $('#detailMetaFilesV2');
-    if (files) files.textContent = '1 tập tin';
+    if (files) files.textContent = item.file_size || '1 tập tin';
 
-    // Discord
     const discord = $('#detailMetaDiscordV2');
-    if (discord) discord.textContent = 'Vai trò + kênh';
+    if (discord) discord.textContent = item.discord_info || 'Vai trò + kênh';
 
-    // Key display
+    const shipping = document.querySelector('.detail-dialog-info-grid-v2 div:nth-child(3) strong');
+    if (shipping) shipping.textContent = item.shipping_info || 'truy cập tức';
+
     const keyDisplay = $('#detailKeyDisplayV2');
-    if (keyDisplay) keyDisplay.textContent = 'VNT-XXXX-XXXX-XXXX';
+    if (keyDisplay) keyDisplay.textContent = item.license_key_display || 'VNT-XXXX-XXXX-XXXX';
 
-    // Nút tải xuống
     const downloadBtn = $('#detailDownloadBtnV2');
     if (downloadBtn) {
       downloadBtn.dataset.url = item.download_url || '';
@@ -357,7 +353,6 @@ window.downloadItem = async function (id) {
       };
     }
 
-    // Reset key input
     const keyInput = $('#detailKeyInputV2');
     if (keyInput) keyInput.value = '';
 
@@ -651,8 +646,8 @@ async function loadAdminDownloads() {
               <div class="download-description">${esc(item.description || 'Không có mô tả')}</div>
               <div class="download-details">
                 <div class="download-detail"><span class="detail-label">Sản phẩm</span><strong>${esc(item.title)}</strong></div>
-                <div class="download-detail"><span class="detail-label">Phiên bản</span><strong>—</strong></div>
-                <div class="download-detail"><span class="detail-label">Dung lượng</span><strong>—</strong></div>
+                <div class="download-detail"><span class="detail-label">Phiên bản</span><strong>${esc(item.version) || '—'}</strong></div>
+                <div class="download-detail"><span class="detail-label">Dung lượng</span><strong>${esc(item.file_size) || '—'}</strong></div>
                 <div class="download-detail"><span class="detail-label">Trạng thái</span><strong class="detail-status">Sẵn sàng</strong></div>
                 ${item.updated_at ? `<div class="download-detail"><span class="detail-label">Cập nhật</span><strong>${formatDate(item.updated_at)}</strong></div>` : ''}
               </div>
@@ -676,6 +671,14 @@ function openDownloadForm(item = null) {
   if ($('#downloadDescription')) { $('#downloadDescription').value = item?.description || ''; }
   if ($('#downloadImage')) { $('#downloadImage').value = item?.image_url || ''; }
   if ($('#downloadUrl')) { $('#downloadUrl').value = item?.download_url || ''; }
+  if ($('#downloadPrice')) { $('#downloadPrice').value = item?.price || ''; }
+  if ($('#downloadVersion')) { $('#downloadVersion').value = item?.version || ''; }
+  if ($('#downloadFileSize')) { $('#downloadFileSize').value = item?.file_size || ''; }
+  if ($('#downloadDiscord')) { $('#downloadDiscord').value = item?.discord_info || ''; }
+  if ($('#downloadExtraTitle')) { $('#downloadExtraTitle').value = item?.extra_title || ''; }
+  if ($('#downloadExtraDescription')) { $('#downloadExtraDescription').value = item?.extra_description || ''; }
+  if ($('#downloadLicenseKey')) { $('#downloadLicenseKey').value = item?.license_key_display || ''; }
+  if ($('#downloadShipping')) { $('#downloadShipping').value = item?.shipping_info || ''; }
   openDialog('downloadDialog');
 }
 
@@ -694,7 +697,15 @@ if (downloadForm) {
       title: $('#downloadTitle')?.value || '',
       description: $('#downloadDescription')?.value || '',
       image_url: $('#downloadImage')?.value || '',
-      download_url: $('#downloadUrl')?.value || ''
+      download_url: $('#downloadUrl')?.value || '',
+      price: $('#downloadPrice')?.value || 'MIỄN PHÍ',
+      version: $('#downloadVersion')?.value || '',
+      file_size: $('#downloadFileSize')?.value || '1 tập tin',
+      discord_info: $('#downloadDiscord')?.value || 'Vai trò + kênh',
+      extra_title: $('#downloadExtraTitle')?.value || 'GIỚI THIỆU VỀ BẢN MOD NÀY',
+      extra_description: $('#downloadExtraDescription')?.value || 'Thạch Chi Khong Biet',
+      license_key_display: $('#downloadLicenseKey')?.value || 'VNT-XXXX-XXXX-XXXX',
+      shipping_info: $('#downloadShipping')?.value || 'truy cập tức'
     };
     try {
       await api('/api/admin/downloads' + (id ? `/${id}` : ''), { method: id ? 'PATCH' : 'POST', body: JSON.stringify(body) });
