@@ -1,14 +1,13 @@
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
 
 let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
 
-
-/* =========================
+/* =========================================================
    API
-========================= */
+========================================================= */
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -23,59 +22,57 @@ async function api(url, options = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.error || data.message || 'Có lỗi xảy ra');
+    throw new Error(
+      data.error ||
+      data.message ||
+      `HTTP ${response.status}`
+    );
   }
 
   return data;
 }
 
-
-/* =========================
+/* =========================================================
    UTILITIES
-========================= */
+========================================================= */
 
 function esc(value) {
-  value = String(value == null ? '' : value);
-
-  return value.replace(/[&<>"']/g, function (char) {
-    switch (char) {
-      case '&':
-        return '&amp;';
-      case '<':
-        return '&lt;';
-      case '>':
-        return '&gt;';
-      case '"':
-        return '&quot;';
-      case "'":
-        return '&#39;';
-      default:
-        return char;
+  return String(value == null ? '' : value).replace(
+    /[&<>"']/g,
+    (char) => {
+      switch (char) {
+        case '&':
+          return '&amp;';
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '"':
+          return '&quot;';
+        case "'":
+          return '&#39;';
+        default:
+          return char;
+      }
     }
-  });
+  );
 }
 
-
-function showToast(message, type) {
-  const toast = document.querySelector('#toast');
+function showToast(message, type = 'normal') {
+  const toast = $('#toast');
 
   if (!toast) {
     console.log(message);
     return;
   }
 
-  if (!type) {
-    type = 'normal';
-  }
+  toast.textContent = String(message || '');
+  toast.className = `show ${type}`;
 
-  toast.textContent = String(message == null ? '' : message);
-  toast.className = 'show ' + type;
-
-  setTimeout(function () {
+  setTimeout(() => {
     toast.className = '';
   }, 3000);
 }
-
 
 function formatDate(value) {
   if (!value) {
@@ -84,31 +81,56 @@ function formatDate(value) {
 
   try {
     return new Date(value).toLocaleString('vi-VN');
-  } catch (error) {
+  } catch {
     return String(value);
   }
 }
 
+/* =========================================================
+   DIALOG
+========================================================= */
 
-/* =========================
+function openDialog(id) {
+  const dialog = $(`#${id}`);
+
+  if (dialog && typeof dialog.showModal === 'function') {
+    dialog.showModal();
+  }
+}
+
+function closeDialog(id) {
+  const dialog = $(`#${id}`);
+
+  if (dialog && dialog.open) {
+    dialog.close();
+  }
+}
+
+$$('[data-close]').forEach((button) => {
+  button.addEventListener('click', () => {
+    closeDialog(button.dataset.close);
+  });
+});
+
+/* =========================================================
    PUBLIC NAVIGATION
-========================= */
+========================================================= */
 
 function showPublicPage(page) {
-  $$('.page').forEach(function (x) {
-    x.classList.add('hidden');
+  $$('.page').forEach((element) => {
+    element.classList.add('hidden');
   });
 
-  const target = document.querySelector('#' + page + 'Page');
+  const target = $(`#${page}Page`);
 
   if (target) {
     target.classList.remove('hidden');
   }
 
-  $$('.nav-btn').forEach(function (btn) {
-    btn.classList.toggle(
+  $$('.nav-btn').forEach((button) => {
+    button.classList.toggle(
       'active',
-      btn.dataset.page === page
+      button.dataset.page === page
     );
   });
 
@@ -121,186 +143,194 @@ function showPublicPage(page) {
   }
 }
 
-
-$$('.nav-btn').forEach(function (button) {
-  button.addEventListener('click', function () {
+$$('.nav-btn').forEach((button) => {
+  button.addEventListener('click', () => {
     showPublicPage(button.dataset.page);
   });
 });
 
-
-$$('[data-page-target]').forEach(function (button) {
-  button.addEventListener('click', function () {
+$$('[data-page-target]').forEach((button) => {
+  button.addEventListener('click', () => {
     showPublicPage(button.dataset.pageTarget);
   });
 });
 
-
-/* =========================
-   DIALOGS
-========================= */
-
-function openDialog(id) {
-  const dialog = document.querySelector('#' + id);
-
-  if (dialog) {
-    dialog.showModal();
-  }
-}
-
-
-function closeDialog(id) {
-  const dialog = document.querySelector('#' + id);
-
-  if (dialog) {
-    dialog.close();
-  }
-}
-
-
-$$('[data-close]').forEach(function (button) {
-  button.addEventListener('click', function () {
-    closeDialog(button.dataset.close);
-  });
-});
-
-
-/* =========================
-   LOGIN
-========================= */
+/* =========================================================
+   LOGIN / REGISTER BUTTONS
+========================================================= */
 
 const loginBtn = $('#loginBtn');
 
 if (loginBtn) {
-  loginBtn.onclick = function () {
-    $('#loginMsg').textContent = '';
-    $('#loginForm').reset();
+  loginBtn.onclick = () => {
+    const msg = $('#loginMsg');
+
+    if (msg) {
+      msg.textContent = '';
+    }
+
+    const form = $('#loginForm');
+
+    if (form) {
+      form.reset();
+    }
+
     openDialog('loginDialog');
   };
 }
 
+const registerBtn = $('#registerBtn');
+
+if (registerBtn) {
+  registerBtn.onclick = () => {
+    const msg = $('#registerMsg');
+
+    if (msg) {
+      msg.textContent = '';
+    }
+
+    const form = $('#registerForm');
+
+    if (form) {
+      form.reset();
+    }
+
+    openDialog('registerDialog');
+  };
+}
 
 const heroRegister = $('#heroRegister');
 
 if (heroRegister) {
-  heroRegister.onclick = function () {
+  heroRegister.onclick = () => {
     if (currentUser) {
       showPublicPage('account');
       return;
     }
 
-    $('#registerMsg').textContent = '';
-    $('#registerForm').reset();
+    const msg = $('#registerMsg');
+
+    if (msg) {
+      msg.textContent = '';
+    }
+
+    const form = $('#registerForm');
+
+    if (form) {
+      form.reset();
+    }
+
     openDialog('registerDialog');
   };
 }
-
-
-const registerBtn = $('#registerBtn');
-
-if (registerBtn) {
-  registerBtn.onclick = function () {
-    $('#registerMsg').textContent = '';
-    $('#registerForm').reset();
-    openDialog('registerDialog');
-  };
-}
-
 
 const switchRegister = $('#switchRegister');
 
 if (switchRegister) {
-  switchRegister.onclick = function () {
+  switchRegister.onclick = () => {
     closeDialog('loginDialog');
 
-    setTimeout(function () {
+    setTimeout(() => {
       openDialog('registerDialog');
     }, 150);
   };
 }
 
-
 const switchLogin = $('#switchLogin');
 
 if (switchLogin) {
-  switchLogin.onclick = function () {
+  switchLogin.onclick = () => {
     closeDialog('registerDialog');
 
-    setTimeout(function () {
+    setTimeout(() => {
       openDialog('loginDialog');
     }, 150);
   };
 }
 
+/* =========================================================
+   USER LOGIN
+========================================================= */
 
 const loginForm = $('#loginForm');
 
 if (loginForm) {
-  loginForm.onsubmit = async function (event) {
+  loginForm.onsubmit = async (event) => {
     event.preventDefault();
 
-    const username = $('#loginUsername').value.trim();
-    const password = $('#loginPassword').value;
+    const username =
+      $('#loginUsername')?.value.trim() || '';
 
-    $('#loginMsg').textContent = 'Đang đăng nhập...';
+    const password =
+      $('#loginPassword')?.value || '';
+
+    const message = $('#loginMsg');
+
+    if (message) {
+      message.textContent = 'Đang đăng nhập...';
+    }
 
     try {
       const result = await api('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({
-          username: username,
-          password: password
+          username,
+          password
         })
       });
 
       currentUser = result;
 
       closeDialog('loginDialog');
-
       updateUserUI();
 
       showToast(
-        'Đăng nhập thành công. Xin chào ' +
-        result.username +
-        '!',
+        `Đăng nhập thành công. Xin chào ${result.username}!`,
         'success'
       );
 
     } catch (error) {
-      $('#loginMsg').textContent = error.message;
+      if (message) {
+        message.textContent = error.message;
+      }
     }
   };
 }
 
-
-/* =========================
-   REGISTER
-========================= */
+/* =========================================================
+   USER REGISTER
+========================================================= */
 
 const registerForm = $('#registerForm');
 
 if (registerForm) {
-  registerForm.onsubmit = async function (event) {
+  registerForm.onsubmit = async (event) => {
     event.preventDefault();
 
-    const username = $('#registerUsername').value.trim();
-    const password = $('#registerPassword').value;
+    const username =
+      $('#registerUsername')?.value.trim() || '';
 
-    $('#registerMsg').textContent = 'Đang tạo tài khoản...';
+    const password =
+      $('#registerPassword')?.value || '';
+
+    const message = $('#registerMsg');
+
+    if (message) {
+      message.textContent = 'Đang tạo tài khoản...';
+    }
 
     try {
       const result = await api('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
-          username: username,
-          password: password
+          username,
+          password
         })
       });
 
       currentUser = result;
 
       closeDialog('registerDialog');
-
       updateUserUI();
 
       showToast(
@@ -309,15 +339,16 @@ if (registerForm) {
       );
 
     } catch (error) {
-      $('#registerMsg').textContent = error.message;
+      if (message) {
+        message.textContent = error.message;
+      }
     }
   };
 }
 
-
-/* =========================
+/* =========================================================
    USER UI
-========================= */
+========================================================= */
 
 function updateUserUI() {
   const guestActions = $('#guestActions');
@@ -325,35 +356,22 @@ function updateUserUI() {
   const accountNav = $('#accountNav');
 
   if (!currentUser) {
-    if (guestActions) {
-      guestActions.classList.remove('hidden');
-    }
-
-    if (userActions) {
-      userActions.classList.add('hidden');
-    }
-
-    if (accountNav) {
-      accountNav.classList.add('hidden');
-    }
-
+    guestActions?.classList.remove('hidden');
+    userActions?.classList.add('hidden');
+    accountNav?.classList.add('hidden');
     return;
   }
 
-  if (guestActions) {
-    guestActions.classList.add('hidden');
-  }
+  guestActions?.classList.add('hidden');
+  userActions?.classList.remove('hidden');
+  accountNav?.classList.remove('hidden');
 
-  if (userActions) {
-    userActions.classList.remove('hidden');
-  }
+  const name =
+    currentUser.username ||
+    'User';
 
-  if (accountNav) {
-    accountNav.classList.remove('hidden');
-  }
-
-  const name = currentUser.username || 'User';
-  const first = name.charAt(0).toUpperCase();
+  const first =
+    name.charAt(0).toUpperCase();
 
   if ($('#sideUsername')) {
     $('#sideUsername').textContent = name;
@@ -376,15 +394,14 @@ function updateUserUI() {
   }
 }
 
-
-/* =========================
-   LOGOUT
-========================= */
+/* =========================================================
+   USER LOGOUT
+========================================================= */
 
 const logoutBtn = $('#logoutBtn');
 
 if (logoutBtn) {
-  logoutBtn.onclick = async function () {
+  logoutBtn.onclick = async () => {
     try {
       await api('/api/auth/logout', {
         method: 'POST'
@@ -393,7 +410,6 @@ if (logoutBtn) {
       currentUser = null;
 
       updateUserUI();
-
       showPublicPage('home');
 
       showToast(
@@ -402,40 +418,39 @@ if (logoutBtn) {
       );
 
     } catch (error) {
-      showToast(error.message, 'error');
+      showToast(
+        error.message,
+        'error'
+      );
     }
   };
 }
 
-
-/* =========================
-   CURRENT USER
-========================= */
+/* =========================================================
+   CHECK CURRENT USER
+========================================================= */
 
 async function checkUser() {
   try {
-    const result = await api('/api/auth/me');
+    const result =
+      await api('/api/auth/me');
 
     currentUser = result;
 
-    updateUserUI();
-
-  } catch (error) {
+  } catch {
     currentUser = null;
-
-    updateUserUI();
   }
+
+  updateUserUI();
 }
 
-
-/* =========================
+/* =========================================================
    PUBLIC DOWNLOADS
-========================= */
+========================================================= */
 
 async function getDownloads() {
   return await api('/api/downloads');
 }
-
 
 function downloadCard(item) {
   const image = item.image_url
@@ -444,15 +459,37 @@ function downloadCard(item) {
         <img
           src="${esc(item.image_url)}"
           alt="${esc(item.title)}"
+          loading="lazy"
           onerror="this.parentElement.classList.add('image-error')"
         >
       </div>
     `
     : `
       <div class="download-image no-image">
-        <span>AV</span>
+        <div class="download-placeholder-logo">
+          <img
+            src="/logo.png"
+            alt="AnhVuong"
+          >
+        </div>
       </div>
     `;
+
+  const version =
+    item.version ||
+    item.version_name ||
+    item.app_version ||
+    '—';
+
+  const fileSize =
+    item.file_size ||
+    item.size ||
+    '—';
+
+  const updatedAt =
+    item.updated_at ||
+    item.created_at ||
+    null;
 
   return `
     <article class="download-card">
@@ -462,21 +499,102 @@ function downloadCard(item) {
       <div class="download-body">
 
         <div class="download-title-row">
-          <h3>${esc(item.title)}</h3>
-          <span class="download-badge">SOFTWARE</span>
+
+          <h3>
+            ${esc(item.title)}
+          </h3>
+
+          <span class="download-badge">
+            SOFTWARE
+          </span>
+
         </div>
 
-        <p>
-          ${esc(item.description || 'Chưa có mô tả.')}
-        </p>
+        <div class="download-description">
+          ${esc(
+            item.description ||
+            'Chưa có mô tả.'
+          )}
+        </div>
 
-        <button
-          class="download-button"
-          onclick="downloadItem(${item.id})"
-        >
-          <span>↓</span>
-          Tải xuống
-        </button>
+        <div class="download-details">
+
+          <div class="download-detail">
+            <span class="detail-label">
+              Sản phẩm
+            </span>
+
+            <strong>
+              ${esc(item.title)}
+            </strong>
+          </div>
+
+          <div class="download-detail">
+            <span class="detail-label">
+              Phiên bản
+            </span>
+
+            <strong>
+              ${esc(version)}
+            </strong>
+          </div>
+
+          <div class="download-detail">
+            <span class="detail-label">
+              Dung lượng
+            </span>
+
+            <strong>
+              ${esc(fileSize)}
+            </strong>
+          </div>
+
+          <div class="download-detail">
+            <span class="detail-label">
+              Trạng thái
+            </span>
+
+            <strong class="detail-status">
+              Sẵn sàng
+            </strong>
+          </div>
+
+          ${
+            updatedAt
+              ? `
+                <div class="download-detail">
+                  <span class="detail-label">
+                    Cập nhật
+                  </span>
+
+                  <strong>
+                    ${formatDate(updatedAt)}
+                  </strong>
+                </div>
+              `
+              : ''
+          }
+
+        </div>
+
+        <div class="download-card-footer">
+
+          <button
+            class="download-button"
+            type="button"
+            onclick="downloadItem(${Number(item.id)})"
+          >
+            <span class="download-button-icon">
+              ↓
+            </span>
+
+            <span>
+              Tải xuống
+            </span>
+
+          </button>
+
+        </div>
 
       </div>
 
@@ -484,14 +602,13 @@ function downloadCard(item) {
   `;
 }
 
-
 async function loadPublicDownloads() {
   const containers = [
     $('#homeDownloads'),
     $('#downloadsList')
   ];
 
-  containers.forEach(function (container) {
+  containers.forEach((container) => {
     if (container) {
       container.innerHTML = `
         <div class="loading-card">
@@ -502,24 +619,28 @@ async function loadPublicDownloads() {
   });
 
   try {
-    const data = await getDownloads();
+    const data =
+      await getDownloads();
 
-    const html = data.length
-      ? data.map(downloadCard).join('')
-      : `
-        <div class="empty-card">
-          Hiện chưa có phần mềm nào được đăng tải.
-        </div>
-      `;
+    const html =
+      data.length
+        ? data.map(downloadCard).join('')
+        : `
+          <div class="empty-card">
+            Hiện chưa có phần mềm nào được đăng tải.
+          </div>
+        `;
 
-    containers.forEach(function (container) {
+    containers.forEach((container) => {
       if (container) {
         container.innerHTML = html;
       }
     });
 
   } catch (error) {
-    containers.forEach(function (container) {
+    console.error(error);
+
+    containers.forEach((container) => {
       if (container) {
         container.innerHTML = `
           <div class="empty-card">
@@ -531,10 +652,9 @@ async function loadPublicDownloads() {
   }
 }
 
-
-/* =========================
+/* =========================================================
    DOWNLOAD ACCESS
-========================= */
+========================================================= */
 
 window.downloadItem = async function (id) {
   if (!currentUser) {
@@ -549,15 +669,16 @@ window.downloadItem = async function (id) {
   }
 
   try {
-    const result = await api(
-      `/api/downloads/${id}/access`
-    );
+    const result =
+      await api(
+        `/api/downloads/${id}/access`
+      );
 
     if (result.download_url) {
       window.open(
         result.download_url,
         '_blank',
-        'noopener'
+        'noopener,noreferrer'
       );
 
       showToast(
@@ -567,37 +688,37 @@ window.downloadItem = async function (id) {
     }
 
   } catch (error) {
+    const message =
+      String(error.message || '');
+
     if (
-      error.message.includes('đăng nhập') ||
-      error.message.includes('tài khoản')
+      message.includes('đăng nhập') ||
+      message.includes('tài khoản') ||
+      message.includes('Vui lòng')
     ) {
       currentUser = null;
 
       updateUserUI();
-
       openDialog('loginDialog');
 
       return;
     }
 
     showToast(
-      error.message,
+      message,
       'error'
     );
   }
 };
 
-
-/* =========================
+/* =========================================================
    ACCOUNT
-========================= */
+========================================================= */
 
 async function loadAccount() {
   if (!currentUser) {
     showPublicPage('home');
-
     openDialog('loginDialog');
-
     return;
   }
 
@@ -612,23 +733,31 @@ async function loadAccount() {
   }
 
   try {
-    const logs = await api(
-      '/api/account/logs'
-    );
+    const logs =
+      await api('/api/account/logs');
 
     if ($('#accountLogs')) {
       $('#accountLogs').innerHTML =
         logs.length
-          ? logs.map(function (row) {
-              return `
-                <tr>
-                  <td>${formatDate(row.created_at)}</td>
-                  <td>${esc(row.action)}</td>
-                  <td>${esc(row.detail || '—')}</td>
-                  <td>${esc(row.ip || '—')}</td>
-                </tr>
-              `;
-            }).join('')
+          ? logs.map((row) => `
+              <tr>
+                <td>
+                  ${formatDate(row.created_at)}
+                </td>
+
+                <td>
+                  ${esc(row.action)}
+                </td>
+
+                <td>
+                  ${esc(row.detail || '—')}
+                </td>
+
+                <td>
+                  ${esc(row.ip || '—')}
+                </td>
+              </tr>
+            `).join('')
           : `
             <tr>
               <td colspan="4">
@@ -638,7 +767,7 @@ async function loadAccount() {
           `;
     }
 
-  } catch (error) {
+  } catch {
     if ($('#accountLogs')) {
       $('#accountLogs').innerHTML = `
         <tr>
@@ -651,130 +780,231 @@ async function loadAccount() {
   }
 }
 
-
-/* =========================
+/* =========================================================
    ADMIN LOGIN
-========================= */
+========================================================= */
 
 const adminBtn = $('#adminBtn');
 
 if (adminBtn) {
-  adminBtn.onclick = function () {
+  adminBtn.onclick = async () => {
+
     if (adminLoggedIn) {
       showAdmin();
       return;
     }
 
-    $('#adminLoginMsg').textContent = '';
-    $('#adminLoginForm').reset();
+    try {
+      const me =
+        await api('/api/admin/me');
+
+      if (me && me.role === 'admin') {
+        adminLoggedIn = true;
+        showAdmin();
+        return;
+      }
+
+    } catch {
+      // Chưa đăng nhập Admin
+    }
+
+    const message = $('#adminLoginMsg');
+
+    if (message) {
+      message.textContent = '';
+    }
+
+    const form = $('#adminLoginForm');
+
+    if (form) {
+      form.reset();
+    }
 
     openDialog('adminLoginDialog');
   };
 }
 
+/* =========================================================
+   ADMIN LOGIN FORM
+========================================================= */
 
-const adminLoginForm = $('#adminLoginForm');
+const adminLoginForm =
+  $('#adminLoginForm');
 
 if (adminLoginForm) {
-  adminLoginForm.onsubmit = async function (event) {
-    event.preventDefault();
+  adminLoginForm.onsubmit =
+    async (event) => {
 
-    $('#adminLoginMsg').textContent =
-      'Đang kiểm tra...';
+      event.preventDefault();
 
-    try {
-      const result = await api(
-        '/api/admin/login',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            username:
-              $('#adminUsernameInput').value.trim(),
+      const message =
+        $('#adminLoginMsg');
 
-            password:
-              $('#adminPasswordInput').value
-          })
+      if (message) {
+        message.textContent =
+          'Đang kiểm tra...';
+      }
+
+      const username =
+        $('#adminUsernameInput')
+          ?.value
+          .trim() || '';
+
+      const password =
+        $('#adminPasswordInput')
+          ?.value || '';
+
+      try {
+        const result =
+          await api(
+            '/api/admin/login',
+            {
+              method: 'POST',
+
+              body: JSON.stringify({
+                username,
+                password
+              })
+            }
+          );
+
+        if (!result || result.role !== 'admin') {
+          throw new Error(
+            'Không xác nhận được quyền Admin'
+          );
         }
-      );
 
-      adminLoggedIn = true;
+        adminLoggedIn = true;
 
-      closeDialog('adminLoginDialog');
+        closeDialog(
+          'adminLoginDialog'
+        );
 
-      showAdmin();
+        showAdmin();
 
-      showToast(
-        'Đăng nhập Admin thành công',
-        'success'
-      );
+        showToast(
+          'Đăng nhập Admin thành công',
+          'success'
+        );
 
-    } catch (error) {
-      $('#adminLoginMsg').textContent =
-        error.message;
-    }
-  };
+      } catch (error) {
+        if (message) {
+          message.textContent =
+            error.message;
+        }
+      }
+    };
 }
 
+/* =========================================================
+   CHECK ADMIN SESSION
+========================================================= */
 
-/* =========================
+async function checkAdmin() {
+  try {
+    const result =
+      await api('/api/admin/me');
+
+    if (
+      result &&
+      result.role === 'admin'
+    ) {
+      adminLoggedIn = true;
+      return true;
+    }
+
+  } catch {
+    adminLoggedIn = false;
+  }
+
+  return false;
+}
+
+/* =========================================================
    SHOW ADMIN
-========================= */
+========================================================= */
 
 function showAdmin() {
-  $('#publicApp').classList.add('hidden');
-  $('#adminApp').classList.remove('hidden');
+  const publicApp =
+    $('#publicApp');
+
+  const adminApp =
+    $('#adminApp');
+
+  if (publicApp) {
+    publicApp.classList.add('hidden');
+  }
+
+  if (adminApp) {
+    adminApp.classList.remove('hidden');
+  }
 
   loadAdminDashboard();
 }
 
-
-/* =========================
+/* =========================================================
    BACK TO WEB
-========================= */
+========================================================= */
 
-const backToWeb = $('#backToWeb');
+const backToWeb =
+  $('#backToWeb');
 
 if (backToWeb) {
-  backToWeb.onclick = function () {
-    $('#adminApp').classList.add('hidden');
-    $('#publicApp').classList.remove('hidden');
+  backToWeb.onclick = () => {
+
+    $('#adminApp')
+      ?.classList
+      .add('hidden');
+
+    $('#publicApp')
+      ?.classList
+      .remove('hidden');
 
     showPublicPage('home');
   };
 }
 
-
-/* =========================
+/* =========================================================
    ADMIN NAVIGATION
-========================= */
+========================================================= */
 
-$$('.admin-nav').forEach(function (button) {
-  button.addEventListener('click', function () {
-    const page = button.dataset.adminPage;
+$$('.admin-nav').forEach((button) => {
 
-    $$('.admin-page').forEach(function (section) {
-      section.classList.add('hidden');
-    });
+  button.addEventListener('click', () => {
 
-    const target = {
+    const page =
+      button.dataset.adminPage;
+
+    $$('.admin-page').forEach(
+      (section) => {
+        section.classList.add('hidden');
+      }
+    );
+
+    const targets = {
       dashboard: '#adminDashboard',
       keys: '#adminKeys',
       adminDownloads: '#adminDownloads',
       logs: '#adminLogs',
       api: '#adminApi'
-    }[page];
+    };
+
+    const target =
+      targets[page];
 
     if (target) {
-      const element = $(target);
-
-      if (element) {
-        element.classList.remove('hidden');
-      }
+      $(target)?.classList.remove(
+        'hidden'
+      );
     }
 
-    $$('.admin-nav').forEach(function (x) {
-      x.classList.remove('active');
-    });
+    $$('.admin-nav').forEach(
+      (item) => {
+        item.classList.remove(
+          'active'
+        );
+      }
+    );
 
     button.classList.add('active');
 
@@ -796,10 +1026,9 @@ $$('.admin-nav').forEach(function (button) {
   });
 });
 
-
-/* =========================
+/* =========================================================
    ADMIN DASHBOARD
-========================= */
+========================================================= */
 
 async function loadAdminDashboard() {
   try {
@@ -827,58 +1056,83 @@ async function loadAdminDashboard() {
     }
 
   } catch (error) {
-    if (error.message.includes('Admin')) {
+
+    if (
+      error.message.includes('Admin') ||
+      error.message.includes('đăng nhập')
+    ) {
       adminLoggedIn = false;
     }
+
+    showToast(
+      error.message,
+      'error'
+    );
   }
 }
 
-
-/* =========================
-   ADMIN KEYS
-========================= */
+/* =========================================================
+   ADMIN LICENSES
+========================================================= */
 
 async function loadKeys() {
   try {
-    const searchElement = $('#search');
-    const filterElement = $('#filter');
 
     const searchValue =
-      searchElement ? searchElement.value : '';
+      $('#search')?.value || '';
 
     const filterValue =
-      filterElement ? filterElement.value : '';
+      $('#filter')?.value || 'all';
 
-    licenses = await api(
-      '/api/admin/licenses?q=' +
-      encodeURIComponent(searchValue) +
-      '&status=' +
-      encodeURIComponent(filterValue)
-    );
+    licenses =
+      await api(
+        '/api/admin/licenses?q=' +
+        encodeURIComponent(searchValue) +
+        '&status=' +
+        encodeURIComponent(filterValue)
+      );
 
-    if (!$('#rows')) {
+    const rows =
+      $('#rows');
+
+    if (!rows) {
       return;
     }
 
-    $('#rows').innerHTML =
+    rows.innerHTML =
       licenses.length
-        ? licenses.map(function (row) {
+        ? licenses.map((row) => {
+
+            const nextStatus =
+              row.status === 'banned'
+                ? 'active'
+                : 'banned';
+
+            const buttonText =
+              row.status === 'banned'
+                ? 'Mở khóa'
+                : 'Khóa';
+
             return `
               <tr>
 
                 <td>
-                  <code>${esc(row.key)}</code>
+                  <code>
+                    ${esc(row.key)}
+                  </code>
 
                   <button
                     class="small-btn copy-key"
-                    onclick="copyKey(${row.id})"
+                    onclick="copyKey(${Number(row.id)})"
                   >
                     Sao chép
                   </button>
                 </td>
 
                 <td>
-                  <span class="status ${esc(row.status)}">
+                  <span
+                    class="status ${esc(row.status)}"
+                  >
                     ${esc(row.status)}
                   </span>
                 </td>
@@ -886,7 +1140,9 @@ async function loadKeys() {
                 <td>
                   ${
                     row.expires_at
-                      ? formatDate(row.expires_at)
+                      ? formatDate(
+                          row.expires_at
+                        )
                       : 'Vĩnh viễn'
                   }
                 </td>
@@ -904,27 +1160,27 @@ async function loadKeys() {
                   <button
                     class="small-btn"
                     onclick="toggleKey(
-                      ${row.id},
-                      '${row.status === 'banned' ? 'active' : 'banned'}'
+                      ${Number(row.id)},
+                      '${nextStatus}'
                     )"
                   >
-                    ${
-                      row.status === 'banned'
-                        ? 'Mở khóa'
-                        : 'Khóa'
-                    }
+                    ${buttonText}
                   </button>
 
                   <button
                     class="small-btn"
-                    onclick="resetHwid(${row.id})"
+                    onclick="resetHwid(
+                      ${Number(row.id)}
+                    )"
                   >
                     Reset HWID
                   </button>
 
                   <button
                     class="small-btn danger-btn"
-                    onclick="deleteKey(${row.id})"
+                    onclick="deleteKey(
+                      ${Number(row.id)}
+                    )"
                   >
                     Xóa
                   </button>
@@ -950,62 +1206,62 @@ async function loadKeys() {
   }
 }
 
-
-const searchInput = $('#search');
+const searchInput =
+  $('#search');
 
 if (searchInput) {
-  searchInput.oninput = loadKeys;
+  searchInput.oninput =
+    loadKeys;
 }
 
-
-const filterInput = $('#filter');
+const filterInput =
+  $('#filter');
 
 if (filterInput) {
-  filterInput.onchange = loadKeys;
+  filterInput.onchange =
+    loadKeys;
 }
 
-
-/* =========================
+/* =========================================================
    COPY KEY
-========================= */
+========================================================= */
 
-window.copyKey = async function (id) {
-  const row =
-    licenses.find(function (x) {
-      return x.id === id;
-    });
+window.copyKey =
+  async function (id) {
 
-  if (!row) {
-    return;
-  }
+    const row =
+      licenses.find(
+        (item) =>
+          Number(item.id) === Number(id)
+      );
 
-  try {
-    await navigator.clipboard.writeText(
-      row.key
-    );
+    if (!row) {
+      return;
+    }
 
-    showToast(
-      'Đã sao chép key',
-      'success'
-    );
+    try {
+      await navigator.clipboard.writeText(
+        row.key
+      );
 
-  } catch (error) {
-    prompt(
-      'Sao chép key:',
-      row.key
-    );
-  }
-};
+      showToast(
+        'Đã sao chép key',
+        'success'
+      );
 
+    } catch {
+      prompt(
+        'Sao chép key:',
+        row.key
+      );
+    }
+  };
 
-/* =========================
-   CREATE KEY
-========================= */
+/* =========================================================
+   CREATE LICENSE
+========================================================= */
 
-function openLicenseForm(bulk) {
-  if (!bulk) {
-    bulk = false;
-  }
+function openLicenseForm(bulk = false) {
 
   if ($('#licenseDialogTitle')) {
     $('#licenseDialogTitle').textContent =
@@ -1026,96 +1282,111 @@ function openLicenseForm(bulk) {
   openDialog('licenseDialog');
 }
 
-
-const quickCreate = $('#quickCreate');
+const quickCreate =
+  $('#quickCreate');
 
 if (quickCreate) {
   quickCreate.onclick =
-    function () {
-      openLicenseForm(false);
-    };
+    () => openLicenseForm(false);
 }
 
-
-const createKey = $('#createKey');
+const createKey =
+  $('#createKey');
 
 if (createKey) {
   createKey.onclick =
-    function () {
-      openLicenseForm(false);
-    };
+    () => openLicenseForm(false);
 }
 
-
-const bulkCreate = $('#bulkCreate');
+const bulkCreate =
+  $('#bulkCreate');
 
 if (bulkCreate) {
   bulkCreate.onclick =
-    function () {
-      openLicenseForm(true);
-    };
+    () => openLicenseForm(true);
 }
 
-
-const licenseCancel = $('#licenseCancel');
+const licenseCancel =
+  $('#licenseCancel');
 
 if (licenseCancel) {
   licenseCancel.onclick =
-    function () {
-      closeDialog('licenseDialog');
-    };
+    () => closeDialog('licenseDialog');
 }
 
-
-const licenseForm = $('#licenseForm');
+const licenseForm =
+  $('#licenseForm');
 
 if (licenseForm) {
+
   licenseForm.onsubmit =
-    async function (event) {
+    async (event) => {
+
       event.preventDefault();
 
       const count =
-        Number($('#count').value);
+        Math.max(
+          1,
+          Number(
+            $('#count')?.value || 1
+          )
+        );
 
       const duration =
-        Number($('#duration').value);
+        Math.max(
+          0,
+          Number(
+            $('#duration')?.value || 0
+          )
+        );
 
       const note =
-        $('#note').value;
+        $('#note')?.value || '';
 
       try {
+
         const body = {
-          count: count,
+          count,
           duration_days: duration,
-          note: note
+          note
         };
 
-        const result =
-          count > 1
-            ? await api(
-                '/api/admin/licenses/bulk',
-                {
-                  method: 'POST',
-                  body: JSON.stringify(body)
-                }
-              )
-            : await api(
-                '/api/admin/licenses',
-                {
-                  method: 'POST',
-                  body: JSON.stringify(body)
-                }
-              );
+        let result;
+
+        if (count > 1) {
+          result =
+            await api(
+              '/api/admin/licenses/bulk',
+              {
+                method: 'POST',
+                body: JSON.stringify(body)
+              }
+            );
+        } else {
+          result =
+            await api(
+              '/api/admin/licenses',
+              {
+                method: 'POST',
+                body: JSON.stringify(body)
+              }
+            );
+        }
 
         if ($('#created')) {
-          $('#created').textContent =
-            result.licenses
-              ? result.licenses
-                  .map(function (x) {
-                    return x.key;
-                  })
-                  .join('\n')
-              : result.license.key;
+
+          if (result.licenses) {
+            $('#created').textContent =
+              result.licenses
+                .map(
+                  (item) => item.key
+                )
+                .join('\n');
+
+          } else if (result.license) {
+            $('#created').textContent =
+              result.license.key;
+          }
         }
 
         await loadAdminDashboard();
@@ -1127,6 +1398,7 @@ if (licenseForm) {
         );
 
       } catch (error) {
+
         showToast(
           error.message,
           'error'
@@ -1135,123 +1407,170 @@ if (licenseForm) {
     };
 }
 
-
-/* =========================
+/* =========================================================
    KEY ACTIONS
-========================= */
+========================================================= */
 
-window.toggleKey = async function (id, status) {
-  try {
-    await api(
-      `/api/admin/licenses/${id}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify({
-          status: status
-        })
-      }
-    );
+window.toggleKey =
+  async function (id, status) {
 
-    await loadAdminDashboard();
-    await loadKeys();
-    await loadAdminLogs();
+    try {
 
-  } catch (error) {
-    showToast(
-      error.message,
-      'error'
-    );
-  }
-};
+      await api(
+        `/api/admin/licenses/${id}`,
+        {
+          method: 'PATCH',
 
+          body: JSON.stringify({
+            status
+          })
+        }
+      );
 
-window.resetHwid = async function (id) {
-  if (!confirm('Reset HWID của key này?')) {
-    return;
-  }
+      await loadAdminDashboard();
+      await loadKeys();
+      await loadAdminLogs();
 
-  try {
-    await api(
-      `/api/admin/licenses/${id}/reset-hwid`,
-      {
-        method: 'POST'
-      }
-    );
+      showToast(
+        'Đã cập nhật trạng thái key',
+        'success'
+      );
 
-    await loadKeys();
-    await loadAdminLogs();
+    } catch (error) {
 
-    showToast(
-      'Đã reset HWID',
-      'success'
-    );
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
 
-  } catch (error) {
-    showToast(
-      error.message,
-      'error'
-    );
-  }
-};
+window.resetHwid =
+  async function (id) {
 
-
-window.deleteKey = async function (id) {
-  if (!confirm('Xóa key này?')) {
-    return;
-  }
-
-  try {
-    await api(
-      `/api/admin/licenses/${id}`,
-      {
-        method: 'DELETE'
-      }
-    );
-
-    await loadAdminDashboard();
-    await loadKeys();
-    await loadAdminLogs();
-
-    showToast(
-      'Đã xóa key',
-      'success'
-    );
-
-  } catch (error) {
-    showToast(
-      error.message,
-      'error'
-    );
-  }
-};
-
-
-/* =========================
-   ADMIN LOGS
-========================= */
-
-async function loadAdminLogs() {
-  try {
-    const data =
-      await api('/api/admin/logs');
-
-    if (!$('#logsRows')) {
+    if (
+      !confirm(
+        'Reset HWID của key này?'
+      )
+    ) {
       return;
     }
 
-    $('#logsRows').innerHTML =
+    try {
+
+      await api(
+        `/api/admin/licenses/${id}/reset-hwid`,
+        {
+          method: 'POST'
+        }
+      );
+
+      await loadKeys();
+      await loadAdminLogs();
+
+      showToast(
+        'Đã reset HWID',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+window.deleteKey =
+  async function (id) {
+
+    if (
+      !confirm(
+        'Xóa key này?'
+      )
+    ) {
+      return;
+    }
+
+    try {
+
+      await api(
+        `/api/admin/licenses/${id}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      await loadAdminDashboard();
+      await loadKeys();
+      await loadAdminLogs();
+
+      showToast(
+        'Đã xóa key',
+        'success'
+      );
+
+    } catch (error) {
+
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+/* =========================================================
+   ADMIN LOGS
+========================================================= */
+
+async function loadAdminLogs() {
+
+  try {
+
+    const data =
+      await api('/api/admin/logs');
+
+    const rows =
+      $('#logsRows');
+
+    if (!rows) {
+      return;
+    }
+
+    rows.innerHTML =
       data.length
-        ? data.map(function (row) {
-            return `
-              <tr>
-                <td>${formatDate(row.created_at)}</td>
-                <td>${esc(row.action)}</td>
-                <td>${esc(row.key || '—')}</td>
-                <td>${esc(row.detail || '—')}</td>
-                <td>${esc(row.ip || '—')}</td>
-              </tr>
-            `;
-          }).join('')
+        ? data.map((row) => `
+            <tr>
+
+              <td>
+                ${formatDate(
+                  row.created_at
+                )}
+              </td>
+
+              <td>
+                ${esc(row.action)}
+              </td>
+
+              <td>
+                ${esc(row.key || '—')}
+              </td>
+
+              <td>
+                ${esc(
+                  row.detail || '—'
+                )}
+              </td>
+
+              <td>
+                ${esc(
+                  row.ip || '—'
+                )}
+              </td>
+
+            </tr>
+          `).join('')
         : `
           <tr>
             <td colspan="5">
@@ -1261,6 +1580,7 @@ async function loadAdminLogs() {
         `;
 
   } catch (error) {
+
     showToast(
       error.message,
       'error'
@@ -1268,83 +1588,166 @@ async function loadAdminLogs() {
   }
 }
 
-
-/* =========================
+/* =========================================================
    ADMIN DOWNLOADS
-========================= */
+========================================================= */
 
 async function loadAdminDownloads() {
+
   try {
+
     const data =
       await api('/api/admin/downloads');
 
-    if (!$('#adminDownloadList')) {
+    const list =
+      $('#adminDownloadList');
+
+    if (!list) {
       return;
     }
 
-    $('#adminDownloadList').innerHTML =
+    list.innerHTML =
       data.length
-        ? data.map(function (item) {
-            return `
-              <article class="download-card">
+        ? data.map((item) => `
+            <article class="download-card">
 
-                ${
-                  item.image_url
-                    ? `
-                      <div class="download-image">
-                        <img
-                          src="${esc(item.image_url)}"
-                          alt="${esc(item.title)}"
-                        >
-                      </div>
-                    `
-                    : `
-                      <div class="download-image no-image">
-                        <span>AV</span>
-                      </div>
-                    `
-                }
+              ${
+                item.image_url
+                  ? `
+                    <div class="download-image">
 
-                <div class="download-body">
+                      <img
+                        src="${esc(
+                          item.image_url
+                        )}"
+                        alt="${esc(
+                          item.title
+                        )}"
+                        onerror="this.parentElement.classList.add('image-error')"
+                      >
 
-                  <div class="download-title-row">
-                    <h3>${esc(item.title)}</h3>
-
-                    <span class="download-badge">
-                      SOFTWARE
-                    </span>
-                  </div>
-
-                  <p>
-                    ${esc(
-                      item.description ||
-                      'Không có mô tả'
-                    )}
-                  </p>
-
-                  <div class="admin-download-actions">
-
-                    <button
-                      class="small-btn"
-                      onclick="editDownload(${item.id})"
+                    </div>
+                  `
+                  : `
+                    <div
+                      class="download-image no-image"
                     >
-                      Sửa
-                    </button>
+                      <span>
+                        AV
+                      </span>
+                    </div>
+                  `
+              }
 
-                    <button
-                      class="small-btn danger-btn"
-                      onclick="deleteDownload(${item.id})"
-                    >
-                      Xóa
-                    </button>
+              <div class="download-body">
 
-                  </div>
+                <div class="download-title-row">
+
+                  <h3>
+                    ${esc(item.title)}
+                  </h3>
+
+                  <span
+                    class="download-badge"
+                  >
+                    SOFTWARE
+                  </span>
 
                 </div>
 
-              </article>
-            `;
-          }).join('')
+                <div class="download-description">
+                  ${esc(
+                    item.description ||
+                    'Không có mô tả'
+                  )}
+                </div>
+
+                <div class="download-details">
+
+                  <div class="download-detail">
+                    <span class="detail-label">
+                      Sản phẩm
+                    </span>
+
+                    <strong>
+                      ${esc(item.title)}
+                    </strong>
+                  </div>
+
+                  <div class="download-detail">
+                    <span class="detail-label">
+                      Phiên bản
+                    </span>
+
+                    <strong>
+                      —
+                    </strong>
+                  </div>
+
+                  <div class="download-detail">
+                    <span class="detail-label">
+                      Dung lượng
+                    </span>
+
+                    <strong>
+                      —
+                    </strong>
+                  </div>
+
+                  <div class="download-detail">
+                    <span class="detail-label">
+                      Trạng thái
+                    </span>
+
+                    <strong class="detail-status">
+                      Sẵn sàng
+                    </strong>
+                  </div>
+
+                  ${
+                    item.updated_at
+                      ? `
+                        <div class="download-detail">
+                          <span class="detail-label">
+                            Cập nhật
+                          </span>
+
+                          <strong>
+                            ${formatDate(item.updated_at)}
+                          </strong>
+                        </div>
+                      `
+                      : ''
+                  }
+
+                </div>
+
+                <div class="admin-download-actions">
+
+                  <button
+                    class="small-btn"
+                    onclick="editDownload(
+                      ${Number(item.id)}
+                    )"
+                  >
+                    Sửa
+                  </button>
+
+                  <button
+                    class="small-btn danger-btn"
+                    onclick="deleteDownload(
+                      ${Number(item.id)}
+                    )"
+                  >
+                    Xóa
+                  </button>
+
+                </div>
+
+              </div>
+
+            </article>
+          `).join('')
         : `
           <div class="empty-card">
             Chưa có mục tải xuống.
@@ -1352,6 +1755,7 @@ async function loadAdminDownloads() {
         `;
 
   } catch (error) {
+
     showToast(
       error.message,
       'error'
@@ -1359,11 +1763,11 @@ async function loadAdminDownloads() {
   }
 }
 
+/* =========================================================
+   DOWNLOAD FORM
+========================================================= */
 
-function openDownloadForm(item) {
-  if (!item) {
-    item = null;
-  }
+function openDownloadForm(item = null) {
 
   if ($('#downloadDialogTitle')) {
     $('#downloadDialogTitle').textContent =
@@ -1374,88 +1778,92 @@ function openDownloadForm(item) {
 
   if ($('#downloadId')) {
     $('#downloadId').value =
-      item ? item.id : '';
+      item?.id || '';
   }
 
   if ($('#downloadTitle')) {
     $('#downloadTitle').value =
-      item ? item.title : '';
+      item?.title || '';
   }
 
   if ($('#downloadDescription')) {
     $('#downloadDescription').value =
-      item ? item.description : '';
+      item?.description || '';
   }
 
   if ($('#downloadImage')) {
     $('#downloadImage').value =
-      item ? item.image_url : '';
+      item?.image_url || '';
   }
 
   if ($('#downloadUrl')) {
     $('#downloadUrl').value =
-      item ? item.download_url : '';
+      item?.download_url || '';
   }
 
   openDialog('downloadDialog');
 }
 
-
-const addDownload = $('#addDownload');
+const addDownload =
+  $('#addDownload');
 
 if (addDownload) {
   addDownload.onclick =
-    function () {
-      openDownloadForm();
-    };
+    () => openDownloadForm();
 }
 
-
-const downloadCancel = $('#downloadCancel');
+const downloadCancel =
+  $('#downloadCancel');
 
 if (downloadCancel) {
   downloadCancel.onclick =
-    function () {
-      closeDialog('downloadDialog');
-    };
+    () => closeDialog('downloadDialog');
 }
 
-
-const downloadForm = $('#downloadForm');
+const downloadForm =
+  $('#downloadForm');
 
 if (downloadForm) {
+
   downloadForm.onsubmit =
-    async function (event) {
+    async (event) => {
+
       event.preventDefault();
 
       const id =
-        $('#downloadId').value;
+        $('#downloadId')?.value || '';
 
       const body = {
         title:
-          $('#downloadTitle').value,
+          $('#downloadTitle')?.value || '',
 
         description:
-          $('#downloadDescription').value,
+          $('#downloadDescription')?.value || '',
 
         image_url:
-          $('#downloadImage').value,
+          $('#downloadImage')?.value || '',
 
         download_url:
-          $('#downloadUrl').value
+          $('#downloadUrl')?.value || ''
       };
 
       try {
+
         await api(
           '/api/admin/downloads' +
           (id ? `/${id}` : ''),
           {
-            method: id ? 'PATCH' : 'POST',
-            body: JSON.stringify(body)
+            method:
+              id ? 'PATCH' : 'POST',
+
+            body:
+              JSON.stringify(body)
           }
         );
 
-        closeDialog('downloadDialog');
+        closeDialog(
+          'downloadDialog'
+        );
 
         await loadAdminDownloads();
         await loadPublicDownloads();
@@ -1468,6 +1876,7 @@ if (downloadForm) {
         );
 
       } catch (error) {
+
         showToast(
           error.message,
           'error'
@@ -1476,70 +1885,96 @@ if (downloadForm) {
     };
 }
 
+window.editDownload =
+  async function (id) {
 
-window.editDownload = async function (id) {
-  try {
-    const data =
-      await api('/api/admin/downloads');
+    console.log('editDownload called with id:', id);
 
-    const item =
-      data.find(function (x) {
-        return x.id === id;
-      });
+    try {
 
-    if (item) {
-      openDownloadForm(item);
+      const data =
+        await api(
+          '/api/admin/downloads'
+        );
+
+      console.log('downloads data:', data);
+
+      const item =
+        data.find(
+          (x) =>
+            Number(x.id) === Number(id)
+        );
+
+      if (item) {
+        openDownloadForm(item);
+      } else {
+        showToast(
+          'Không tìm thấy mục này',
+          'error'
+        );
+      }
+
+    } catch (error) {
+
+      console.error(error);
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
+
+window.deleteDownload =
+  async function (id) {
+
+    if (
+      !confirm(
+        'Xóa mục tải xuống này?'
+      )
+    ) {
+      return;
     }
 
-  } catch (error) {
-    showToast(
-      error.message,
-      'error'
-    );
-  }
-};
+    try {
 
+      await api(
+        `/api/admin/downloads/${id}`,
+        {
+          method: 'DELETE'
+        }
+      );
 
-window.deleteDownload = async function (id) {
-  if (!confirm('Xóa mục tải xuống này?')) {
-    return;
-  }
+      await loadAdminDownloads();
+      await loadPublicDownloads();
 
-  try {
-    await api(
-      `/api/admin/downloads/${id}`,
-      {
-        method: 'DELETE'
-      }
-    );
+      showToast(
+        'Đã xóa mục tải xuống',
+        'success'
+      );
 
-    await loadAdminDownloads();
-    await loadPublicDownloads();
+    } catch (error) {
 
-    showToast(
-      'Đã xóa mục tải xuống',
-      'success'
-    );
+      showToast(
+        error.message,
+        'error'
+      );
+    }
+  };
 
-  } catch (error) {
-    showToast(
-      error.message,
-      'error'
-    );
-  }
-};
-
-
-/* =========================
+/* =========================================================
    ADMIN LOGOUT
-========================= */
+========================================================= */
 
-const adminLogout = $('#adminLogout');
+const adminLogout =
+  $('#adminLogout');
 
 if (adminLogout) {
+
   adminLogout.onclick =
-    async function () {
+    async () => {
+
       try {
+
         await api(
           '/api/admin/logout',
           {
@@ -1549,8 +1984,13 @@ if (adminLogout) {
 
         adminLoggedIn = false;
 
-        $('#adminApp').classList.add('hidden');
-        $('#publicApp').classList.remove('hidden');
+        $('#adminApp')
+          ?.classList
+          .add('hidden');
+
+        $('#publicApp')
+          ?.classList
+          .remove('hidden');
 
         showPublicPage('home');
 
@@ -1560,6 +2000,7 @@ if (adminLogout) {
         );
 
       } catch (error) {
+
         showToast(
           error.message,
           'error'
@@ -1568,12 +2009,16 @@ if (adminLogout) {
     };
 }
 
-
-/* =========================
+/* =========================================================
    INIT
-========================= */
+========================================================= */
 
 (async function init() {
+
   await checkUser();
+
+  await checkAdmin();
+
   await loadPublicDownloads();
+
 })();

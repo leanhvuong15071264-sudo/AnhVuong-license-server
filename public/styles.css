@@ -1,4 +1,3 @@
-```css
 * {
   box-sizing: border-box;
 }
@@ -451,19 +450,18 @@ button {
 
 
 /* =========================
-   DOWNLOAD GRID
+   DOWNLOAD GRID — FIXED
 ========================= */
 
 .download-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 18px;
+  align-items: stretch;
 }
 
 .large-grid {
-  grid-template-columns:
-    repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .download-card {
@@ -472,6 +470,9 @@ button {
   background: rgba(13,17,24,.88);
   border-radius: var(--radius);
   transition: .25s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .download-card:hover {
@@ -484,6 +485,7 @@ button {
   height: 175px;
   overflow: hidden;
   background: #151b24;
+  flex-shrink: 0;
 }
 
 .download-image img {
@@ -512,6 +514,9 @@ button {
 
 .download-body {
   padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .download-title-row {
@@ -526,11 +531,45 @@ button {
   font-size: 17px;
 }
 
-.download-body p {
+.download-description {
   color: var(--muted);
   line-height: 1.55;
   min-height: 48px;
   font-size: 13px;
+  margin: 8px 0 12px;
+  flex: 1;
+}
+
+.download-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin: 8px 0 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.download-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.download-detail .detail-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+}
+
+.download-detail strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.download-detail .detail-status {
+  color: var(--green);
 }
 
 .download-badge {
@@ -543,9 +582,13 @@ button {
   letter-spacing: 1.5px;
 }
 
+.download-card-footer {
+  margin-top: auto;
+}
+
 .download-button {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 4px;
   background: #fff;
   color: #06080b;
   border-color: #fff;
@@ -1136,4 +1179,206 @@ dialog::backdrop {
   }
 
 }
-```
+
+
+/* =========================
+   AVATAR / LOGO
+========================= */
+
+.brand-mark,
+.avatar,
+.big-avatar,
+.hero-logo-inner {
+  overflow: hidden;
+}
+
+.brand-mark img,
+.avatar img,
+.big-avatar img,
+.hero-logo-inner img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.hero-logo-inner img {
+  object-fit: cover;
+}
+
+
+/* =========================
+   THEME SWITCH
+========================= */
+
+:root {
+  --theme-bg: var(--bg);
+  --theme-panel: var(--panel);
+  --theme-panel-2: var(--panel-2);
+  --theme-text: var(--text);
+}
+
+html[data-theme="light"] {
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --panel-2: #f8fafc;
+  --border: rgba(15, 23, 42, .10);
+  --text: #111827;
+  --muted: #64748b;
+  --accent: #111827;
+}
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(0,0,0,.035), transparent 30%),
+    var(--bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] .sidebar {
+  background: rgba(255,255,255,.94);
+  border-right-color: var(--border);
+}
+
+html[data-theme="light"] .nav-btn,
+html[data-theme="light"] .admin-nav {
+  color: #64748b;
+}
+
+html[data-theme="light"] .nav-btn:hover,
+html[data-theme="light"] .admin-nav:hover {
+  color: #111827;
+  background: rgba(15,23,42,.055);
+}
+
+html[data-theme="light"] .nav-btn.active,
+html[data-theme="light"] .admin-nav.active {
+  color: #111827;
+  background: rgba(15,23,42,.08);
+}
+
+html[data-theme="light"] .sidebar-brand strong,
+html[data-theme="light"] .topbar h1,
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] strong {
+  color: #111827;
+}
+
+html[data-theme="light"] .side-action {
+  background: #fff;
+  color: #111827;
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .side-action.primary {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+html[data-theme="light"] .hero,
+html[data-theme="light"] .admin-hero {
+  background:
+    radial-gradient(circle at 85% 50%, rgba(15,23,42,.07), transparent 28%),
+    #fff;
+}
+
+html[data-theme="light"] .panel,
+html[data-theme="light"] .account-card,
+html[data-theme="light"] .stat-card {
+  background: var(--panel);
+}
+
+html[data-theme="light"] .download-card,
+html[data-theme="light"] .feature-card {
+  background: #fff;
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .download-description,
+html[data-theme="light"] .account-header p {
+  color: #64748b;
+}
+
+html[data-theme="light"] .toolbar input,
+html[data-theme="light"] .toolbar select {
+  background: #fff;
+  color: #111827;
+  border-color: var(--border);
+}
+
+html[data-theme="light"] th {
+  color: #64748b;
+}
+
+html[data-theme="light"] td {
+  color: #334155;
+}
+
+html[data-theme="light"] .small-btn {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+html[data-theme="light"] code {
+  color: #111827;
+  background: #eef2f7;
+}
+
+html[data-theme="light"] .theme-toggle {
+  background: rgba(255,255,255,.92);
+  color: #111827;
+  border-color: rgba(15,23,42,.12);
+  box-shadow: 0 8px 25px rgba(15,23,42,.10);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(13,17,24,.90);
+  color: var(--text);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 25px rgba(0,0,0,.18);
+  transition: .2s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(128,128,128,.35);
+}
+
+.theme-toggle-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.theme-toggle-label {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .2px;
+}
+
+@media (max-width: 700px) {
+  .theme-toggle {
+    top: 12px;
+    right: 12px;
+    min-height: 36px;
+    padding: 7px 10px;
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+}
