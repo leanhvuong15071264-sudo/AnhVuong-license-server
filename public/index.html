@@ -39,7 +39,6 @@
 
     <nav class="main-nav">
 
-      <!-- NHÓM CHÍNH -->
       <div class="nav-group-label">MENU</div>
 
       <button class="nav-btn active" data-page="home">
@@ -62,7 +61,6 @@
         Tài khoản
       </button>
 
-      <!-- NHÓM HỖ TRỢ -->
       <div class="nav-group-label">HỖ TRỢ</div>
 
       <button class="nav-btn" data-page="contact">
@@ -302,7 +300,11 @@
       <div class="contact-grid">
 
         <a href="#" target="_blank" rel="noopener noreferrer" class="contact-card facebook" id="contactFacebook">
-          <div class="contact-icon">📘</div>
+          <div class="contact-icon facebook-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="#1877f2">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </div>
           <div>
             <h3>Facebook</h3>
             <p id="contactFacebookText">AnhVuong Service</p>
@@ -311,16 +313,24 @@
         </a>
 
         <a href="#" target="_blank" rel="noopener noreferrer" class="contact-card zalo" id="contactZalo">
-          <div class="contact-icon">💬</div>
+          <div class="contact-icon zalo-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="#0068ff">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+            </svg>
+          </div>
           <div>
             <h3>Zalo</h3>
-            <p id="contactZaloText">Liên hệ qua Zalo</p>
+            <p id="contactZaloText">0987654321</p>
           </div>
           <span class="contact-arrow">→</span>
         </a>
 
         <a href="#" target="_blank" rel="noopener noreferrer" class="contact-card tiktok" id="contactTiktok">
-          <div class="contact-icon">🎵</div>
+          <div class="contact-icon tiktok-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="#000000">
+              <path d="M12.525.02c1.31-.13 2.61-.14 3.91-.04.04 1.55.42 3.08 1.12 4.47.67 1.35 1.61 2.47 2.82 3.29 1.21.82 2.64 1.26 4.12 1.24l.01 2.84c-1.47.04-2.91-.34-4.24-1.08-.95-.53-1.77-1.24-2.42-2.09v8.84c.01 1.1-.19 2.19-.6 3.19-.4 1-.99 1.87-1.72 2.56-.73.69-1.6 1.22-2.56 1.54-.96.33-1.99.42-3.01.28-.95-.13-1.87-.52-2.65-1.13-.79-.62-1.42-1.42-1.84-2.33-.42-.91-.6-1.91-.5-2.9.1-.99.45-1.93 1.03-2.73.58-.8 1.33-1.43 2.19-1.86.86-.43 1.81-.66 2.78-.67.11 0 .21.01.32.02v3.34c-.08-.02-.16-.03-.24-.04-.98-.09-1.95.23-2.72.89-.77.66-1.25 1.6-1.32 2.62-.07 1.02.28 2.01.97 2.75.69.74 1.65 1.14 2.67 1.12.87-.02 1.71-.42 2.32-1.08.61-.66.95-1.54.96-2.46V0z"/>
+            </svg>
+          </div>
           <div>
             <h3>TikTok</h3>
             <p id="contactTiktokText">@anhvuong.license</p>
@@ -329,7 +339,11 @@
         </a>
 
         <a href="#" class="contact-card email" id="contactEmail">
-          <div class="contact-icon">✉</div>
+          <div class="contact-icon email-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="#ea4335">
+              <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </div>
           <div>
             <h3>Email</h3>
             <p id="contactEmailText">support@anhvuong.com</p>
@@ -585,7 +599,7 @@
         <div>
           <span class="eyebrow">CÀI ĐẶT</span>
           <h1>Cài đặt liên hệ</h1>
-          <p class="top-description">Cập nhật link Facebook, Zalo, TikTok và Email.</p>
+          <p class="top-description">Cập nhật link Facebook, TikTok, Email và số điện thoại Zalo.</p>
         </div>
       </div>
 
@@ -593,15 +607,15 @@
         <form id="settingsForm">
           <div style="display:grid; gap:16px;">
             <div>
-              <label style="display:block;font-weight:600;margin-bottom:4px;">🔵 Facebook</label>
+              <label style="display:block;font-weight:600;margin-bottom:4px;">🔵 Facebook (URL)</label>
               <input id="settingsFacebook" type="url" placeholder="https://facebook.com/..." class="settings-input">
             </div>
             <div>
-              <label style="display:block;font-weight:600;margin-bottom:4px;">💬 Zalo</label>
-              <input id="settingsZalo" type="url" placeholder="https://zalo.me/..." class="settings-input">
+              <label style="display:block;font-weight:600;margin-bottom:4px;">💬 Zalo (Số điện thoại)</label>
+              <input id="settingsZalo" type="text" placeholder="0987654321" class="settings-input">
             </div>
             <div>
-              <label style="display:block;font-weight:600;margin-bottom:4px;">🎵 TikTok</label>
+              <label style="display:block;font-weight:600;margin-bottom:4px;">🎵 TikTok (URL)</label>
               <input id="settingsTiktok" type="url" placeholder="https://tiktok.com/@..." class="settings-input">
             </div>
             <div>

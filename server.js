@@ -133,11 +133,10 @@ async function initDatabase() {
     )
   `);
 
-  // Insert default settings
   await query(`
     INSERT INTO settings (key, value, updated_at) VALUES 
       ('facebook_url', 'https://facebook.com/anhvuong.license', $1),
-      ('zalo_url', 'https://zalo.me/anhvuong.license', $1),
+      ('zalo_phone', '0987654321', $1),
       ('tiktok_url', 'https://tiktok.com/@anhvuong.license', $1),
       ('email_address', 'support@anhvuong.com', $1)
     ON CONFLICT (key) DO NOTHING
@@ -671,7 +670,6 @@ app.get(
         });
       }
 
-      // Ghi vào lịch sử tải xuống
       if (
         req.session.role === 'guest' &&
         req.session.userId
@@ -746,11 +744,11 @@ app.get('/api/settings', async (req, res) => {
 
 app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
   try {
-    const { facebook_url, zalo_url, tiktok_url, email_address } = req.body;
+    const { facebook_url, zalo_phone, tiktok_url, email_address } = req.body;
 
     const updates = [
       { key: 'facebook_url', value: facebook_url },
-      { key: 'zalo_url', value: zalo_url },
+      { key: 'zalo_phone', value: zalo_phone },
       { key: 'tiktok_url', value: tiktok_url },
       { key: 'email_address', value: email_address }
     ];

@@ -492,9 +492,8 @@ async function loadSettings() {
     const data = await api('/api/settings');
     siteSettings = data;
 
-    // Cập nhật link contact
     const fb = data.facebook_url || 'https://facebook.com/anhvuong.license';
-    const zalo = data.zalo_url || 'https://zalo.me/anhvuong.license';
+    const zalo = data.zalo_phone || '0987654321';
     const tiktok = data.tiktok_url || 'https://tiktok.com/@anhvuong.license';
     const email = data.email_address || 'support@anhvuong.com';
 
@@ -509,12 +508,12 @@ async function loadSettings() {
     const emailText = document.getElementById('contactEmailText');
 
     if (fbLink) fbLink.href = fb;
-    if (zaloLink) zaloLink.href = zalo;
+    if (zaloLink) zaloLink.href = `https://zalo.me/${zalo}`;
     if (tiktokLink) tiktokLink.href = tiktok;
     if (emailLink) emailLink.href = `mailto:${email}`;
 
     if (fbText) fbText.textContent = fb.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    if (zaloText) zaloText.textContent = zalo.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (zaloText) zaloText.textContent = zalo;
     if (tiktokText) tiktokText.textContent = tiktok.replace(/^https?:\/\//, '').replace(/\/$/, '');
     if (emailText) emailText.textContent = email;
 
@@ -529,7 +528,7 @@ async function loadSettingsAdmin() {
   try {
     const data = await api('/api/settings');
     if (data.facebook_url) $('#settingsFacebook').value = data.facebook_url;
-    if (data.zalo_url) $('#settingsZalo').value = data.zalo_url;
+    if (data.zalo_phone) $('#settingsZalo').value = data.zalo_phone;
     if (data.tiktok_url) $('#settingsTiktok').value = data.tiktok_url;
     if (data.email_address) $('#settingsEmail').value = data.email_address;
     showToast('Đã tải cài đặt', 'success');
@@ -538,7 +537,6 @@ async function loadSettingsAdmin() {
   }
 }
 
-// Settings form
 const settingsForm = $('#settingsForm');
 if (settingsForm) {
   settingsForm.onsubmit = async (event) => {
@@ -551,7 +549,7 @@ if (settingsForm) {
         method: 'PATCH',
         body: JSON.stringify({
           facebook_url: $('#settingsFacebook').value.trim(),
-          zalo_url: $('#settingsZalo').value.trim(),
+          zalo_phone: $('#settingsZalo').value.trim(),
           tiktok_url: $('#settingsTiktok').value.trim(),
           email_address: $('#settingsEmail').value.trim()
         })
