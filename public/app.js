@@ -4,7 +4,6 @@ const $$ = (selector) => document.querySelectorAll(selector);
 let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
-let siteSettings = {};
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -490,32 +489,32 @@ async function loadHistory() {
 async function loadSettings() {
   try {
     const data = await api('/api/settings');
-    siteSettings = data;
 
-    const fb = data.facebook_url || 'https://facebook.com/anhvuong.license';
-    const zalo = data.zalo_phone || '0987654321';
-    const tiktok = data.tiktok_url || 'https://tiktok.com/@anhvuong.license';
-    const email = data.email_address || 'support@anhvuong.com';
+    setText('contactTitle', data.contact_title || 'Liên Hệ Hỗ Trợ');
+    setText('contactSubtitle', data.contact_subtitle || 'Chọn kênh phù hợp để liên hệ với chúng tôi');
+    setText('contactHours', data.contact_hours || 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn');
 
-    const fbLink = document.getElementById('contactFacebook');
-    const zaloLink = document.getElementById('contactZalo');
-    const tiktokLink = document.getElementById('contactTiktok');
-    const emailLink = document.getElementById('contactEmail');
+    setText('zaloPersonalName', data.zalo_personal_name || 'Zalo Cá Nhân');
+    setText('zaloPersonalDesc', data.zalo_personal_desc || 'Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất');
+    setText('zaloPersonalTag', data.zalo_personal_tag || 'Cá Nhân · Phản hồi nhanh');
+    setLink('zaloPersonalBtn', `https://zalo.me/${data.zalo_personal_phone || '0987654321'}`);
 
-    const fbText = document.getElementById('contactFacebookText');
-    const zaloText = document.getElementById('contactZaloText');
-    const tiktokText = document.getElementById('contactTiktokText');
-    const emailText = document.getElementById('contactEmailText');
+    setText('zaloGroupName', data.zalo_group_name || 'Zalo Cộng Đồng');
+    setText('zaloGroupDesc', data.zalo_group_desc || 'Tham gia nhóm Zalo để cập nhật thông tin và ưu đãi mới nhất');
+    setText('zaloGroupTag', data.zalo_group_tag || 'Cộng Đồng · Cập nhật ưu đãi');
+    setLink('zaloGroupBtn', `https://zalo.me/${data.zalo_group_phone || '0987654322'}`);
 
-    if (fbLink) fbLink.href = fb;
-    if (zaloLink) zaloLink.href = `https://zalo.me/${zalo}`;
-    if (tiktokLink) tiktokLink.href = tiktok;
-    if (emailLink) emailLink.href = `mailto:${email}`;
+    setText('telegramName', data.telegram_name || 'Telegram Cá Nhân');
+    setText('telegramDesc', data.telegram_desc || 'Liên hệ qua Telegram để được hỗ trợ nhanh chóng');
+    setText('telegramTag', data.telegram_tag || 'Cá Nhân · Phản hồi nhanh');
+    setLink('telegramBtn', `https://t.me/${data.telegram_phone || '0987654323'}`);
 
-    if (fbText) fbText.textContent = fb.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    if (zaloText) zaloText.textContent = zalo;
-    if (tiktokText) tiktokText.textContent = tiktok.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    if (emailText) emailText.textContent = email;
+    setText('featureFast', data.feature_fast || 'Phản hồi nhanh');
+    setText('featureFastDesc', data.feature_fast_desc || 'Thường trong vòng 5–15 phút trong giờ hỗ trợ');
+    setText('featureProfessional', data.feature_professional || 'Hỗ trợ chuyên nghiệp');
+    setText('featureProfessionalDesc', data.feature_professional_desc || 'Đội ngũ hỗ trợ giàu kinh nghiệm về sản phẩm');
+    setText('featureMultichannel', data.feature_multichannel || 'Đa kênh');
+    setText('featureMultichannelDesc', data.feature_multichannel_desc || 'Zalo & Telegram đều được hỗ trợ đầy đủ');
 
     return data;
   } catch (error) {
@@ -524,19 +523,57 @@ async function loadSettings() {
   }
 }
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function setLink(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.href = value;
+}
+
 async function loadSettingsAdmin() {
   try {
     const data = await api('/api/settings');
-    if (data.facebook_url) $('#settingsFacebook').value = data.facebook_url;
-    if (data.zalo_phone) $('#settingsZalo').value = data.zalo_phone;
-    if (data.tiktok_url) $('#settingsTiktok').value = data.tiktok_url;
-    if (data.email_address) $('#settingsEmail').value = data.email_address;
+    const fields = {
+      settingsContactTitle: 'contact_title',
+      settingsContactSubtitle: 'contact_subtitle',
+      settingsContactHours: 'contact_hours',
+      settingsZaloPersonalPhone: 'zalo_personal_phone',
+      settingsZaloPersonalName: 'zalo_personal_name',
+      settingsZaloPersonalDesc: 'zalo_personal_desc',
+      settingsZaloPersonalTag: 'zalo_personal_tag',
+      settingsZaloGroupPhone: 'zalo_group_phone',
+      settingsZaloGroupName: 'zalo_group_name',
+      settingsZaloGroupDesc: 'zalo_group_desc',
+      settingsZaloGroupTag: 'zalo_group_tag',
+      settingsTelegramPhone: 'telegram_phone',
+      settingsTelegramName: 'telegram_name',
+      settingsTelegramDesc: 'telegram_desc',
+      settingsTelegramTag: 'telegram_tag',
+      settingsFeatureFast: 'feature_fast',
+      settingsFeatureFastDesc: 'feature_fast_desc',
+      settingsFeatureProfessional: 'feature_professional',
+      settingsFeatureProfessionalDesc: 'feature_professional_desc',
+      settingsFeatureMultichannel: 'feature_multichannel',
+      settingsFeatureMultichannelDesc: 'feature_multichannel_desc'
+    };
+
+    for (const [id, key] of Object.entries(fields)) {
+      const el = document.getElementById(id);
+      if (el && data[key] !== undefined) {
+        el.value = data[key] || '';
+      }
+    }
+
     showToast('Đã tải cài đặt', 'success');
   } catch (error) {
     showToast(error.message, 'error');
   }
 }
 
+// Settings form
 const settingsForm = $('#settingsForm');
 if (settingsForm) {
   settingsForm.onsubmit = async (event) => {
@@ -548,10 +585,27 @@ if (settingsForm) {
       await api('/api/admin/settings', {
         method: 'PATCH',
         body: JSON.stringify({
-          facebook_url: $('#settingsFacebook').value.trim(),
-          zalo_phone: $('#settingsZalo').value.trim(),
-          tiktok_url: $('#settingsTiktok').value.trim(),
-          email_address: $('#settingsEmail').value.trim()
+          contact_title: $('#settingsContactTitle').value.trim(),
+          contact_subtitle: $('#settingsContactSubtitle').value.trim(),
+          contact_hours: $('#settingsContactHours').value.trim(),
+          zalo_personal_phone: $('#settingsZaloPersonalPhone').value.trim(),
+          zalo_personal_name: $('#settingsZaloPersonalName').value.trim(),
+          zalo_personal_desc: $('#settingsZaloPersonalDesc').value.trim(),
+          zalo_personal_tag: $('#settingsZaloPersonalTag').value.trim(),
+          zalo_group_phone: $('#settingsZaloGroupPhone').value.trim(),
+          zalo_group_name: $('#settingsZaloGroupName').value.trim(),
+          zalo_group_desc: $('#settingsZaloGroupDesc').value.trim(),
+          zalo_group_tag: $('#settingsZaloGroupTag').value.trim(),
+          telegram_phone: $('#settingsTelegramPhone').value.trim(),
+          telegram_name: $('#settingsTelegramName').value.trim(),
+          telegram_desc: $('#settingsTelegramDesc').value.trim(),
+          telegram_tag: $('#settingsTelegramTag').value.trim(),
+          feature_fast: $('#settingsFeatureFast').value.trim(),
+          feature_fast_desc: $('#settingsFeatureFastDesc').value.trim(),
+          feature_professional: $('#settingsFeatureProfessional').value.trim(),
+          feature_professional_desc: $('#settingsFeatureProfessionalDesc').value.trim(),
+          feature_multichannel: $('#settingsFeatureMultichannel').value.trim(),
+          feature_multichannel_desc: $('#settingsFeatureMultichannelDesc').value.trim()
         })
       });
 

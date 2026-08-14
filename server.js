@@ -135,10 +135,27 @@ async function initDatabase() {
 
   await query(`
     INSERT INTO settings (key, value, updated_at) VALUES 
-      ('facebook_url', 'https://facebook.com/anhvuong.license', $1),
-      ('zalo_phone', '0987654321', $1),
-      ('tiktok_url', 'https://tiktok.com/@anhvuong.license', $1),
-      ('email_address', 'support@anhvuong.com', $1)
+      ('zalo_personal_phone', '0987654321', $1),
+      ('zalo_personal_name', 'Zalo Cá Nhân', $1),
+      ('zalo_personal_desc', 'Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất', $1),
+      ('zalo_personal_tag', 'Cá Nhân · Phản hồi nhanh', $1),
+      ('zalo_group_phone', '0987654322', $1),
+      ('zalo_group_name', 'Zalo Cộng Đồng', $1),
+      ('zalo_group_desc', 'Tham gia nhóm Zalo để cập nhật thông tin và ưu đãi mới nhất', $1),
+      ('zalo_group_tag', 'Cộng Đồng · Cập nhật ưu đãi', $1),
+      ('telegram_phone', '0987654323', $1),
+      ('telegram_name', 'Telegram Cá Nhân', $1),
+      ('telegram_desc', 'Liên hệ qua Telegram để được hỗ trợ nhanh chóng', $1),
+      ('telegram_tag', 'Cá Nhân · Phản hồi nhanh', $1),
+      ('contact_title', 'Liên Hệ Hỗ Trợ', $1),
+      ('contact_subtitle', 'Chọn kênh phù hợp để liên hệ với chúng tôi', $1),
+      ('contact_hours', 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn', $1),
+      ('feature_fast', 'Phản hồi nhanh', $1),
+      ('feature_fast_desc', 'Thường trong vòng 5–15 phút trong giờ hỗ trợ', $1),
+      ('feature_professional', 'Hỗ trợ chuyên nghiệp', $1),
+      ('feature_professional_desc', 'Đội ngũ hỗ trợ giàu kinh nghiệm về sản phẩm', $1),
+      ('feature_multichannel', 'Đa kênh', $1),
+      ('feature_multichannel_desc', 'Zalo & Telegram đều được hỗ trợ đầy đủ', $1)
     ON CONFLICT (key) DO NOTHING
   `, [now()]);
 
@@ -744,13 +761,38 @@ app.get('/api/settings', async (req, res) => {
 
 app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
   try {
-    const { facebook_url, zalo_phone, tiktok_url, email_address } = req.body;
+    const {
+      zalo_personal_phone, zalo_personal_name, zalo_personal_desc, zalo_personal_tag,
+      zalo_group_phone, zalo_group_name, zalo_group_desc, zalo_group_tag,
+      telegram_phone, telegram_name, telegram_desc, telegram_tag,
+      contact_title, contact_subtitle, contact_hours,
+      feature_fast, feature_fast_desc,
+      feature_professional, feature_professional_desc,
+      feature_multichannel, feature_multichannel_desc
+    } = req.body;
 
     const updates = [
-      { key: 'facebook_url', value: facebook_url },
-      { key: 'zalo_phone', value: zalo_phone },
-      { key: 'tiktok_url', value: tiktok_url },
-      { key: 'email_address', value: email_address }
+      { key: 'zalo_personal_phone', value: zalo_personal_phone },
+      { key: 'zalo_personal_name', value: zalo_personal_name },
+      { key: 'zalo_personal_desc', value: zalo_personal_desc },
+      { key: 'zalo_personal_tag', value: zalo_personal_tag },
+      { key: 'zalo_group_phone', value: zalo_group_phone },
+      { key: 'zalo_group_name', value: zalo_group_name },
+      { key: 'zalo_group_desc', value: zalo_group_desc },
+      { key: 'zalo_group_tag', value: zalo_group_tag },
+      { key: 'telegram_phone', value: telegram_phone },
+      { key: 'telegram_name', value: telegram_name },
+      { key: 'telegram_desc', value: telegram_desc },
+      { key: 'telegram_tag', value: telegram_tag },
+      { key: 'contact_title', value: contact_title },
+      { key: 'contact_subtitle', value: contact_subtitle },
+      { key: 'contact_hours', value: contact_hours },
+      { key: 'feature_fast', value: feature_fast },
+      { key: 'feature_fast_desc', value: feature_fast_desc },
+      { key: 'feature_professional', value: feature_professional },
+      { key: 'feature_professional_desc', value: feature_professional_desc },
+      { key: 'feature_multichannel', value: feature_multichannel },
+      { key: 'feature_multichannel_desc', value: feature_multichannel_desc }
     ];
 
     for (const item of updates) {
@@ -1424,8 +1466,7 @@ app.post(
             req,
             days,
             note,
-            client
-          )
+            client          )
         );
       }
 
