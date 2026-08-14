@@ -38,6 +38,10 @@
     </div>
 
     <nav class="main-nav">
+
+      <!-- NHÓM CHÍNH -->
+      <div class="nav-group-label">MENU</div>
+
       <button class="nav-btn active" data-page="home">
         <span>⌂</span>
         Trang chủ
@@ -48,15 +52,24 @@
         Tải xuống
       </button>
 
+      <button class="nav-btn hidden" id="historyNav" data-page="history">
+        <span>📜</span>
+        Lịch sử
+      </button>
+
       <button class="nav-btn hidden" id="accountNav" data-page="account">
         <span>♙</span>
         Tài khoản
       </button>
 
-      <button class="nav-btn hidden" id="historyNav" data-page="history">
-        <span>📜</span>
-        Lịch sử
+      <!-- NHÓM HỖ TRỢ -->
+      <div class="nav-group-label">HỖ TRỢ</div>
+
+      <button class="nav-btn" data-page="contact">
+        <span>✉</span>
+        Liên hệ
       </button>
+
     </nav>
 
     <div class="sidebar-bottom">
@@ -268,6 +281,62 @@
         <div class="loading-card">
           Đang tải lịch sử...
         </div>
+      </div>
+
+    </section>
+
+
+    <!-- CONTACT -->
+    <section id="contactPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LIÊN HỆ</span>
+          <h1>Liên hệ</h1>
+          <p class="top-description">
+            Kết nối với chúng tôi qua các kênh dưới đây.
+          </p>
+        </div>
+      </div>
+
+      <div class="contact-grid">
+
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="contact-card facebook">
+          <div class="contact-icon">📘</div>
+          <div>
+            <h3>Facebook</h3>
+            <p>AnhVuong Service</p>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+
+        <a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="contact-card zalo">
+          <div class="contact-icon">💬</div>
+          <div>
+            <h3>Zalo</h3>
+            <p>Liên hệ qua Zalo</p>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+
+        <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="contact-card tiktok">
+          <div class="contact-icon">🎵</div>
+          <div>
+            <h3>TikTok</h3>
+            <p>@anhvuong.license</p>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+
+        <a href="mailto:support@anhvuong.com" class="contact-card email">
+          <div class="contact-icon">✉</div>
+          <div>
+            <h3>Email</h3>
+            <p>support@anhvuong.com</p>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+
       </div>
 
     </section>
