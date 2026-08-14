@@ -141,17 +141,11 @@ async function initDatabase() {
       ('zalo_personal_tag', 'Cá Nhân · Phản hồi nhanh', $1),
       ('zalo_personal_label', 'Zalo', $1),
 
-      ('zalo_group_phone', '0987654322', $1),
-      ('zalo_group_name', 'Zalo Cộng Đồng', $1),
-      ('zalo_group_desc', 'Tham gia nhóm Zalo để cập nhật thông tin và ưu đãi mới nhất', $1),
-      ('zalo_group_tag', 'Cộng Đồng · Cập nhật ưu đãi', $1),
-      ('zalo_group_label', 'Zalo', $1),
-
-      ('telegram_phone', '0987654323', $1),
-      ('telegram_name', 'Telegram Cá Nhân', $1),
-      ('telegram_desc', 'Liên hệ qua Telegram để được hỗ trợ nhanh chóng', $1),
-      ('telegram_tag', 'Cá Nhân · Phản hồi nhanh', $1),
-      ('telegram_label', 'Telegram', $1),
+      ('tiktok_phone', '0987654322', $1),
+      ('tiktok_name', 'TikTok', $1),
+      ('tiktok_desc', 'Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất', $1),
+      ('tiktok_tag', 'Cộng Đồng · Cập nhật ưu đãi', $1),
+      ('tiktok_label', 'TikTok', $1),
 
       ('contact_title', 'Liên Hệ Hỗ Trợ', $1),
       ('contact_subtitle', 'Chọn kênh phù hợp để liên hệ với chúng tôi', $1),
@@ -162,7 +156,7 @@ async function initDatabase() {
       ('feature_professional', 'Hỗ trợ chuyên nghiệp', $1),
       ('feature_professional_desc', 'Đội ngũ hỗ trợ giàu kinh nghiệm về sản phẩm', $1),
       ('feature_multichannel', 'Đa kênh', $1),
-      ('feature_multichannel_desc', 'Zalo & Telegram đều được hỗ trợ đầy đủ', $1)
+      ('feature_multichannel_desc', 'Zalo & TikTok đều được hỗ trợ đầy đủ', $1)
     ON CONFLICT (key) DO NOTHING
   `, [now()]);
 
@@ -770,8 +764,7 @@ app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
   try {
     const {
       zalo_personal_phone, zalo_personal_name, zalo_personal_desc, zalo_personal_tag, zalo_personal_label,
-      zalo_group_phone, zalo_group_name, zalo_group_desc, zalo_group_tag, zalo_group_label,
-      telegram_phone, telegram_name, telegram_desc, telegram_tag, telegram_label,
+      tiktok_phone, tiktok_name, tiktok_desc, tiktok_tag, tiktok_label,
       contact_title, contact_subtitle, contact_hours,
       feature_fast, feature_fast_desc,
       feature_professional, feature_professional_desc,
@@ -785,17 +778,11 @@ app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
       { key: 'zalo_personal_tag', value: zalo_personal_tag },
       { key: 'zalo_personal_label', value: zalo_personal_label },
 
-      { key: 'zalo_group_phone', value: zalo_group_phone },
-      { key: 'zalo_group_name', value: zalo_group_name },
-      { key: 'zalo_group_desc', value: zalo_group_desc },
-      { key: 'zalo_group_tag', value: zalo_group_tag },
-      { key: 'zalo_group_label', value: zalo_group_label },
-
-      { key: 'telegram_phone', value: telegram_phone },
-      { key: 'telegram_name', value: telegram_name },
-      { key: 'telegram_desc', value: telegram_desc },
-      { key: 'telegram_tag', value: telegram_tag },
-      { key: 'telegram_label', value: telegram_label },
+      { key: 'tiktok_phone', value: tiktok_phone },
+      { key: 'tiktok_name', value: tiktok_name },
+      { key: 'tiktok_desc', value: tiktok_desc },
+      { key: 'tiktok_tag', value: tiktok_tag },
+      { key: 'tiktok_label', value: tiktok_label },
 
       { key: 'contact_title', value: contact_title },
       { key: 'contact_subtitle', value: contact_subtitle },
