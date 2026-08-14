@@ -70,6 +70,7 @@ function showPublicPage(page) {
   });
   if (page === 'downloads') { loadPublicDownloads(); }
   if (page === 'account') { loadAccount(); }
+  if (page === 'history') { loadHistory(); }
 }
 
 $$('.nav-btn').forEach((button) => {
@@ -130,10 +131,6 @@ if (switchLogin) {
   };
 }
 
-// =========================================================
-// LOGIN — TỰ ĐỘNG PHÂN BIỆT ADMIN / KHÁCH
-// =========================================================
-
 const loginForm = $('#loginForm');
 if (loginForm) {
   loginForm.onsubmit = async (event) => {
@@ -146,7 +143,6 @@ if (loginForm) {
     if (message) { message.textContent = 'Đang đăng nhập...'; }
 
     try {
-      // Thử đăng nhập admin trước
       try {
         const adminResult = await api('/api/admin/login', {
           method: 'POST',
@@ -160,11 +156,8 @@ if (loginForm) {
           showToast('Đăng nhập Admin thành công', 'success');
           return;
         }
-      } catch (adminError) {
-        // Không phải admin, tiếp tục thử đăng nhập khách
-      }
+      } catch (adminError) {}
 
-      // Thử đăng nhập khách
       const result = await api('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ username, password })
@@ -180,10 +173,6 @@ if (loginForm) {
     }
   };
 }
-
-// =========================================================
-// REGISTER
-// =========================================================
 
 const registerForm = $('#registerForm');
 if (registerForm) {
@@ -209,15 +198,21 @@ function updateUserUI() {
   const guestActions = $('#guestActions');
   const userActions = $('#userActions');
   const accountNav = $('#accountNav');
+  const historyNav = $('#historyNav');
+
   if (!currentUser) {
     guestActions?.classList.remove('hidden');
     userActions?.classList.add('hidden');
     accountNav?.classList.add('hidden');
+    historyNav?.classList.add('hidden');
     return;
   }
+
   guestActions?.classList.add('hidden');
   userActions?.classList.remove('hidden');
   accountNav?.classList.remove('hidden');
+  historyNav?.classList.remove('hidden');
+
   const name = currentUser.username || 'User';
   const first = name.charAt(0).toUpperCase();
   if ($('#sideUsername')) { $('#sideUsername').textContent = name; }
@@ -430,6 +425,59 @@ async function loadAccount() {
     }
   } catch {
     if ($('#accountLogs')) { $('#accountLogs').innerHTML = `<tr><td colspan="4">Không thể tải nhật ký.</td></tr>`; }
+  }
+}
+
+async function loadHistory() {
+  if (!currentUser) {
+    showPublicPage('home');
+    openDialog('loginDialog');
+    return;
+  }
+
+  const container = $('#historyList');
+  if (!container) return;
+
+  container.innerHTML = `<div class="loading-card">Đang tải lịch sử...</div>`;
+
+  try {
+    const data = await api('/api/history');
+
+    if (!data || data.length === 0) {
+      container.innerHTML = `
+        <div class="empty-card">
+          <span style="font-size:40px;display:block;margin-bottom:10px;">📭</span>
+          <p style="color:var(--muted);">Bạn chưa tải xuống sản phẩm nào.</p>
+          <button class="primary-btn" onclick="showPublicPage('downloads')" style="margin-top:12px;">Xem sản phẩm</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = data.map(item => `
+      <div class="history-card">
+        <div class="history-image">
+          <img src="${item.download_image || '/logo.png'}" alt="${esc(item.download_title)}" onerror="this.src='/logo.png'">
+        </div>
+        <div class="history-info">
+          <h3>${esc(item.download_title)}</h3>
+          <div class="history-meta">
+            <span>💰 ${esc(item.download_price || 'MIỄN PHÍ')}</span>
+            <span>📦 ${esc(item.download_version || '—')}</span>
+          </div>
+          <div class="history-time">⏱️ ${formatDate(item.downloaded_at)}</div>
+          <span class="history-status">✅ Đã tải</span>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = `
+      <div class="empty-card">
+        Không thể tải lịch sử. Vui lòng thử lại.
+      </div>
+    `;
   }
 }
 

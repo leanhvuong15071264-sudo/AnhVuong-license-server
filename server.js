@@ -112,6 +112,19 @@ async function initDatabase() {
     )
   `);
 
+  await query(`
+    CREATE TABLE IF NOT EXISTS download_history (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL,
+      download_id BIGINT NOT NULL,
+      download_title TEXT NOT NULL,
+      download_image TEXT NOT NULL DEFAULT '',
+      download_price TEXT NOT NULL DEFAULT 'MIỄN PHÍ',
+      download_version TEXT NOT NULL DEFAULT '',
+      downloaded_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
   console.log('PostgreSQL database initialized');
 }
 
@@ -545,6 +558,42 @@ app.get(
 );
 
 /* =========================================================
+   DOWNLOAD HISTORY API
+========================================================= */
+
+app.get(
+  '/api/history',
+  requireUser,
+  async (req, res) => {
+    try {
+      const result = await query(`
+        SELECT
+          id,
+          download_title,
+          download_image,
+          download_price,
+          download_version,
+          downloaded_at
+        FROM download_history
+        WHERE user_id=$1
+        ORDER BY downloaded_at DESC
+      `, [
+        req.session.userId
+      ]);
+
+      res.json(result.rows);
+
+    } catch (err) {
+      console.error(err);
+
+      res.status(500).json({
+        error: 'Không thể lấy lịch sử tải xuống'
+      });
+    }
+  }
+);
+
+/* =========================================================
    PUBLIC DOWNLOADS
 ========================================================= */
 
@@ -604,9 +653,33 @@ app.get(
         });
       }
 
+      // Ghi vào lịch sử tải xuống
       if (
-        req.session.role === 'guest'
+        req.session.role === 'guest' &&
+        req.session.userId
       ) {
+        await query(`
+          INSERT INTO download_history
+          (
+            user_id,
+            download_id,
+            download_title,
+            download_image,
+            download_price,
+            download_version,
+            downloaded_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [
+          req.session.userId,
+          item.id,
+          item.title,
+          item.image_url || '',
+          item.price || 'MIỄN PHÍ',
+          item.version || '',
+          now()
+        ]);
+
         await userLog(
           req,
           req.session.userId,

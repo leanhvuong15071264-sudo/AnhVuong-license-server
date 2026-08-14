@@ -52,6 +52,11 @@
         <span>♙</span>
         Tài khoản
       </button>
+
+      <button class="nav-btn hidden" id="historyNav" data-page="history">
+        <span>📜</span>
+        Lịch sử
+      </button>
     </nav>
 
     <div class="sidebar-bottom">
@@ -80,7 +85,6 @@
         </button>
       </div>
 
-      <!-- ĐÃ XÓA NÚT ADMIN -->
     </div>
 
   </aside>
@@ -242,6 +246,28 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+    </section>
+
+
+    <!-- HISTORY -->
+    <section id="historyPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LỊCH SỬ</span>
+          <h1>Lịch sử tải xuống</h1>
+          <p class="top-description">
+            Các sản phẩm bạn đã tải xuống.
+          </p>
+        </div>
+      </div>
+
+      <div id="historyList" class="history-grid">
+        <div class="loading-card">
+          Đang tải lịch sử...
+        </div>
       </div>
 
     </section>
@@ -610,7 +636,7 @@
 
 
 <!-- =========================
-     ADMIN LOGIN DIALOG (giữ lại nhưng không dùng nữa)
+     ADMIN LOGIN DIALOG
 ========================= -->
 <dialog id="adminLoginDialog">
 
