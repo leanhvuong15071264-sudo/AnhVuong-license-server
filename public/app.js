@@ -286,31 +286,42 @@ window.downloadItem = async function (id) {
     const item = data.find(x => Number(x.id) === Number(id));
     if (!item) { showToast('Không tìm thấy sản phẩm.', 'error'); return; }
     currentDetailItem = item;
+
     const img = $('#detailImage');
     if (img) {
       img.src = item.image_url || '';
       img.alt = item.title || '';
       if (!item.image_url) { img.parentElement.classList.add('image-error'); } else { img.parentElement.classList.remove('image-error'); }
     }
-    const title = $('#detailTitle');
+
+    const breadcrumb = $('#detailTitleBreadcrumb');
+    if (breadcrumb) breadcrumb.textContent = item.title || 'Sản phẩm';
+
+    const title = $('#detailTitleNew');
     if (title) title.textContent = item.title || 'Không có tên';
-    const desc = $('#detailDescription');
-    if (desc) desc.textContent = item.description || 'Chưa có mô tả.';
-    const price = $('#detailPrice');
+
+    const price = $('#detailPriceNew');
     if (price) price.textContent = 'MIỄN PHÍ';
-    const version = $('#detailVersion');
+
+    const metaPrice = $('#detailMetaPrice');
+    if (metaPrice) metaPrice.textContent = 'MIỄN PHÍ';
+
+    const desc = $('#detailDescriptionNew');
+    if (desc) desc.textContent = item.description || 'Tài khoản của bạn có quyền truy cập vào sản phẩm này.';
+
+    const version = $('#detailMetaVersion');
     if (version) version.textContent = item.version || item.version_name || '—';
-    const size = $('#detailSize');
-    if (size) size.textContent = item.file_size || item.size || '—';
-    const updated = $('#detailUpdated');
-    if (updated) updated.textContent = item.updated_at ? formatDate(item.updated_at) : formatDate(item.created_at) || '—';
-    const files = $('#detailFiles');
+
+    const files = $('#detailMetaFiles');
     if (files) files.textContent = '1 tập tin';
-    const discord = $('#detailDiscord');
-    if (discord) discord.textContent = 'vai trò + kênh';
-    const keyDisplay = $('#detailKeyDisplay');
+
+    const discord = $('#detailMetaDiscord');
+    if (discord) discord.textContent = 'Vai trò + kênh';
+
+    const keyDisplay = $('#detailKeyDisplayNew');
     if (keyDisplay) keyDisplay.textContent = 'VNT-XXXX-XXXX-XXXX';
-    const downloadBtn = $('#detailDownloadBtn');
+
+    const downloadBtn = $('#detailDownloadBtnNew');
     if (downloadBtn) {
       downloadBtn.dataset.url = item.download_url || '';
       downloadBtn.onclick = function () {
@@ -324,19 +335,23 @@ window.downloadItem = async function (id) {
         }
       };
     }
+
     const keyInput = $('#detailKeyInput');
     if (keyInput) keyInput.value = '';
+
     const keyMsg = $('#detailKeyMsg');
     if (keyMsg) keyMsg.textContent = '';
+
     openDialog('downloadDetailDialog');
+
   } catch (error) {
     showToast(error.message, 'error');
   }
 };
 
-const detailKeySubmit = $('#detailKeySubmit');
-if (detailKeySubmit) {
-  detailKeySubmit.onclick = function () {
+const detailKeySubmitNew = $('#detailKeySubmitNew');
+if (detailKeySubmitNew) {
+  detailKeySubmitNew.onclick = function () {
     const input = $('#detailKeyInput');
     const msg = $('#detailKeyMsg');
     const key = input?.value?.trim() || '';
