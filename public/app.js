@@ -653,8 +653,10 @@ async function loadPublicDownloads() {
 }
 
 /* =========================================================
-   DOWNLOAD ACCESS
+   DOWNLOAD DETAIL — Mở modal chi tiết
 ========================================================= */
+
+let currentDetailItem = null;
 
 window.downloadItem = async function (id) {
   if (!currentUser) {
@@ -662,54 +664,118 @@ window.downloadItem = async function (id) {
       'Bạn cần đăng ký hoặc đăng nhập để tải xuống.',
       'error'
     );
-
     openDialog('loginDialog');
-
     return;
   }
 
   try {
-    const result =
-      await api(
-        `/api/downloads/${id}/access`
-      );
+    // lấy toàn bộ danh sách download để tìm item theo id
+    const data = await api('/api/downloads');
+    const item = data.find(x => Number(x.id) === Number(id));
 
-    if (result.download_url) {
-      window.open(
-        result.download_url,
-        '_blank',
-        'noopener,noreferrer'
-      );
-
-      showToast(
-        'Đang mở link tải xuống...',
-        'success'
-      );
-    }
-
-  } catch (error) {
-    const message =
-      String(error.message || '');
-
-    if (
-      message.includes('đăng nhập') ||
-      message.includes('tài khoản') ||
-      message.includes('Vui lòng')
-    ) {
-      currentUser = null;
-
-      updateUserUI();
-      openDialog('loginDialog');
-
+    if (!item) {
+      showToast('Không tìm thấy sản phẩm.', 'error');
       return;
     }
 
-    showToast(
-      message,
-      'error'
-    );
+    currentDetailItem = item;
+
+    // đổ dữ liệu vào dialog
+    const img = $('#detailImage');
+    if (img) {
+      img.src = item.image_url || '';
+      img.alt = item.title || '';
+
+      // nếu không có ảnh, hiện error state
+      if (!item.image_url) {
+        img.parentElement.classList.add('image-error');
+      } else {
+        img.parentElement.classList.remove('image-error');
+      }
+    }
+
+    const title = $('#detailTitle');
+    if (title) title.textContent = item.title || 'Không có tên';
+
+    const desc = $('#detailDescription');
+    if (desc) desc.textContent = item.description || 'Chưa có mô tả.';
+
+    const price = $('#detailPrice');
+    if (price) price.textContent = 'MIỄN PHÍ';
+
+    const version = $('#detailVersion');
+    if (version) version.textContent = item.version || item.version_name || '—';
+
+    const size = $('#detailSize');
+    if (size) size.textContent = item.file_size || item.size || '—';
+
+    const updated = $('#detailUpdated');
+    if (updated) updated.textContent = item.updated_at ? formatDate(item.updated_at) : formatDate(item.created_at) || '—';
+
+    const files = $('#detailFiles');
+    if (files) files.textContent = '1 tập tin';
+
+    const discord = $('#detailDiscord');
+    if (discord) discord.textContent = 'vai trò + kênh';
+
+    const keyDisplay = $('#detailKeyDisplay');
+    if (keyDisplay) keyDisplay.textContent = 'VNT-XXXX-XXXX-XXXX';
+
+    // lưu download_url vào dataset của nút tải
+    const downloadBtn = $('#detailDownloadBtn');
+    if (downloadBtn) {
+      downloadBtn.dataset.url = item.download_url || '';
+      downloadBtn.onclick = function () {
+        const url = this.dataset.url;
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+          showToast('Đang mở link tải xuống...', 'success');
+          closeDialog('downloadDetailDialog');
+        } else {
+          showToast('Không có link tải xuống.', 'error');
+        }
+      };
+    }
+
+    // reset key input
+    const keyInput = $('#detailKeyInput');
+    if (keyInput) keyInput.value = '';
+
+    const keyMsg = $('#detailKeyMsg');
+    if (keyMsg) keyMsg.textContent = '';
+
+    openDialog('downloadDetailDialog');
+
+  } catch (error) {
+    showToast(error.message, 'error');
   }
 };
+
+/* =========================================================
+   XỬ LÝ KEY TRONG DETAIL DIALOG
+========================================================= */
+
+const detailKeySubmit = $('#detailKeySubmit');
+if (detailKeySubmit) {
+  detailKeySubmit.onclick = function () {
+    const input = $('#detailKeyInput');
+    const msg = $('#detailKeyMsg');
+    const key = input?.value?.trim() || '';
+
+    if (!key) {
+      if (msg) msg.textContent = 'Vui lòng nhập mã khóa.';
+      return;
+    }
+
+    // demo: chỉ hiển thị thông báo, chưa tích hợp API validate key
+    if (msg) {
+      msg.textContent = '✅ Khóa hợp lệ! (tính năng demo)';
+      msg.style.color = '#45e28b';
+    }
+
+    // sau này có thể gọi API /api/license/validate ở đây
+  };
+}
 
 /* =========================================================
    ACCOUNT
@@ -1815,210 +1881,4 @@ if (addDownload) {
 const downloadCancel =
   $('#downloadCancel');
 
-if (downloadCancel) {
-  downloadCancel.onclick =
-    () => closeDialog('downloadDialog');
-}
-
-const downloadForm =
-  $('#downloadForm');
-
-if (downloadForm) {
-
-  downloadForm.onsubmit =
-    async (event) => {
-
-      event.preventDefault();
-
-      const id =
-        $('#downloadId')?.value || '';
-
-      const body = {
-        title:
-          $('#downloadTitle')?.value || '',
-
-        description:
-          $('#downloadDescription')?.value || '',
-
-        image_url:
-          $('#downloadImage')?.value || '',
-
-        download_url:
-          $('#downloadUrl')?.value || ''
-      };
-
-      try {
-
-        await api(
-          '/api/admin/downloads' +
-          (id ? `/${id}` : ''),
-          {
-            method:
-              id ? 'PATCH' : 'POST',
-
-            body:
-              JSON.stringify(body)
-          }
-        );
-
-        closeDialog(
-          'downloadDialog'
-        );
-
-        await loadAdminDownloads();
-        await loadPublicDownloads();
-
-        showToast(
-          id
-            ? 'Đã cập nhật mục tải xuống'
-            : 'Đã thêm mục tải xuống',
-          'success'
-        );
-
-      } catch (error) {
-
-        showToast(
-          error.message,
-          'error'
-        );
-      }
-    };
-}
-
-window.editDownload =
-  async function (id) {
-
-    console.log('editDownload called with id:', id);
-
-    try {
-
-      const data =
-        await api(
-          '/api/admin/downloads'
-        );
-
-      console.log('downloads data:', data);
-
-      const item =
-        data.find(
-          (x) =>
-            Number(x.id) === Number(id)
-        );
-
-      if (item) {
-        openDownloadForm(item);
-      } else {
-        showToast(
-          'Không tìm thấy mục này',
-          'error'
-        );
-      }
-
-    } catch (error) {
-
-      console.error(error);
-      showToast(
-        error.message,
-        'error'
-      );
-    }
-  };
-
-window.deleteDownload =
-  async function (id) {
-
-    if (
-      !confirm(
-        'Xóa mục tải xuống này?'
-      )
-    ) {
-      return;
-    }
-
-    try {
-
-      await api(
-        `/api/admin/downloads/${id}`,
-        {
-          method: 'DELETE'
-        }
-      );
-
-      await loadAdminDownloads();
-      await loadPublicDownloads();
-
-      showToast(
-        'Đã xóa mục tải xuống',
-        'success'
-      );
-
-    } catch (error) {
-
-      showToast(
-        error.message,
-        'error'
-      );
-    }
-  };
-
-/* =========================================================
-   ADMIN LOGOUT
-========================================================= */
-
-const adminLogout =
-  $('#adminLogout');
-
-if (adminLogout) {
-
-  adminLogout.onclick =
-    async () => {
-
-      try {
-
-        await api(
-          '/api/admin/logout',
-          {
-            method: 'POST'
-          }
-        );
-
-        adminLoggedIn = false;
-
-        $('#adminApp')
-          ?.classList
-          .add('hidden');
-
-        $('#publicApp')
-          ?.classList
-          .remove('hidden');
-
-        showPublicPage('home');
-
-        showToast(
-          'Đã đăng xuất Admin',
-          'success'
-        );
-
-      } catch (error) {
-
-        showToast(
-          error.message,
-          'error'
-        );
-      }
-    };
-}
-
-/* =========================================================
-   INIT
-========================================================= */
-
-(async function init() {
-
-  await checkUser();
-
-  await checkAdmin();
-
-  await loadPublicDownloads();
-
-})();
+if (downloadCancel

@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="vi">
 <head>
@@ -713,6 +712,85 @@
 </dialog>
 
 
+<!-- =========================
+     DOWNLOAD DETAIL DIALOG
+========================= -->
+<dialog id="downloadDetailDialog">
+  <div class="dialog detail-dialog">
+
+    <button type="button" class="dialog-close" onclick="closeDialog('downloadDetailDialog')">
+      ×
+    </button>
+
+    <div class="detail-dialog-layout">
+
+      <div class="detail-dialog-image">
+        <img id="detailImage" src="" alt="" onerror="this.parentElement.classList.add('image-error')">
+      </div>
+
+      <div class="detail-dialog-content">
+
+        <span class="eyebrow">SOFTWARE</span>
+        <h2 id="detailTitle">Tên phần mềm</h2>
+
+        <div class="detail-dialog-meta">
+          <div>
+            <span>Giá</span>
+            <strong id="detailPrice">MIỄN PHÍ</strong>
+          </div>
+          <div>
+            <span>Phiên bản</span>
+            <strong id="detailVersion">—</strong>
+          </div>
+          <div>
+            <span>Dung lượng</span>
+            <strong id="detailSize">—</strong>
+          </div>
+          <div>
+            <span>Cập nhật</span>
+            <strong id="detailUpdated">—</strong>
+          </div>
+        </div>
+
+        <p id="detailDescription" class="detail-dialog-description">
+          Mô tả sản phẩm...
+        </p>
+
+        <div class="detail-dialog-extra">
+          <div>
+            <span>Tải xuống</span>
+            <strong id="detailFiles">1 tập tin</strong>
+          </div>
+          <div>
+            <span>Discord</span>
+            <strong id="detailDiscord">vai trò + kênh</strong>
+          </div>
+        </div>
+
+        <div class="detail-dialog-key-section">
+          <label>Đổi mã khóa</label>
+          <div class="detail-key-input-row">
+            <input id="detailKeyInput" placeholder="Bạn đã có khóa chưa? Dán nó vào bên dưới.">
+            <button class="primary-btn" id="detailKeySubmit">Kích hoạt</button>
+          </div>
+          <div id="detailKeyMsg" class="form-message"></div>
+          <div class="detail-key-hint">
+            <span>Khóa bản quyền</span>
+            <strong id="detailKeyDisplay">VNT-XXXX-XXXX-XXXX</strong>
+          </div>
+        </div>
+
+        <button class="primary-btn full" id="detailDownloadBtn">
+          ↓ Tải xuống
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</dialog>
+
 
   <script>
     (function () {
@@ -754,4 +832,3 @@
 
 </body>
 </html>
-```
