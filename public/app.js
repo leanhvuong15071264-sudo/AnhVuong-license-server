@@ -1881,4 +1881,5 @@ if (addDownload) {
 const downloadCancel =
   $('#downloadCancel');
 
-if (downloadCancel
+if (downloadCancel) {
+  downloadCancel.onclick =
