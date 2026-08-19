@@ -523,6 +523,7 @@
               <th>Trạng thái</th>
               <th>Hạn</th>
               <th>HWID</th>
+              <th>Thiết bị</th>
               <th>Ghi chú</th>
               <th>Thao tác</th>
             </tr>
@@ -876,7 +877,7 @@
 
 
 <!-- =========================
-     LICENSE DIALOG
+     LICENSE DIALOG - ĐÃ THÊM max_devices
 ========================= -->
 <dialog id="licenseDialog">
 
@@ -900,6 +901,24 @@
 
     <div class="form-hint">
       Nhập 0 nếu muốn tạo key vĩnh viễn.
+    </div>
+
+    <!-- ===== SỐ THIẾT BỊ TỐI ĐA (THÊM MỚI) ===== -->
+    <div id="maxDevicesGroup" style="margin-bottom: 12px;">
+      <label for="maxDevices" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text);">
+        Số thiết bị tối đa
+      </label>
+      <input 
+        type="number" 
+        id="maxDevices" 
+        min="1" 
+        max="100" 
+        value="1" 
+        style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text);"
+      >
+      <small style="display: block; margin-top: 4px; color: var(--muted); font-size: 12px;">
+        Số thiết bị có thể kích hoạt key này (1-100)
+      </small>
     </div>
 
     <label>Ghi chú</label>

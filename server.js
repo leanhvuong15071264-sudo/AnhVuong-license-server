@@ -46,6 +46,7 @@ const adminUsername = () =>
 ========================================================= */
 
 async function initDatabase() {
+  // ===== BẢNG LICENSES - ĐÃ THÊM max_devices VÀ hwids =====
   await query(`
     CREATE TABLE IF NOT EXISTS licenses (
       id BIGSERIAL PRIMARY KEY,
@@ -53,6 +54,8 @@ async function initDatabase() {
       status TEXT NOT NULL DEFAULT 'active',
       expires_at TIMESTAMPTZ,
       hwid TEXT,
+      max_devices INTEGER NOT NULL DEFAULT 1,
+      hwids TEXT[] NOT NULL DEFAULT '{}',
       note TEXT NOT NULL DEFAULT '',
       created_at TIMESTAMPTZ NOT NULL
     )
@@ -1220,7 +1223,7 @@ app.get(
   async (req, res) => {
     try {
       let sql = `
-        SELECT *
+        SELECT id, key, status, expires_at, hwid, max_devices, hwids, note, created_at
         FROM licenses
         WHERE 1=1
       `;
@@ -1304,18 +1307,11 @@ function makeKey() {
 }
 
 /* =========================================================
-   CREATE LICENSE
+   CREATE LICENSE - ĐÃ THÊM max_devices
 ========================================================= */
 
-async function createLicense(
-  req,
-  days,
-  note,
-  client = null
-) {
-  const dbQuery = client
-    ? client.query.bind(client)
-    : query;
+async function createLicense(req, days, note, maxDevices = 1, client = null) {
+  const dbQuery = client ? client.query.bind(client) : query;
 
   let key;
 
@@ -1348,14 +1344,18 @@ async function createLicense(
       status,
       expires_at,
       note,
+      max_devices,
+      hwids,
       created_at
     )
-    VALUES ($1,'active',$2,$3,$4)
+    VALUES ($1,'active',$2,$3,$4,$5,$6)
     RETURNING *
   `, [
     key,
     expires,
     note,
+    maxDevices,
+    [],
     now()
   ]);
 
@@ -1365,14 +1365,14 @@ async function createLicense(
     req,
     'create',
     row,
-    `duration_days=${days}`
+    `duration_days=${days}, max_devices=${maxDevices}`
   );
 
   return row;
 }
 
 /* =========================================================
-   CREATE LICENSE
+   CREATE LICENSE API - ĐÃ THÊM max_devices
 ========================================================= */
 
 app.post(
@@ -1394,11 +1394,22 @@ app.post(
         req.body.note || ''
       ).slice(0, 500);
 
+      const maxDevices = Math.max(
+        1,
+        Math.min(
+          100,
+          Number(
+            req.body.max_devices || 1
+          )
+        )
+      );
+
       const license =
         await createLicense(
           req,
           days,
-          note
+          note,
+          maxDevices
         );
 
       res.json({
@@ -1416,7 +1427,7 @@ app.post(
 );
 
 /* =========================================================
-   BULK CREATE LICENSE
+   BULK CREATE LICENSE - ĐÃ THÊM max_devices
 ========================================================= */
 
 app.post(
@@ -1451,6 +1462,16 @@ app.post(
         req.body.note || ''
       ).slice(0, 500);
 
+      const maxDevices = Math.max(
+        1,
+        Math.min(
+          100,
+          Number(
+            req.body.max_devices || 1
+          )
+        )
+      );
+
       await client.query(
         'BEGIN'
       );
@@ -1467,6 +1488,7 @@ app.post(
             req,
             days,
             note,
+            maxDevices,
             client
           )
         );
@@ -1601,7 +1623,8 @@ app.post(
 
       await query(`
         UPDATE licenses
-        SET hwid=NULL
+        SET hwid=NULL,
+        hwids='{}'
         WHERE id=$1
       `, [
         row.id
@@ -1711,7 +1734,7 @@ app.get(
 );
 
 /* =========================================================
-   LICENSE API
+   LICENSE VALIDATE - ĐÃ SỬA LOGIC max_devices
 ========================================================= */
 
 async function validateLicense(
@@ -1779,37 +1802,46 @@ async function validateLicense(
       });
     }
 
-    if (
-      row.hwid &&
-      row.hwid !== hwid
-    ) {
+    // ===== KIỂM TRA SỐ LƯỢNG THIẾT BỊ =====
+    const hwids = row.hwids || [];
+    const isBound = hwids.includes(hwid);
+    const maxDevices = row.max_devices || 1;
+    const currentDevices = hwids.length;
+
+    // Nếu chưa có HWID này và đã đạt số lượng tối đa
+    if (!isBound && currentDevices >= maxDevices) {
       return res.status(403).json({
         ok: false,
-        error:
-          'Key đã được liên kết với thiết bị khác'
+        error: `Key đã được kích hoạt trên ${maxDevices} thiết bị tối đa!`
       });
     }
 
-    if (!row.hwid) {
-      const updated =
-        await query(`
-          UPDATE licenses
-          SET hwid=$1
-          WHERE id=$2
-          RETURNING *
-        `, [
-          hwid,
-          row.id
-        ]);
+    // Nếu chưa có HWID này, thêm vào danh sách
+    if (!isBound) {
+      const updated = await query(`
+        UPDATE licenses
+        SET hwids = array_append(hwids, $1)
+        WHERE id = $2
+        RETURNING *
+      `, [hwid, row.id]);
 
-      row =
-        updated.rows[0];
+      row = updated.rows[0];
 
       await audit(
         req,
         'hwid_bound',
-        row
+        row,
+        `hwid=${hwid}`
       );
+    }
+
+    // Cập nhật hwid cũ (giữ tương thích ngược)
+    if (!row.hwid) {
+      await query(`
+        UPDATE licenses
+        SET hwid = $1
+        WHERE id = $2
+      `, [hwid, row.id]);
     }
 
     await audit(
@@ -1818,12 +1850,14 @@ async function validateLicense(
       row
     );
 
+    // ===== TRẢ VỀ THÔNG TIN THIẾT BỊ =====
     res.json({
       ok: true,
       key: row.key,
       status: row.status,
-      expires_at:
-        row.expires_at,
+      expires_at: row.expires_at,
+      max_devices: row.max_devices,
+      used_devices: (row.hwids || []).length,
       hwid_bound: true
     });
 

@@ -688,12 +688,15 @@ async function loadKeys() {
       ? licenses.map((row) => {
           const nextStatus = row.status === 'banned' ? 'active' : 'banned';
           const buttonText = row.status === 'banned' ? 'Mở khóa' : 'Khóa';
+          const maxDevices = row.max_devices || 1;
+          const usedDevices = (row.hwids || []).length;
           return `
             <tr>
               <td><code>${esc(row.key)}</code><button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button></td>
               <td><span class="status ${esc(row.status)}">${esc(row.status)}</span></td>
               <td>${row.expires_at ? formatDate(row.expires_at) : 'Vĩnh viễn'}</td>
               <td>${esc(row.hwid || '—')}</td>
+              <td>${usedDevices}/${maxDevices}</td>
               <td>${esc(row.note || '—')}</td>
               <td class="actions">
                 <button class="small-btn" onclick="toggleKey(${Number(row.id)}, '${nextStatus}')">${buttonText}</button>
@@ -703,7 +706,7 @@ async function loadKeys() {
             </tr>
           `;
         }).join('')
-      : `<tr><td colspan="6">Chưa có key.</td></tr>`;
+      : `<tr><td colspan="7">Chưa có key.</td></tr>`;
   } catch (error) {
     showToast(error.message, 'error');
   }
@@ -725,10 +728,25 @@ window.copyKey = async function (id) {
   }
 };
 
+// ===== HÀM MỞ FORM TẠO KEY (ĐÃ THÊM maxDevices) =====
 function openLicenseForm(bulk = false) {
-  if ($('#licenseDialogTitle')) { $('#licenseDialogTitle').textContent = bulk ? 'Tạo License Key hàng loạt' : 'Tạo License Key'; }
-  if ($('#count')) { $('#count').value = bulk ? 10 : 1; }
-  if ($('#created')) { $('#created').textContent = ''; }
+  if ($('#licenseDialogTitle')) { 
+    $('#licenseDialogTitle').textContent = bulk ? 'Tạo License Key hàng loạt' : 'Tạo License Key'; 
+  }
+  if ($('#count')) { 
+    $('#count').value = bulk ? 10 : 1; 
+  }
+  if ($('#maxDevices')) { 
+    $('#maxDevices').value = 1; 
+  }
+  if ($('#created')) { 
+    $('#created').textContent = ''; 
+  }
+  // Hiển thị field max_devices
+  const maxDevicesGroup = $('#maxDevicesGroup');
+  if (maxDevicesGroup) {
+    maxDevicesGroup.style.display = 'block';
+  }
   openDialog('licenseDialog');
 }
 
@@ -741,6 +759,7 @@ if (bulkCreate) { bulkCreate.onclick = () => openLicenseForm(true); }
 const licenseCancel = $('#licenseCancel');
 if (licenseCancel) { licenseCancel.onclick = () => closeDialog('licenseDialog'); }
 
+// ===== FORM TẠO KEY (ĐÃ THÊM max_devices) =====
 const licenseForm = $('#licenseForm');
 if (licenseForm) {
   licenseForm.onsubmit = async (event) => {
@@ -748,17 +767,37 @@ if (licenseForm) {
     const count = Math.max(1, Number($('#count')?.value || 1));
     const duration = Math.max(0, Number($('#duration')?.value || 0));
     const note = $('#note')?.value || '';
+    const maxDevices = Math.max(1, Number($('#maxDevices')?.value || 1));
+
     try {
-      const body = { count, duration_days: duration, note };
+      const body = { 
+        count, 
+        duration_days: duration, 
+        note, 
+        max_devices: maxDevices 
+      };
+      
       let result;
       if (count > 1) {
-        result = await api('/api/admin/licenses/bulk', { method: 'POST', body: JSON.stringify(body) });
+        result = await api('/api/admin/licenses/bulk', { 
+          method: 'POST', 
+          body: JSON.stringify(body) 
+        });
       } else {
-        result = await api('/api/admin/licenses', { method: 'POST', body: JSON.stringify(body) });
+        result = await api('/api/admin/licenses', { 
+          method: 'POST', 
+          body: JSON.stringify(body) 
+        });
       }
+      
       if ($('#created')) {
-        if (result.licenses) { $('#created').textContent = result.licenses.map((item) => item.key).join('\n'); } else if (result.license) { $('#created').textContent = result.license.key; }
+        if (result.licenses) { 
+          $('#created').textContent = result.licenses.map((item) => item.key).join('\n'); 
+        } else if (result.license) { 
+          $('#created').textContent = result.license.key; 
+        }
       }
+      
       await loadAdminDashboard();
       await loadKeys();
       showToast('Tạo key thành công', 'success');
