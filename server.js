@@ -895,8 +895,8 @@ app.post('/api/license/validate', (req, res) => validateLicense(req, res, 'valid
 // --- Static files ---
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- SPA route - PHẢI ĐỂ CUỐI CÙNG ---
-app.get('*', (req, res) => {
+// --- SPA route - CHỈ ÁP DỤNG CHO CÁC REQUEST KHÔNG PHẢI API ---
+app.get(/^(?!\/api\/).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
