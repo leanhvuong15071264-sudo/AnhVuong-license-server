@@ -885,23 +885,18 @@ async function validateLicense(req, res, action) {
 }
 
 // =========================================================
-// === API ROUTES - PHẢI ĐẶT TRƯỚC SPA ===
+// === QUAN TRỌNG: API ROUTES PHẢI Ở TRƯỚC ===
 // =========================================================
 
+// --- API routes ---
 app.post('/api/license/activate', (req, res) => validateLicense(req, res, 'activate'));
 app.post('/api/license/validate', (req, res) => validateLicense(req, res, 'validate'));
 
-// =========================================================
-// === STATIC FILES ===
-// =========================================================
-
+// --- Static files ---
 app.use(express.static(path.join(__dirname, 'public')));
 
-// =========================================================
-// === SPA ROUTE - PHẢI ĐẶT CUỐI CÙNG ===
-// =========================================================
-
-app.get(/.*/, (req, res) => {
+// --- SPA route - PHẢI ĐỂ CUỐI CÙNG ---
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
