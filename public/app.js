@@ -132,6 +132,7 @@ if (switchLogin) {
   };
 }
 
+// ===== LOGIN FORM (có captcha) =====
 const loginForm = $('#loginForm');
 if (loginForm) {
   loginForm.onsubmit = async (event) => {
@@ -139,17 +140,24 @@ if (loginForm) {
 
     const username = $('#loginUsername')?.value.trim() || '';
     const password = $('#loginPassword')?.value || '';
+    const turnstileWidget = document.querySelector('#loginForm .cf-turnstile');
+    const token = turnstileWidget ? turnstileWidget.getAttribute('data-response') : '';
 
     const message = $('#loginMsg');
     if (message) { message.textContent = 'Đang đăng nhập...'; }
 
+    if (!token) {
+      if (message) { message.textContent = 'Vui lòng xác minh CAPTCHA.'; }
+      return;
+    }
+
     try {
+      // Kiểm tra admin trước
       try {
         const adminResult = await api('/api/admin/login', {
           method: 'POST',
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ username, password, cf_token: token })
         });
-
         if (adminResult && adminResult.role === 'admin') {
           adminLoggedIn = true;
           closeDialog('loginDialog');
@@ -161,7 +169,7 @@ if (loginForm) {
 
       const result = await api('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, cf_token: token })
       });
 
       currentUser = result;
@@ -175,16 +183,29 @@ if (loginForm) {
   };
 }
 
+// ===== REGISTER FORM (có captcha) =====
 const registerForm = $('#registerForm');
 if (registerForm) {
   registerForm.onsubmit = async (event) => {
     event.preventDefault();
     const username = $('#registerUsername')?.value.trim() || '';
     const password = $('#registerPassword')?.value || '';
+    const turnstileWidget = document.querySelector('#registerForm .cf-turnstile');
+    const token = turnstileWidget ? turnstileWidget.getAttribute('data-response') : '';
+
     const message = $('#registerMsg');
     if (message) { message.textContent = 'Đang tạo tài khoản...'; }
+
+    if (!token) {
+      if (message) { message.textContent = 'Vui lòng xác minh CAPTCHA.'; }
+      return;
+    }
+
     try {
-      const result = await api('/api/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) });
+      const result = await api('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, password, cf_token: token })
+      });
       currentUser = result;
       closeDialog('registerDialog');
       updateUserUI();
@@ -742,6 +763,11 @@ function openLicenseForm(bulk = false) {
   if ($('#created')) { 
     $('#created').textContent = ''; 
   }
+  // Reset Turnstile widget nếu có
+  const turnstileWidget = document.querySelector('#licenseForm .cf-turnstile');
+  if (turnstileWidget && typeof turnstile !== 'undefined' && turnstile.reset) {
+    turnstile.reset();
+  }
   // Hiển thị field max_devices
   const maxDevicesGroup = $('#maxDevicesGroup');
   if (maxDevicesGroup) {
@@ -759,7 +785,7 @@ if (bulkCreate) { bulkCreate.onclick = () => openLicenseForm(true); }
 const licenseCancel = $('#licenseCancel');
 if (licenseCancel) { licenseCancel.onclick = () => closeDialog('licenseDialog'); }
 
-// ===== FORM TẠO KEY (ĐÃ THÊM max_devices) =====
+// ===== FORM TẠO KEY (ĐÃ THÊM captcha) =====
 const licenseForm = $('#licenseForm');
 if (licenseForm) {
   licenseForm.onsubmit = async (event) => {
@@ -768,36 +794,44 @@ if (licenseForm) {
     const duration = Math.max(0, Number($('#duration')?.value || 0));
     const note = $('#note')?.value || '';
     const maxDevices = Math.max(1, Number($('#maxDevices')?.value || 1));
+    const turnstileWidget = document.querySelector('#licenseForm .cf-turnstile');
+    const token = turnstileWidget ? turnstileWidget.getAttribute('data-response') : '';
+
+    if (!token) {
+      showToast('Vui lòng xác minh CAPTCHA.', 'error');
+      return;
+    }
 
     try {
-      const body = { 
-        count, 
-        duration_days: duration, 
-        note, 
-        max_devices: maxDevices 
+      const body = {
+        count,
+        duration_days: duration,
+        note,
+        max_devices: maxDevices,
+        cf_token: token
       };
-      
+
       let result;
       if (count > 1) {
-        result = await api('/api/admin/licenses/bulk', { 
-          method: 'POST', 
-          body: JSON.stringify(body) 
+        result = await api('/api/admin/licenses/bulk', {
+          method: 'POST',
+          body: JSON.stringify(body)
         });
       } else {
-        result = await api('/api/admin/licenses', { 
-          method: 'POST', 
-          body: JSON.stringify(body) 
+        result = await api('/api/admin/licenses', {
+          method: 'POST',
+          body: JSON.stringify(body)
         });
       }
-      
+
       if ($('#created')) {
-        if (result.licenses) { 
-          $('#created').textContent = result.licenses.map((item) => item.key).join('\n'); 
-        } else if (result.license) { 
-          $('#created').textContent = result.license.key; 
+        if (result.licenses) {
+          $('#created').textContent = result.licenses.map((item) => item.key).join('\n');
+        } else if (result.license) {
+          $('#created').textContent = result.license.key;
         }
       }
-      
+
       await loadAdminDashboard();
       await loadKeys();
       showToast('Tạo key thành công', 'success');

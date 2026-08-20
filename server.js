@@ -39,6 +39,30 @@ const ip = req =>
 const adminUsername = () =>
   String(process.env.ADMIN_USERNAME || 'admin');
 
+// ============================================================
+// TURNSTILE VERIFICATION
+// ============================================================
+async function verifyTurnstile(token, clientIP) {
+  if (!token) return false;
+  try {
+    const secret = '0x4AAAAAAEW-Plk2IyTPzYEkVYIQo_Dp-II';
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: secret,
+        response: token,
+        remoteip: clientIP
+      })
+    });
+    const data = await response.json();
+    return data.success === true;
+  } catch (err) {
+    console.error('Turnstile verify error:', err);
+    return false;
+  }
+}
+
 /* =========================================================
    DATABASE
 ========================================================= */
@@ -227,13 +251,20 @@ app.get('/api/health', (req, res) => {
 });
 
 /* =========================================================
-   ADMIN LOGIN
+   ADMIN LOGIN (có captcha)
 ========================================================= */
 
 app.post('/api/admin/login', async (req, res) => {
   try {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const cfToken = String(req.body.cf_token || '');
+
+    // Xác minh captcha
+    if (!await verifyTurnstile(cfToken, ip(req))) {
+      return res.status(400).json({ error: 'Xác minh CAPTCHA thất bại. Vui lòng thử lại.' });
+    }
+
     const expectedUser = adminUsername();
     const expectedPassword = String(process.env.ADMIN_PASSWORD || '');
 
@@ -264,13 +295,19 @@ app.post('/api/admin/login', async (req, res) => {
 });
 
 /* =========================================================
-   GUEST REGISTER
+   GUEST REGISTER (có captcha)
 ========================================================= */
 
 app.post('/api/auth/register', async (req, res) => {
   try {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const cfToken = String(req.body.cf_token || '');
+
+    // Xác minh captcha
+    if (!await verifyTurnstile(cfToken, ip(req))) {
+      return res.status(400).json({ error: 'Xác minh CAPTCHA thất bại. Vui lòng thử lại.' });
+    }
 
     if (!/^[A-Za-z0-9_]{3,32}$/.test(username)) {
       return res.status(400).json({ error: 'Tên tài khoản phải từ 3-32 ký tự, chỉ gồm chữ, số và _' });
@@ -313,13 +350,20 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 /* =========================================================
-   GUEST LOGIN
+   GUEST LOGIN (có captcha)
 ========================================================= */
 
 app.post('/api/auth/login', async (req, res) => {
   try {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const cfToken = String(req.body.cf_token || '');
+
+    // Xác minh captcha
+    if (!await verifyTurnstile(cfToken, ip(req))) {
+      return res.status(400).json({ error: 'Xác minh CAPTCHA thất bại. Vui lòng thử lại.' });
+    }
+
     const result = await query('SELECT * FROM users WHERE username=$1', [username]);
     const user = result.rows[0];
 
@@ -716,6 +760,11 @@ async function createLicense(req, days, note, maxDevices = 1, client = null) {
 
 app.post('/api/admin/licenses', requireAdmin, async (req, res) => {
   try {
+    const cfToken = String(req.body.cf_token || '');
+    if (!await verifyTurnstile(cfToken, ip(req))) {
+      return res.status(400).json({ error: 'Xác minh CAPTCHA thất bại. Vui lòng thử lại.' });
+    }
+
     const days = Math.max(0, Math.min(36500, Number(req.body.duration_days || 0)));
     const note = String(req.body.note || '').slice(0, 500);
     const maxDevices = Math.max(1, Math.min(100, Number(req.body.max_devices || 1)));
@@ -730,6 +779,11 @@ app.post('/api/admin/licenses', requireAdmin, async (req, res) => {
 app.post('/api/admin/licenses/bulk', requireAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
+    const cfToken = String(req.body.cf_token || '');
+    if (!await verifyTurnstile(cfToken, ip(req))) {
+      return res.status(400).json({ error: 'Xác minh CAPTCHA thất bại. Vui lòng thử lại.' });
+    }
+
     const count = Math.max(1, Math.min(500, Number(req.body.count || 1)));
     const days = Math.max(0, Math.min(36500, Number(req.body.duration_days || 0)));
     const note = String(req.body.note || '').slice(0, 500);
