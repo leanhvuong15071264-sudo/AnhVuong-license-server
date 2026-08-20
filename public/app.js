@@ -5,6 +5,28 @@ let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
 
+// ===== TURNSTILE CALLBACK =====
+window.turnstileToken = '';
+
+window.onTurnstileSuccess = function(token) {
+  window.turnstileToken = token;
+  // Tạo input ẩn để gửi token cùng form
+  const activeForm = document.querySelector('form:not(.hidden)');
+  if (activeForm) {
+    let existing = activeForm.querySelector('input[name="cf-turnstile-response"]');
+    if (!existing) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'cf-turnstile-response';
+      input.value = token;
+      activeForm.appendChild(input);
+    } else {
+      existing.value = token;
+    }
+  }
+};
+// =================================
+
 async function api(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'same-origin',
@@ -89,6 +111,10 @@ if (loginBtn) {
     if (msg) { msg.textContent = ''; }
     const form = $('#loginForm');
     if (form) { form.reset(); }
+    // Reset token
+    window.turnstileToken = '';
+    const existing = document.querySelector('input[name="cf-turnstile-response"]');
+    if (existing) existing.value = '';
     openDialog('loginDialog');
   };
 }
@@ -100,6 +126,9 @@ if (registerBtn) {
     if (msg) { msg.textContent = ''; }
     const form = $('#registerForm');
     if (form) { form.reset(); }
+    window.turnstileToken = '';
+    const existing = document.querySelector('input[name="cf-turnstile-response"]');
+    if (existing) existing.value = '';
     openDialog('registerDialog');
   };
 }
@@ -112,6 +141,9 @@ if (heroRegister) {
     if (msg) { msg.textContent = ''; }
     const form = $('#registerForm');
     if (form) { form.reset(); }
+    window.turnstileToken = '';
+    const existing = document.querySelector('input[name="cf-turnstile-response"]');
+    if (existing) existing.value = '';
     openDialog('registerDialog');
   };
 }
@@ -140,8 +172,9 @@ if (loginForm) {
 
     const username = $('#loginUsername')?.value.trim() || '';
     const password = $('#loginPassword')?.value || '';
-    const turnstileWidget = document.querySelector('#loginForm .cf-turnstile');
-    const token = turnstileWidget ? turnstileWidget.getAttribute('data-response') : '';
+    // Lấy token từ input ẩn hoặc biến toàn cục
+    const tokenInput = document.querySelector('input[name="cf-turnstile-response"]');
+    const token = tokenInput?.value || window.turnstileToken || '';
 
     const message = $('#loginMsg');
     if (message) { message.textContent = 'Đang đăng nhập...'; }
@@ -190,8 +223,8 @@ if (registerForm) {
     event.preventDefault();
     const username = $('#registerUsername')?.value.trim() || '';
     const password = $('#registerPassword')?.value || '';
-    const turnstileWidget = document.querySelector('#registerForm .cf-turnstile');
-    const token = turnstileWidget ? turnstileWidget.getAttribute('data-response') : '';
+    const tokenInput = document.querySelector('input[name="cf-turnstile-response"]');
+    const token = tokenInput?.value || window.turnstileToken || '';
 
     const message = $('#registerMsg');
     if (message) { message.textContent = 'Đang tạo tài khoản...'; }
@@ -768,6 +801,10 @@ function openLicenseForm(bulk = false) {
   if (turnstileWidget && typeof turnstile !== 'undefined' && turnstile.reset) {
     turnstile.reset();
   }
+  // Reset token
+  window.turnstileToken = '';
+  const existing = document.querySelector('input[name="cf-turnstile-response"]');
+  if (existing) existing.value = '';
   // Hiển thị field max_devices
   const maxDevicesGroup = $('#maxDevicesGroup');
   if (maxDevicesGroup) {
@@ -794,8 +831,8 @@ if (licenseForm) {
     const duration = Math.max(0, Number($('#duration')?.value || 0));
     const note = $('#note')?.value || '';
     const maxDevices = Math.max(1, Number($('#maxDevices')?.value || 1));
-    const turnstileWidget = document.querySelector('#licenseForm .cf-turnstile');
-    const token = turnstileWidget ? turnstileWidget.getAttribute('data-response') : '';
+    const tokenInput = document.querySelector('input[name="cf-turnstile-response"]');
+    const token = tokenInput?.value || window.turnstileToken || '';
 
     if (!token) {
       showToast('Vui lòng xác minh CAPTCHA.', 'error');
