@@ -719,8 +719,8 @@
         <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required autocomplete="current-password">
       </div>
 
-      <!-- Turnstile -->
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" style="margin: 12px 0;"></div>
+      <!-- Turnstile - ĐÃ THÊM data-callback -->
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" data-callback="onTurnstileSuccess" style="margin: 12px 0;"></div>
 
       <div id="loginMsg" class="form-message"></div>
 
@@ -768,8 +768,8 @@
         <input id="registerPassword" type="password" placeholder="Nhập mật khẩu" minlength="6" required>
       </div>
 
-      <!-- Turnstile -->
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" style="margin: 12px 0;"></div>
+      <!-- Turnstile - ĐÃ THÊM data-callback -->
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" data-callback="onTurnstileSuccess" style="margin: 12px 0;"></div>
 
       <div id="registerMsg" class="form-message"></div>
 
@@ -885,7 +885,7 @@
 
 
 <!-- =========================
-     LICENSE DIALOG - ĐÃ THÊM max_devices
+     LICENSE DIALOG - ĐÃ THÊM max_devices VÀ data-callback
 ========================= -->
 <dialog id="licenseDialog">
 
@@ -932,8 +932,8 @@
     <label>Ghi chú</label>
     <input id="note" maxlength="500" placeholder="Khách hàng #001">
 
-    <!-- Turnstile -->
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" style="margin: 12px 0;"></div>
+    <!-- Turnstile - ĐÃ THÊM data-callback -->
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" data-callback="onTurnstileSuccess" style="margin: 12px 0;"></div>
 
     <div class="dialog-buttons">
       <button type="button" class="secondary-btn" id="licenseCancel">
