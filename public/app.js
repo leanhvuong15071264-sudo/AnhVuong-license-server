@@ -5,6 +5,25 @@ let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
 
+// ===== ANIMATION HELPER =====
+function switchPageWithAnimation(oldPage, newPage, callback) {
+  if (oldPage && oldPage !== newPage) {
+    oldPage.style.transition = 'opacity 0.2s ease, transform 0.25s ease';
+    oldPage.style.opacity = '0';
+    oldPage.style.transform = 'translateY(12px)';
+  }
+
+  setTimeout(() => {
+    if (callback) callback();
+    if (newPage) {
+      newPage.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+      newPage.style.opacity = '1';
+      newPage.style.transform = 'translateY(0)';
+    }
+  }, 200);
+}
+// ==============================
+
 async function api(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'same-origin',
@@ -61,17 +80,42 @@ $$('[data-close]').forEach((button) => {
   button.addEventListener('click', () => { closeDialog(button.dataset.close); });
 });
 
+// ===== PUBLIC PAGE SWITCH (có animation) =====
 function showPublicPage(page) {
-  $$('.page').forEach((element) => { element.classList.add('hidden'); });
+  const oldPage = document.querySelector('.page:not(.hidden)');
   const target = $(`#${page}Page`);
-  if (target) { target.classList.remove('hidden'); }
+
+  if (!target) return;
+  if (oldPage === target) return;
+
+  // Ẩn tất cả page trước
+  $$('.page').forEach((el) => {
+    el.classList.add('hidden');
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(12px)';
+  });
+
+  // Hiện trang mới với animation
+  target.classList.remove('hidden');
+  target.style.opacity = '0';
+  target.style.transform = 'translateY(12px)';
+
+  void target.offsetWidth;
+
+  target.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+  target.style.opacity = '1';
+  target.style.transform = 'translateY(0)';
+
+  // Cập nhật active nav
   $$('.nav-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.page === page);
   });
-  if (page === 'downloads') { loadPublicDownloads(); }
-  if (page === 'account') { loadAccount(); }
-  if (page === 'history') { loadHistory(); }
-  if (page === 'contact') { loadSettings(); }
+
+  // Load dữ liệu
+  if (page === 'downloads') loadPublicDownloads();
+  if (page === 'account') loadAccount();
+  if (page === 'history') loadHistory();
+  if (page === 'contact') loadSettings();
 }
 
 $$('.nav-btn').forEach((button) => {
@@ -654,20 +698,51 @@ if (backToWeb) {
   };
 }
 
+// ===== ADMIN NAV (có animation) =====
 $$('.admin-nav').forEach((button) => {
   button.addEventListener('click', () => {
     const page = button.dataset.adminPage;
-    $$('.admin-page').forEach((section) => { section.classList.add('hidden'); });
-    const targets = { dashboard: '#adminDashboard', keys: '#adminKeys', adminDownloads: '#adminDownloads', logs: '#adminLogs', settings: '#adminSettings', api: '#adminApi' };
-    const target = targets[page];
-    if (target) { $(target)?.classList.remove('hidden'); }
-    $$('.admin-nav').forEach((item) => { item.classList.remove('active'); });
+    const targets = {
+      dashboard: '#adminDashboard',
+      keys: '#adminKeys',
+      adminDownloads: '#adminDownloads',
+      logs: '#adminLogs',
+      settings: '#adminSettings',
+      api: '#adminApi'
+    };
+
+    const target = $(targets[page]);
+    if (!target) return;
+
+    const oldPage = document.querySelector('.admin-page:not(.hidden)');
+    if (oldPage === target) return;
+
+    // Ẩn tất cả admin page
+    $$('.admin-page').forEach((el) => {
+      el.classList.add('hidden');
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(12px)';
+    });
+
+    // Hiện trang mới
+    target.classList.remove('hidden');
+    target.style.opacity = '0';
+    target.style.transform = 'translateY(12px)';
+    void target.offsetWidth;
+    target.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+    target.style.opacity = '1';
+    target.style.transform = 'translateY(0)';
+
+    // Cập nhật active nav
+    $$('.admin-nav').forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
-    if (page === 'dashboard') { loadAdminDashboard(); }
-    if (page === 'keys') { loadKeys(); }
-    if (page === 'adminDownloads') { loadAdminDownloads(); }
-    if (page === 'logs') { loadAdminLogs(); }
-    if (page === 'settings') { loadSettingsAdmin(); }
+
+    // Load dữ liệu
+    if (page === 'dashboard') loadAdminDashboard();
+    if (page === 'keys') loadKeys();
+    if (page === 'adminDownloads') loadAdminDownloads();
+    if (page === 'logs') loadAdminLogs();
+    if (page === 'settings') loadSettingsAdmin();
   });
 });
 
