@@ -9,7 +9,6 @@ let adminLoggedIn = false;
 // CHERRY BLOSSOM (CÁNH HOA ANH ĐÀO)
 // =========================================================
 function createCherryBlossom() {
-  // Xóa container cũ nếu có
   const oldContainer = document.querySelector('.cherry-container');
   if (oldContainer) oldContainer.remove();
 
@@ -31,10 +30,8 @@ function createCherryBlossom() {
   }
 }
 
-// Khởi tạo hoa anh đào khi tải trang
 document.addEventListener('DOMContentLoaded', createCherryBlossom);
 
-// Tạo lại khi resize (tránh bị vỡ layout)
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
@@ -56,7 +53,6 @@ function closeMobileMenu() {
   document.body.style.overflow = '';
 }
 
-// Hamburger button
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 if (hamburgerBtn) {
   hamburgerBtn.addEventListener('click', () => {
@@ -68,18 +64,15 @@ if (hamburgerBtn) {
   });
 }
 
-// Close button
 const mobileMenuClose = document.getElementById('mobileMenuClose');
 if (mobileMenuClose) {
   mobileMenuClose.addEventListener('click', closeMobileMenu);
 }
 
-// Close overlay khi click outside
 document.getElementById('mobileOverlay')?.addEventListener('click', (e) => {
   if (e.target === e.currentTarget) closeMobileMenu();
 });
 
-// Mobile nav buttons
 document.querySelectorAll('.mobile-nav-btn[data-page]').forEach(btn => {
   btn.addEventListener('click', () => {
     const page = btn.dataset.page;
@@ -90,7 +83,6 @@ document.querySelectorAll('.mobile-nav-btn[data-page]').forEach(btn => {
   });
 });
 
-// Mobile login button
 const mobileLoginBtn = document.getElementById('mobileLoginBtn');
 if (mobileLoginBtn) {
   mobileLoginBtn.addEventListener('click', () => {
@@ -103,7 +95,6 @@ if (mobileLoginBtn) {
   });
 }
 
-// Mobile logout button
 const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
 if (mobileLogoutBtn) {
   mobileLogoutBtn.addEventListener('click', async () => {
@@ -197,23 +188,20 @@ function showPublicPage(page) {
 
   target.classList.remove('hidden');
   target.style.opacity = '0';
-  target.style.transform = 'translateY(12px');
+  target.style.transform = 'translateY(12px)';
   void target.offsetWidth;
   target.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
   target.style.opacity = '1';
   target.style.transform = 'translateY(0)';
 
-  // Cập nhật nav PC
   $$('.nav-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.page === page);
   });
 
-  // Cập nhật nav mobile
   $$('.mobile-nav-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.page === page);
   });
 
-  // Load dữ liệu
   if (page === 'downloads') loadPublicDownloads();
   if (page === 'account') loadAccount();
   if (page === 'history') loadHistory();
@@ -363,7 +351,6 @@ function updateUserUI() {
   const accountNav = $('#accountNav');
   const historyNav = $('#historyNav');
 
-  // PC
   if (!currentUser) {
     guestActions?.classList.remove('hidden');
     userActions?.classList.add('hidden');
@@ -384,13 +371,11 @@ function updateUserUI() {
     if ($('#accountAvatar')) { $('#accountAvatar').textContent = first; }
   }
 
-  // Mobile - cập nhật nút đăng nhập/đăng xuất
   const mobileLoginBtn = document.getElementById('mobileLoginBtn');
   const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
   if (currentUser) {
     if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
     if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
-    // Cập nhật tên user trên mobile menu
     const usernameSpan = document.querySelector('.mobile-menu-brand span');
     if (usernameSpan) usernameSpan.textContent = currentUser.username;
   } else {
