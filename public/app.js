@@ -5,6 +5,41 @@ let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
 
+// =========================================================
+// CHERRY BLOSSOM (CÁNH HOA ANH ĐÀO RƠI)
+// =========================================================
+function createCherryBlossom() {
+  const oldContainer = document.querySelector('.cherry-container');
+  if (oldContainer) oldContainer.remove();
+
+  const container = document.createElement('div');
+  container.className = 'cherry-container';
+  document.body.appendChild(container);
+
+  const count = window.innerWidth < 600 ? 15 : 30;
+  for (let i = 0; i < count; i++) {
+    const petal = document.createElement('div');
+    petal.className = 'cherry';
+    petal.style.left = Math.random() * 100 + '%';
+    petal.style.animationDuration = (Math.random() * 6 + 4) + 's';
+    petal.style.animationDelay = (Math.random() * 10) + 's';
+    petal.style.width = (Math.random() * 10 + 8) + 'px';
+    petal.style.height = (Math.random() * 10 + 8) + 'px';
+    petal.style.opacity = Math.random() * 0.6 + 0.3;
+    container.appendChild(petal);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', createCherryBlossom);
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(createCherryBlossom, 500);
+});
+
+// =========================================================
+
 async function api(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'same-origin',
@@ -61,17 +96,38 @@ $$('[data-close]').forEach((button) => {
   button.addEventListener('click', () => { closeDialog(button.dataset.close); });
 });
 
+// =========================================================
+// PUBLIC PAGE SWITCH (CÓ ANIMATION)
+// =========================================================
 function showPublicPage(page) {
-  $$('.page').forEach((element) => { element.classList.add('hidden'); });
+  const oldPage = document.querySelector('.page:not(.hidden)');
   const target = $(`#${page}Page`);
-  if (target) { target.classList.remove('hidden'); }
+
+  if (!target) return;
+  if (oldPage === target) return;
+
+  $$('.page').forEach((el) => {
+    el.classList.add('hidden');
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px) scale(0.97)';
+  });
+
+  target.classList.remove('hidden');
+  target.style.opacity = '0';
+  target.style.transform = 'translateY(20px) scale(0.97)';
+  void target.offsetWidth;
+  target.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  target.style.opacity = '1';
+  target.style.transform = 'translateY(0) scale(1)';
+
   $$('.nav-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.page === page);
   });
-  if (page === 'downloads') { loadPublicDownloads(); }
-  if (page === 'account') { loadAccount(); }
-  if (page === 'history') { loadHistory(); }
-  if (page === 'contact') { loadSettings(); }
+
+  if (page === 'downloads') loadPublicDownloads();
+  if (page === 'account') loadAccount();
+  if (page === 'history') loadHistory();
+  if (page === 'contact') loadSettings();
 }
 
 $$('.nav-btn').forEach((button) => {
@@ -145,7 +201,6 @@ if (loginForm) {
     if (message) { message.textContent = 'Đang đăng nhập...'; }
 
     try {
-      // Kiểm tra admin trước
       try {
         const adminResult = await api('/api/admin/login', {
           method: 'POST',
@@ -501,21 +556,18 @@ async function loadSettings() {
     setText('contactSubtitle', data.contact_subtitle || 'Chọn kênh phù hợp để liên hệ với chúng tôi');
     setText('contactHours', data.contact_hours || 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn');
 
-    // Zalo Cá Nhân
     setText('zaloPersonalLabel', data.zalo_personal_label || 'Zalo');
     setText('zaloPersonalName', data.zalo_personal_name || 'Zalo Cá Nhân');
     setText('zaloPersonalDesc', data.zalo_personal_desc || 'Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất');
     setText('zaloPersonalTag', data.zalo_personal_tag || 'Cá Nhân · Phản hồi nhanh');
     setLink('zaloPersonalBtn', `https://zalo.me/${data.zalo_personal_phone || '0987654321'}`);
 
-    // TikTok
     setText('tiktokLabel', data.tiktok_label || 'TikTok');
     setText('tiktokName', data.tiktok_name || 'TikTok');
     setText('tiktokDesc', data.tiktok_desc || 'Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất');
     setText('tiktokTag', data.tiktok_tag || 'Cộng Đồng · Cập nhật ưu đãi');
     setLink('tiktokBtn', data.tiktok_phone || 'https://tiktok.com/@anhvuong.license');
 
-    // Features
     setText('featureFast', data.feature_fast || 'Phản hồi nhanh');
     setText('featureFastDesc', data.feature_fast_desc || 'Thường trong vòng 5–15 phút trong giờ hỗ trợ');
     setText('featureProfessional', data.feature_professional || 'Hỗ trợ chuyên nghiệp');
@@ -654,20 +706,47 @@ if (backToWeb) {
   };
 }
 
+// ADMIN NAV (CÓ ANIMATION)
 $$('.admin-nav').forEach((button) => {
   button.addEventListener('click', () => {
     const page = button.dataset.adminPage;
-    $$('.admin-page').forEach((section) => { section.classList.add('hidden'); });
-    const targets = { dashboard: '#adminDashboard', keys: '#adminKeys', adminDownloads: '#adminDownloads', logs: '#adminLogs', settings: '#adminSettings', api: '#adminApi' };
-    const target = targets[page];
-    if (target) { $(target)?.classList.remove('hidden'); }
-    $$('.admin-nav').forEach((item) => { item.classList.remove('active'); });
+    const targets = {
+      dashboard: '#adminDashboard',
+      keys: '#adminKeys',
+      adminDownloads: '#adminDownloads',
+      logs: '#adminLogs',
+      settings: '#adminSettings',
+      api: '#adminApi'
+    };
+
+    const target = $(targets[page]);
+    if (!target) return;
+
+    const oldPage = document.querySelector('.admin-page:not(.hidden)');
+    if (oldPage === target) return;
+
+    $$('.admin-page').forEach((el) => {
+      el.classList.add('hidden');
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px) scale(0.97)';
+    });
+
+    target.classList.remove('hidden');
+    target.style.opacity = '0';
+    target.style.transform = 'translateY(20px) scale(0.97)';
+    void target.offsetWidth;
+    target.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    target.style.opacity = '1';
+    target.style.transform = 'translateY(0) scale(1)';
+
+    $$('.admin-nav').forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
-    if (page === 'dashboard') { loadAdminDashboard(); }
-    if (page === 'keys') { loadKeys(); }
-    if (page === 'adminDownloads') { loadAdminDownloads(); }
-    if (page === 'logs') { loadAdminLogs(); }
-    if (page === 'settings') { loadSettingsAdmin(); }
+
+    if (page === 'dashboard') loadAdminDashboard();
+    if (page === 'keys') loadKeys();
+    if (page === 'adminDownloads') loadAdminDownloads();
+    if (page === 'logs') loadAdminLogs();
+    if (page === 'settings') loadSettingsAdmin();
   });
 });
 
@@ -735,7 +814,7 @@ window.copyKey = async function (id) {
   }
 };
 
-// ===== HÀM MỞ FORM TẠO KEY =====
+// ===== LICENSE FORM =====
 function openLicenseForm(bulk = false) {
   if ($('#licenseDialogTitle')) { 
     $('#licenseDialogTitle').textContent = bulk ? 'Tạo License Key hàng loạt' : 'Tạo License Key'; 
@@ -765,7 +844,6 @@ if (bulkCreate) { bulkCreate.onclick = () => openLicenseForm(true); }
 const licenseCancel = $('#licenseCancel');
 if (licenseCancel) { licenseCancel.onclick = () => closeDialog('licenseDialog'); }
 
-// ===== FORM TẠO KEY =====
 const licenseForm = $('#licenseForm');
 if (licenseForm) {
   licenseForm.onsubmit = async (event) => {
