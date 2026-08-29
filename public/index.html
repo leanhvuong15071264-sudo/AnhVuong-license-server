@@ -12,6 +12,48 @@
 
 <div id="toast"></div>
 
+<!-- =========================
+     MOBILE HEADER
+========================= -->
+<header class="mobile-header">
+  <button class="hamburger" id="hamburgerBtn" aria-label="Mở menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-brand">
+    <img src="/logo.png" alt="AnhVuong" class="mobile-logo-img">
+    <span>AnhVuong License</span>
+  </div>
+  <button class="mobile-login-btn" id="mobileLoginBtn">Đăng nhập</button>
+</header>
+
+<!-- =========================
+     MOBILE OVERLAY MENU
+========================= -->
+<div class="mobile-overlay" id="mobileOverlay">
+  <div class="mobile-menu">
+    <div class="mobile-menu-header">
+      <div class="mobile-menu-brand">
+        <img src="/logo.png" alt="AnhVuong" class="mobile-logo-img">
+        <span>AnhVuong License</span>
+      </div>
+      <button class="mobile-menu-close" id="mobileMenuClose">✕</button>
+    </div>
+    <nav class="mobile-nav">
+      <button class="mobile-nav-btn active" data-page="home">Trang chủ</button>
+      <button class="mobile-nav-btn" data-page="downloads">Tải xuống</button>
+      <button class="mobile-nav-btn hidden" id="mobileHistoryNav" data-page="history">Lịch sử</button>
+      <button class="mobile-nav-btn hidden" id="mobileAccountNav" data-page="account">Tài khoản</button>
+      <button class="mobile-nav-btn" data-page="contact">Liên hệ</button>
+      <div class="mobile-nav-divider"></div>
+      <button class="mobile-nav-btn" id="mobileLogoutBtn" style="color:var(--red);">Đăng xuất</button>
+    </nav>
+  </div>
+</div>
+
+
+<!-- =========================
+     THEME TOGGLE
+========================= -->
 <button id="themeToggle" class="theme-toggle" type="button"
         aria-label="Chuyển giao diện sáng/tối"
         title="Chuyển giao diện sáng/tối">
@@ -75,10 +117,6 @@
       <div id="guestActions">
         <button class="side-action" id="loginBtn">
           Đăng nhập
-        </button>
-
-        <button class="side-action primary" id="registerBtn">
-          Đăng ký tài khoản
         </button>
       </div>
 
