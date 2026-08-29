@@ -5,115 +5,6 @@ let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
 
-// =========================================================
-// CHERRY BLOSSOM (CÁNH HOA ANH ĐÀO)
-// =========================================================
-function createCherryBlossom() {
-  const oldContainer = document.querySelector('.cherry-container');
-  if (oldContainer) oldContainer.remove();
-
-  const container = document.createElement('div');
-  container.className = 'cherry-container';
-  document.body.appendChild(container);
-
-  const count = window.innerWidth < 600 ? 15 : 30;
-  for (let i = 0; i < count; i++) {
-    const petal = document.createElement('div');
-    petal.className = 'cherry';
-    petal.style.left = Math.random() * 100 + '%';
-    petal.style.animationDuration = (Math.random() * 6 + 4) + 's';
-    petal.style.animationDelay = (Math.random() * 10) + 's';
-    petal.style.width = (Math.random() * 10 + 8) + 'px';
-    petal.style.height = (Math.random() * 10 + 8) + 'px';
-    petal.style.opacity = Math.random() * 0.6 + 0.3;
-    container.appendChild(petal);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', createCherryBlossom);
-
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(createCherryBlossom, 500);
-});
-
-// =========================================================
-// MOBILE MENU
-// =========================================================
-function openMobileMenu() {
-  document.getElementById('mobileOverlay').classList.add('open');
-  document.getElementById('hamburgerBtn').classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeMobileMenu() {
-  document.getElementById('mobileOverlay').classList.remove('open');
-  document.getElementById('hamburgerBtn').classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-const hamburgerBtn = document.getElementById('hamburgerBtn');
-if (hamburgerBtn) {
-  hamburgerBtn.addEventListener('click', () => {
-    if (document.getElementById('mobileOverlay').classList.contains('open')) {
-      closeMobileMenu();
-    } else {
-      openMobileMenu();
-    }
-  });
-}
-
-const mobileMenuClose = document.getElementById('mobileMenuClose');
-if (mobileMenuClose) {
-  mobileMenuClose.addEventListener('click', closeMobileMenu);
-}
-
-document.getElementById('mobileOverlay')?.addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) closeMobileMenu();
-});
-
-document.querySelectorAll('.mobile-nav-btn[data-page]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const page = btn.dataset.page;
-    if (page) {
-      showPublicPage(page);
-      closeMobileMenu();
-    }
-  });
-});
-
-const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-if (mobileLoginBtn) {
-  mobileLoginBtn.addEventListener('click', () => {
-    closeMobileMenu();
-    const msg = $('#loginMsg');
-    if (msg) msg.textContent = '';
-    const form = $('#loginForm');
-    if (form) form.reset();
-    openDialog('loginDialog');
-  });
-}
-
-const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
-if (mobileLogoutBtn) {
-  mobileLogoutBtn.addEventListener('click', async () => {
-    try {
-      await api('/api/auth/logout', { method: 'POST' });
-      currentUser = null;
-      updateUserUI();
-      showPublicPage('home');
-      closeMobileMenu();
-      showToast('Đã đăng xuất', 'success');
-    } catch (error) {
-      showToast(error.message, 'error');
-    }
-  });
-}
-
-// =========================================================
-// API & HELPERS
-// =========================================================
 async function api(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'same-origin',
@@ -170,42 +61,17 @@ $$('[data-close]').forEach((button) => {
   button.addEventListener('click', () => { closeDialog(button.dataset.close); });
 });
 
-// =========================================================
-// PUBLIC PAGE SWITCH
-// =========================================================
 function showPublicPage(page) {
-  const oldPage = document.querySelector('.page:not(.hidden)');
+  $$('.page').forEach((element) => { element.classList.add('hidden'); });
   const target = $(`#${page}Page`);
-
-  if (!target) return;
-  if (oldPage === target) return;
-
-  $$('.page').forEach((el) => {
-    el.classList.add('hidden');
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(12px)';
-  });
-
-  target.classList.remove('hidden');
-  target.style.opacity = '0';
-  target.style.transform = 'translateY(12px)';
-  void target.offsetWidth;
-  target.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-  target.style.opacity = '1';
-  target.style.transform = 'translateY(0)';
-
+  if (target) { target.classList.remove('hidden'); }
   $$('.nav-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.page === page);
   });
-
-  $$('.mobile-nav-btn').forEach((button) => {
-    button.classList.toggle('active', button.dataset.page === page);
-  });
-
-  if (page === 'downloads') loadPublicDownloads();
-  if (page === 'account') loadAccount();
-  if (page === 'history') loadHistory();
-  if (page === 'contact') loadSettings();
+  if (page === 'downloads') { loadPublicDownloads(); }
+  if (page === 'account') { loadAccount(); }
+  if (page === 'history') { loadHistory(); }
+  if (page === 'contact') { loadSettings(); }
 }
 
 $$('.nav-btn').forEach((button) => {
@@ -216,16 +82,13 @@ $$('[data-page-target]').forEach((button) => {
   button.addEventListener('click', () => { showPublicPage(button.dataset.pageTarget); });
 });
 
-// =========================================================
-// LOGIN / REGISTER BUTTONS
-// =========================================================
 const loginBtn = $('#loginBtn');
 if (loginBtn) {
   loginBtn.onclick = () => {
     const msg = $('#loginMsg');
-    if (msg) msg.textContent = '';
+    if (msg) { msg.textContent = ''; }
     const form = $('#loginForm');
-    if (form) form.reset();
+    if (form) { form.reset(); }
     openDialog('loginDialog');
   };
 }
@@ -234,9 +97,9 @@ const registerBtn = $('#registerBtn');
 if (registerBtn) {
   registerBtn.onclick = () => {
     const msg = $('#registerMsg');
-    if (msg) msg.textContent = '';
+    if (msg) { msg.textContent = ''; }
     const form = $('#registerForm');
-    if (form) form.reset();
+    if (form) { form.reset(); }
     openDialog('registerDialog');
   };
 }
@@ -246,9 +109,9 @@ if (heroRegister) {
   heroRegister.onclick = () => {
     if (currentUser) { showPublicPage('account'); return; }
     const msg = $('#registerMsg');
-    if (msg) msg.textContent = '';
+    if (msg) { msg.textContent = ''; }
     const form = $('#registerForm');
-    if (form) form.reset();
+    if (form) { form.reset(); }
     openDialog('registerDialog');
   };
 }
@@ -269,9 +132,7 @@ if (switchLogin) {
   };
 }
 
-// =========================================================
-// LOGIN FORM
-// =========================================================
+// ===== LOGIN FORM =====
 const loginForm = $('#loginForm');
 if (loginForm) {
   loginForm.onsubmit = async (event) => {
@@ -284,6 +145,7 @@ if (loginForm) {
     if (message) { message.textContent = 'Đang đăng nhập...'; }
 
     try {
+      // Kiểm tra admin trước
       try {
         const adminResult = await api('/api/admin/login', {
           method: 'POST',
@@ -314,9 +176,7 @@ if (loginForm) {
   };
 }
 
-// =========================================================
-// REGISTER FORM
-// =========================================================
+// ===== REGISTER FORM =====
 const registerForm = $('#registerForm');
 if (registerForm) {
   registerForm.onsubmit = async (event) => {
@@ -342,9 +202,6 @@ if (registerForm) {
   };
 }
 
-// =========================================================
-// USER UI
-// =========================================================
 function updateUserUI() {
   const guestActions = $('#guestActions');
   const userActions = $('#userActions');
@@ -356,34 +213,21 @@ function updateUserUI() {
     userActions?.classList.add('hidden');
     accountNav?.classList.add('hidden');
     historyNav?.classList.add('hidden');
-  } else {
-    guestActions?.classList.add('hidden');
-    userActions?.classList.remove('hidden');
-    accountNav?.classList.remove('hidden');
-    historyNav?.classList.remove('hidden');
-
-    const name = currentUser.username || 'User';
-    const first = name.charAt(0).toUpperCase();
-    if ($('#sideUsername')) { $('#sideUsername').textContent = name; }
-    if ($('#userAvatar')) { $('#userAvatar').textContent = first; }
-    if ($('#accountUsername')) { $('#accountUsername').textContent = name; }
-    if ($('#accountNameInfo')) { $('#accountNameInfo').textContent = name; }
-    if ($('#accountAvatar')) { $('#accountAvatar').textContent = first; }
+    return;
   }
 
-  const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-  const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
-  if (currentUser) {
-    if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
-    if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
-    const usernameSpan = document.querySelector('.mobile-menu-brand span');
-    if (usernameSpan) usernameSpan.textContent = currentUser.username;
-  } else {
-    if (mobileLoginBtn) mobileLoginBtn.style.display = 'block';
-    if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
-    const usernameSpan = document.querySelector('.mobile-menu-brand span');
-    if (usernameSpan) usernameSpan.textContent = 'AnhVuong License';
-  }
+  guestActions?.classList.add('hidden');
+  userActions?.classList.remove('hidden');
+  accountNav?.classList.remove('hidden');
+  historyNav?.classList.remove('hidden');
+
+  const name = currentUser.username || 'User';
+  const first = name.charAt(0).toUpperCase();
+  if ($('#sideUsername')) { $('#sideUsername').textContent = name; }
+  if ($('#userAvatar')) { $('#userAvatar').textContent = first; }
+  if ($('#accountUsername')) { $('#accountUsername').textContent = name; }
+  if ($('#accountNameInfo')) { $('#accountNameInfo').textContent = name; }
+  if ($('#accountAvatar')) { $('#accountAvatar').textContent = first; }
 }
 
 const logoutBtn = $('#logoutBtn');
@@ -401,9 +245,6 @@ if (logoutBtn) {
   };
 }
 
-// =========================================================
-// CHECK USER
-// =========================================================
 async function checkUser() {
   try {
     const result = await api('/api/auth/me');
@@ -414,9 +255,6 @@ async function checkUser() {
   updateUserUI();
 }
 
-// =========================================================
-// DOWNLOADS
-// =========================================================
 async function getDownloads() {
   return await api('/api/downloads');
 }
@@ -473,9 +311,6 @@ async function loadPublicDownloads() {
   }
 }
 
-// =========================================================
-// DOWNLOAD ITEM
-// =========================================================
 let currentDetailItem = null;
 
 window.downloadItem = async function (id) {
@@ -583,9 +418,6 @@ if (detailKeySubmitV2) {
   };
 }
 
-// =========================================================
-// ACCOUNT
-// =========================================================
 async function loadAccount() {
   if (!currentUser) { showPublicPage('home'); openDialog('loginDialog'); return; }
   if ($('#accountUsername')) { $('#accountUsername').textContent = currentUser.username; }
@@ -604,9 +436,6 @@ async function loadAccount() {
   }
 }
 
-// =========================================================
-// HISTORY
-// =========================================================
 async function loadHistory() {
   if (!currentUser) {
     showPublicPage('home');
@@ -663,6 +492,7 @@ async function loadHistory() {
 // =========================================================
 // SETTINGS
 // =========================================================
+
 async function loadSettings() {
   try {
     const data = await api('/api/settings');
@@ -671,18 +501,21 @@ async function loadSettings() {
     setText('contactSubtitle', data.contact_subtitle || 'Chọn kênh phù hợp để liên hệ với chúng tôi');
     setText('contactHours', data.contact_hours || 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn');
 
+    // Zalo Cá Nhân
     setText('zaloPersonalLabel', data.zalo_personal_label || 'Zalo');
     setText('zaloPersonalName', data.zalo_personal_name || 'Zalo Cá Nhân');
     setText('zaloPersonalDesc', data.zalo_personal_desc || 'Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất');
     setText('zaloPersonalTag', data.zalo_personal_tag || 'Cá Nhân · Phản hồi nhanh');
     setLink('zaloPersonalBtn', `https://zalo.me/${data.zalo_personal_phone || '0987654321'}`);
 
+    // TikTok
     setText('tiktokLabel', data.tiktok_label || 'TikTok');
     setText('tiktokName', data.tiktok_name || 'TikTok');
     setText('tiktokDesc', data.tiktok_desc || 'Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất');
     setText('tiktokTag', data.tiktok_tag || 'Cộng Đồng · Cập nhật ưu đãi');
     setLink('tiktokBtn', data.tiktok_phone || 'https://tiktok.com/@anhvuong.license');
 
+    // Features
     setText('featureFast', data.feature_fast || 'Phản hồi nhanh');
     setText('featureFastDesc', data.feature_fast_desc || 'Thường trong vòng 5–15 phút trong giờ hỗ trợ');
     setText('featureProfessional', data.feature_professional || 'Hỗ trợ chuyên nghiệp');
@@ -795,6 +628,7 @@ if (settingsForm) {
 // =========================================================
 // ADMIN
 // =========================================================
+
 async function checkAdmin() {
   try {
     const result = await api('/api/admin/me');
@@ -820,47 +654,20 @@ if (backToWeb) {
   };
 }
 
-// Admin nav
 $$('.admin-nav').forEach((button) => {
   button.addEventListener('click', () => {
     const page = button.dataset.adminPage;
-    const targets = {
-      dashboard: '#adminDashboard',
-      keys: '#adminKeys',
-      adminDownloads: '#adminDownloads',
-      logs: '#adminLogs',
-      settings: '#adminSettings',
-      api: '#adminApi'
-    };
-
-    const target = $(targets[page]);
-    if (!target) return;
-
-    const oldPage = document.querySelector('.admin-page:not(.hidden)');
-    if (oldPage === target) return;
-
-    $$('.admin-page').forEach((el) => {
-      el.classList.add('hidden');
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(12px)';
-    });
-
-    target.classList.remove('hidden');
-    target.style.opacity = '0';
-    target.style.transform = 'translateY(12px)';
-    void target.offsetWidth;
-    target.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-    target.style.opacity = '1';
-    target.style.transform = 'translateY(0)';
-
-    $$('.admin-nav').forEach((item) => item.classList.remove('active'));
+    $$('.admin-page').forEach((section) => { section.classList.add('hidden'); });
+    const targets = { dashboard: '#adminDashboard', keys: '#adminKeys', adminDownloads: '#adminDownloads', logs: '#adminLogs', settings: '#adminSettings', api: '#adminApi' };
+    const target = targets[page];
+    if (target) { $(target)?.classList.remove('hidden'); }
+    $$('.admin-nav').forEach((item) => { item.classList.remove('active'); });
     button.classList.add('active');
-
-    if (page === 'dashboard') loadAdminDashboard();
-    if (page === 'keys') loadKeys();
-    if (page === 'adminDownloads') loadAdminDownloads();
-    if (page === 'logs') loadAdminLogs();
-    if (page === 'settings') loadSettingsAdmin();
+    if (page === 'dashboard') { loadAdminDashboard(); }
+    if (page === 'keys') { loadKeys(); }
+    if (page === 'adminDownloads') { loadAdminDownloads(); }
+    if (page === 'logs') { loadAdminLogs(); }
+    if (page === 'settings') { loadSettingsAdmin(); }
   });
 });
 
@@ -928,9 +735,7 @@ window.copyKey = async function (id) {
   }
 };
 
-// =========================================================
-// LICENSE FORM
-// =========================================================
+// ===== HÀM MỞ FORM TẠO KEY =====
 function openLicenseForm(bulk = false) {
   if ($('#licenseDialogTitle')) { 
     $('#licenseDialogTitle').textContent = bulk ? 'Tạo License Key hàng loạt' : 'Tạo License Key'; 
@@ -960,6 +765,7 @@ if (bulkCreate) { bulkCreate.onclick = () => openLicenseForm(true); }
 const licenseCancel = $('#licenseCancel');
 if (licenseCancel) { licenseCancel.onclick = () => closeDialog('licenseDialog'); }
 
+// ===== FORM TẠO KEY =====
 const licenseForm = $('#licenseForm');
 if (licenseForm) {
   licenseForm.onsubmit = async (event) => {
@@ -1137,6 +943,8 @@ if (downloadForm) {
       shipping_info: $('#downloadShipping')?.value || 'truy cập tức'
     };
 
+    console.log('Sending data:', body);
+
     try {
       const url = '/api/admin/downloads' + (id ? `/${id}` : '');
       const method = id ? 'PATCH' : 'POST';
@@ -1146,6 +954,8 @@ if (downloadForm) {
         body: JSON.stringify(body)
       });
 
+      console.log('Result:', result);
+
       closeDialog('downloadDialog');
       await loadAdminDownloads();
       await loadPublicDownloads();
@@ -1153,17 +963,21 @@ if (downloadForm) {
       showToast(id ? 'Đã cập nhật mục tải xuống' : 'Đã thêm mục tải xuống', 'success');
 
     } catch (error) {
+      console.error('Error:', error);
       showToast(error.message, 'error');
     }
   };
 }
 
 window.editDownload = async function (id) {
+  console.log('editDownload called with id:', id);
   try {
     const data = await api('/api/admin/downloads');
+    console.log('downloads data:', data);
     const item = data.find((x) => Number(x.id) === Number(id));
     if (item) { openDownloadForm(item); } else { showToast('Không tìm thấy mục này', 'error'); }
   } catch (error) {
+    console.error(error);
     showToast(error.message, 'error');
   }
 };
@@ -1196,9 +1010,6 @@ if (adminLogout) {
   };
 }
 
-// =========================================================
-// INIT
-// =========================================================
 (async function init() {
   await checkUser();
   await checkAdmin();
