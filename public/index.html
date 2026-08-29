@@ -6,8 +6,6 @@
   <meta name="description" content="AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.">
   <title>AnhVuong License</title>
   <link rel="stylesheet" href="/styles.css">
-  <!-- Cloudflare Turnstile -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body>
@@ -719,9 +717,6 @@
         <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required autocomplete="current-password">
       </div>
 
-      <!-- Turnstile - ĐÃ THÊM data-callback -->
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" data-callback="onTurnstileSuccess" style="margin: 12px 0;"></div>
-
       <div id="loginMsg" class="form-message"></div>
 
       <button class="login-dialog-submit" type="submit">Đăng nhập</button>
@@ -767,9 +762,6 @@
         <label>Mật khẩu</label>
         <input id="registerPassword" type="password" placeholder="Nhập mật khẩu" minlength="6" required>
       </div>
-
-      <!-- Turnstile - ĐÃ THÊM data-callback -->
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" data-callback="onTurnstileSuccess" style="margin: 12px 0;"></div>
 
       <div id="registerMsg" class="form-message"></div>
 
@@ -885,7 +877,7 @@
 
 
 <!-- =========================
-     LICENSE DIALOG - ĐÃ THÊM max_devices VÀ data-callback
+     LICENSE DIALOG - ĐÃ THÊM max_devices
 ========================= -->
 <dialog id="licenseDialog">
 
@@ -931,9 +923,6 @@
 
     <label>Ghi chú</label>
     <input id="note" maxlength="500" placeholder="Khách hàng #001">
-
-    <!-- Turnstile - ĐÃ THÊM data-callback -->
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAAEW-Pjw91jmuWyqp" data-callback="onTurnstileSuccess" style="margin: 12px 0;"></div>
 
     <div class="dialog-buttons">
       <button type="button" class="secondary-btn" id="licenseCancel">
