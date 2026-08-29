@@ -776,7 +776,7 @@ html[data-theme="light"] .sidebar {
 
 
 /* =========================================================
-   DOWNLOAD GRID
+   DOWNLOAD GRID & CARD (FIX LAYOUT)
 ========================================================= */
 
 .download-grid {
@@ -791,26 +791,26 @@ html[data-theme="light"] .sidebar {
 }
 
 .download-card {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: rgba(13,17,24,.88);
-  border-radius: var(--radius);
-  transition: .25s;
   display: flex;
   flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all .25s ease;
   height: 100%;
 }
 
 .download-card:hover {
   transform: translateY(-4px);
   border-color: rgba(255,255,255,.16);
-  background: #111722;
+  box-shadow: 0 12px 30px rgba(0,0,0,.3);
 }
 
 .download-image {
-  height: 175px;
+  height: 160px;
   overflow: hidden;
-  background: #151b24;
+  background: var(--panel-2);
   flex-shrink: 0;
 }
 
@@ -822,65 +822,89 @@ html[data-theme="light"] .sidebar {
 }
 
 .download-image.no-image {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: radial-gradient(circle, #252d39, #10141b);
 }
 
+.download-image.no-image span {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
 .download-body {
-  padding: 20px;
+  padding: 16px 18px 18px;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
 .download-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
-.download-body h3 {
-  margin: 0;
-  font-size: 17px;
+.download-title-row h3 {
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
+  margin: 0;
+}
+
+.download-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .download-description {
-  color: var(--muted);
-  line-height: 1.55;
-  min-height: 48px;
   font-size: 13px;
-  margin: 8px 0 12px;
-  flex: 1;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 2px 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .download-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px 16px;
-  margin: 8px 0 12px;
-  padding: 12px 0;
+  gap: 2px 12px;
+  padding: 8px 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  margin: 4px 0 6px;
 }
 
 .download-detail {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .download-detail .detail-label {
-  font-size: 9px;
+  font-size: 8px;
   text-transform: uppercase;
-  letter-spacing: .8px;
+  letter-spacing: .5px;
   color: var(--muted);
 }
 
 .download-detail strong {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text);
 }
@@ -889,34 +913,36 @@ html[data-theme="light"] .sidebar {
   color: var(--green);
 }
 
-.download-badge {
-  flex-shrink: 0;
-  padding: 5px 8px;
-  border-radius: 6px;
-  background: rgba(255,255,255,.06);
-  color: #8d96a5;
-  font-size: 8px;
-  letter-spacing: 1.5px;
-}
-
 .download-card-footer {
   margin-top: auto;
+  padding-top: 4px;
 }
 
 .download-button {
   width: 100%;
-  margin-top: 4px;
-  background: #fff;
-  color: #06080b;
-  border-color: #fff;
-  padding: 11px;
-  font-weight: 750;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  transition: .2s;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-.download-button:hover { opacity: .88; }
+.download-button:hover {
+  opacity: .85;
+  transform: scale(1.02);
+}
+
+.download-button .download-button-icon {
+  font-size: 16px;
+}
 
 .loading-card,
 .empty-card {
