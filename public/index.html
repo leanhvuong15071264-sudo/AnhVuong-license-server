@@ -3,353 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="AnhVuong License">
+  <meta name="description" content="AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.">
   <title>AnhVuong License</title>
-  <style>
-    :root{--bg:#07090d;--panel:#0d1118;--panel-2:#111722;--border:rgba(255,255,255,.08);--text:#f5f7fa;--muted:#8d96a5;--accent:#fff;--green:#45e28b;--red:#ff5d6c;--yellow:#ffc857;--radius:18px;--shadow:0 8px 30px rgba(0,0,0,.45)}
-    html[data-theme=light]{--bg:#f4f6f8;--panel:#fff;--panel-2:#f8fafc;--border:rgba(15,23,42,.1);--text:#111827;--muted:#64748b;--accent:#111827;--shadow:0 8px 30px rgba(0,0,0,.1)}
-    *{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth}
-    body{min-height:100vh;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;transition:background .3s;overflow-x:hidden}
-    button,input,textarea,select{font:inherit}
-    button{cursor:pointer}
-    .hidden{display:none!important}
-    ::-webkit-scrollbar{width:8px}
-    ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:#252c38;border-radius:20px}
-    .cherry-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden}
-    .cherry{position:absolute;top:-20px;width:16px;height:16px;background:radial-gradient(circle at 30% 30%,#ffb7c5,#ff8a9f);border-radius:50% 0 50% 50%;opacity:.7;animation:cherryFall linear infinite;transform-origin:center}
-    .cherry:nth-child(odd){background:radial-gradient(circle at 30% 30%,#ffc8d6,#ff9aaf);width:14px;height:14px}
-    .cherry:nth-child(3n){background:radial-gradient(circle at 30% 30%,#ffd6e0,#ffaabc);width:12px;height:12px}
-    @keyframes cherryFall{0%{transform:translateY(0) rotate(0deg) scale(.8);opacity:.7}20%{opacity:.9}80%{opacity:.6}100%{transform:translateY(105vh) rotate(720deg) scale(.2);opacity:0}}
-    .mobile-header{display:none;position:fixed;top:0;left:0;right:0;height:56px;background:var(--panel);border-bottom:1px solid var(--border);padding:0 12px;align-items:center;justify-content:space-between;z-index:100;backdrop-filter:blur(16px)}
-    .hamburger{width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:transparent;border:none;padding:0;cursor:pointer}
-    .hamburger span{display:block;width:24px;height:2px;background:var(--text);border-radius:4px;transition:.3s}
-    .hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
-    .hamburger.active span:nth-child(2){opacity:0}
-    .hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
-    .mobile-brand{display:flex;align-items:center;gap:8px}
-    .mobile-logo-img{width:32px;height:32px;border-radius:8px;object-fit:cover}
-    .mobile-brand span{font-weight:700;font-size:15px;color:var(--text)}
-    .mobile-login-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--accent);color:var(--bg);font-weight:600;font-size:13px;transition:.2s}
-    .mobile-login-btn:hover{opacity:.85}
-    .mobile-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:200;opacity:0;pointer-events:none;transition:.35s ease}
-    .mobile-overlay.open{opacity:1;pointer-events:auto}
-    .mobile-menu{position:fixed;top:0;left:0;width:280px;height:100%;background:var(--panel);padding:20px 16px;transform:translateX(-110%);transition:.35s ease;overflow-y:auto;border-right:1px solid var(--border);z-index:201}
-    .mobile-overlay.open .mobile-menu{transform:translateX(0)}
-    .mobile-menu-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px}
-    .mobile-menu-brand{display:flex;align-items:center;gap:10px}
-    .mobile-menu-brand .mobile-logo-img{width:36px;height:36px;border-radius:8px;object-fit:cover}
-    .mobile-menu-brand span{font-weight:700;font-size:16px;color:var(--text)}
-    .mobile-menu-close{background:transparent;border:none;color:var(--muted);font-size:24px;padding:4px 8px;cursor:pointer}
-    .mobile-menu-close:hover{color:var(--text)}
-    .mobile-nav{display:flex;flex-direction:column;gap:2px}
-    .mobile-nav-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:transparent;color:var(--muted);border-radius:10px;font-size:15px;font-weight:500;width:100%;text-align:left;transition:.2s;cursor:pointer}
-    .mobile-nav-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
-    .mobile-nav-btn.active{background:rgba(255,255,255,.08);color:var(--text)}
-    .mobile-nav-divider{height:1px;background:var(--border);margin:8px 0}
-    .sidebar{position:fixed;left:0;top:0;bottom:0;width:245px;padding:26px 16px;border-right:1px solid var(--border);background:rgba(7,9,13,.92);backdrop-filter:blur(20px);display:flex;flex-direction:column;z-index:20}
-    html[data-theme=light] .sidebar{background:rgba(255,255,255,.94)}
-    .sidebar-brand{display:flex;align-items:center;gap:12px;padding:0 10px 28px}
-    .sidebar-brand strong{display:block;font-size:15px;color:var(--text)}
-    .sidebar-brand span{display:block;color:var(--muted);font-size:10px;letter-spacing:2px;margin-top:2px}
-    .brand-mark{width:39px;height:39px;border-radius:11px;display:grid;place-items:center;background:#fff;color:#05070a;font-weight:900;font-size:13px;overflow:hidden}
-    .brand-mark img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block}
-    .main-nav{display:flex;flex-direction:column;gap:5px}
-    .nav-btn,.admin-nav{width:100%;border:0;background:transparent;color:var(--muted);text-align:left;padding:12px 13px;border-radius:11px;transition:.2s}
-    .nav-btn span,.admin-nav span{display:inline-block;width:27px;color:#737d8d}
-    .nav-btn:hover,.admin-nav:hover{color:#fff;background:rgba(255,255,255,.055)}
-    .nav-btn.active,.admin-nav.active{color:#fff;background:rgba(255,255,255,.09)}
-    .nav-group-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5a6475;padding:16px 13px 6px;font-weight:700}
-    .sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;gap:8px}
-    .side-action{width:100%;border:1px solid var(--border);background:#10151e;color:#fff;border-radius:11px;padding:11px 13px;text-align:left;transition:.2s}
-    .side-action:hover{background:#171d27}
-    .side-action.primary{background:#fff;color:#05070a;border-color:#fff}
-    .side-action.primary:hover{opacity:.9}
-    .side-action.danger{color:#ff8b95}
-    .user-mini,.admin-profile{display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:3px}
-    .user-mini strong,.admin-profile strong{display:block;font-size:13px;color:var(--text)}
-    .user-mini span,.admin-profile span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
-    .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#080a0e;font-weight:800}
-    .content{margin-left:245px;min-height:100vh;padding:34px 46px 70px;transition:margin-left .3s}
-    .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
-    .topbar h1{margin:6px 0 0;font-size:30px;letter-spacing:-.8px;color:var(--text)}
-    .top-description{color:var(--muted);margin:8px 0 0}
-    .eyebrow{color:#737d8d;font-size:10px;font-weight:800;letter-spacing:2.5px}
-    .page,.admin-page{animation:fadeSlideIn .35s ease-out forwards}
-    @keyframes fadeSlideIn{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
-    .loading-card{animation:shimmer 1.2s infinite ease-in-out;background:linear-gradient(90deg,var(--panel) 25%,var(--panel-2) 50%,var(--panel) 75%);background-size:200% 100%;border-radius:var(--radius);min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
-    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-    .download-card,.contact-card-zalo,.contact-card-tiktok,.stat-card,.history-card{transition:transform .25s ease,box-shadow .3s ease}
-    .download-card:hover,.contact-card-zalo:hover,.contact-card-tiktok:hover,.stat-card:hover,.history-card:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,.3)}
-    .primary-btn:hover,.side-action.primary:hover,.login-dialog-submit:hover,.download-button:hover{transform:scale(1.03)}
-    .secondary-btn:hover,.side-action:hover{transform:scale(1.02)}
-    .hero,.admin-hero{position:relative;overflow:hidden;min-height:355px;border:1px solid var(--border);border-radius:25px;padding:45px;background:radial-gradient(circle at 85% 50%,rgba(255,255,255,.1),transparent 28%),linear-gradient(135deg,#10151d,#090c11);margin-bottom:42px}
-    .hero::after,.admin-hero::after{content:"";position:absolute;width:400px;height:400px;right:-180px;bottom:-230px;border-radius:50%;border:1px solid rgba(255,255,255,.08)}
-    .hero-content{position:relative;z-index:2;max-width:700px}
-    .hero h2,.admin-hero h2{margin:13px 0 18px;font-size:clamp(36px,5vw,62px);line-height:1.02;letter-spacing:-2.5px;color:var(--text)}
-    .hero h2 span{color:#8d96a5}
-    .hero p,.admin-hero p{color:var(--muted);line-height:1.7;max-width:620px}
-    .hero-logo,.admin-hero-logo{position:absolute;right:10%;top:50%;transform:translateY(-50%);width:175px;height:175px;border-radius:48px;background:#fff;color:#06080b;display:grid;place-items:center;transform-origin:center;box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden}
-    .hero-logo-inner{width:100%;height:100%;display:grid;place-items:center}
-    .hero-logo-inner img{width:100%;height:100%;object-fit:cover;border-radius:20px;display:block}
-    .hero-buttons{display:flex;gap:10px;margin-top:27px}
-    .primary-btn{background:#fff;color:#05070a;border-color:#fff;padding:11px 17px;font-weight:750;border-radius:10px;border:1px solid var(--border);transition:.2s}
-    .primary-btn:hover{transform:translateY(-1px);opacity:.9}
-    .secondary-btn{background:#121821;color:#fff;padding:11px 17px;border-radius:10px;border:1px solid var(--border);transition:.2s}
-    .secondary-btn:hover{background:#1a222e}
-    .text-btn{background:transparent;color:#fff;padding:9px 12px;border-radius:10px;border:none;transition:.2s}
-    .text-btn:hover{background:rgba(255,255,255,.06)}
-    .full{width:100%}
-    .section-heading{display:flex;justify-content:space-between;align-items:center;margin:0 0 18px}
-    .section-heading h2{margin:6px 0 0;font-size:23px;color:var(--text)}
-    .download-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;align-items:stretch}
-    .large-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-    .download-card{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .25s ease;height:100%}
-    .download-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.16);box-shadow:0 12px 30px rgba(0,0,0,.3)}
-    .download-image{height:160px;overflow:hidden;background:var(--panel-2);flex-shrink:0}
-    .download-image img{width:100%;height:100%;object-fit:cover;display:block}
-    .download-image.no-image{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#252d39,#10141b)}
-    .download-image.no-image span{font-size:40px;font-weight:900;color:var(--muted)}
-    .download-body{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column;gap:6px}
-    .download-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .download-title-row h3{font-size:15px;font-weight:600;color:var(--text);margin:0}
-    .download-badge{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:2px 10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--muted);white-space:nowrap;flex-shrink:0}
-    .download-description{font-size:13px;color:var(--muted);line-height:1.4;margin:2px 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .download-details{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:4px 0 6px}
-    .download-detail{display:flex;flex-direction:column;gap:0}
-    .download-detail .detail-label{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-    .download-detail strong{font-size:12px;font-weight:600;color:var(--text)}
-    .download-detail .detail-status{color:var(--green)}
-    .download-card-footer{margin-top:auto;padding-top:4px}
-    .download-button{width:100%;padding:10px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-weight:600;font-size:13px;cursor:pointer;transition:all .2s ease;display:flex;align-items:center;justify-content:center;gap:6px}
-    .download-button:hover{opacity:.85;transform:scale(1.02)}
-    .download-button .download-button-icon{font-size:16px}
-    .loading-card,.empty-card{min-height:150px;border:1px dashed var(--border);border-radius:var(--radius);color:var(--muted);display:grid;place-items:center;padding:30px;grid-column:1/-1}
-    .account-card{border:1px solid var(--border);border-radius:20px;background:var(--panel);padding:28px;margin-bottom:35px}
-    .account-header{display:flex;align-items:center;gap:18px}
-    .big-avatar{width:70px;height:70px;display:grid;place-items:center;border-radius:20px;background:#fff;color:#05070a;font-size:25px;font-weight:900}
-    .account-header h2{margin:6px 0;color:var(--text)}
-    .account-header p{color:var(--muted);margin:0}
-    .account-info{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:28px}
-    .account-info div{padding:16px;background:rgba(255,255,255,.035);border-radius:12px}
-    .account-info span{display:block;color:var(--muted);font-size:11px;margin-bottom:7px}
-    .account-info strong{font-size:14px;color:var(--text)}
-    .panel{border:1px solid var(--border);border-radius:var(--radius);background:rgba(13,17,24,.88)}
-    .status-panel{padding:18px;color:#b8c0cb}
-    .status-dot{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:8px;box-shadow:0 0 12px rgba(69,226,139,.7)}
-    .admin-hero{min-height:280px;margin-bottom:25px}
-    .admin-hero h2{font-size:43px}
-    .admin-hero-logo{width:125px;height:125px;border-radius:34px;overflow:hidden;display:grid;place-items:center;background:#fff}
-    .admin-hero-logo img{width:100%;height:100%;object-fit:cover;border-radius:20px;display:block}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-    .stat-card{padding:22px;border:1px solid var(--border);border-radius:15px;background:var(--panel)}
-    .stat-card span{display:block;color:var(--muted);font-size:12px}
-    .stat-card strong{display:block;margin-top:8px;font-size:31px;color:var(--text)}
-    .toolbar{display:flex;gap:10px;margin-bottom:16px}
-    .toolbar input,.toolbar select{border:1px solid var(--border);background:#0d1219;color:#fff;border-radius:10px;padding:11px 13px;outline:none}
-    .toolbar input{flex:1}
-    .toolbar input:focus,.toolbar select:focus{border-color:rgba(255,255,255,.25)}
-    .table-panel{overflow:auto}
-    table{width:100%;border-collapse:collapse;min-width:800px}
-    th,td{padding:14px 16px;border-bottom:1px solid var(--border);text-align:left;font-size:12px}
-    th{color:#6f7887;font-size:10px;text-transform:uppercase;letter-spacing:1px}
-    td{color:#c7ced8}
-    tr:last-child td{border-bottom:0}
-    code{color:#fff;background:rgba(255,255,255,.05);padding:5px 7px;border-radius:6px}
-    .small-btn{padding:6px 8px;background:#151b24;color:#dce1e8;font-size:11px;margin:2px;border-radius:6px;border:none;transition:.2s}
-    .small-btn:hover{background:#202835}
-    .danger-btn{color:#ff858f}
-    .status{padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.06);font-size:10px}
-    .status.active{color:var(--green)}
-    .status.banned{color:var(--red)}
-    .status.disabled{color:var(--yellow)}
-    .actions{min-width:230px}
-    .admin-download-actions{display:flex;gap:5px;margin-top:15px}
-    .api-panel{padding:25px}
-    .api-panel h3{margin:0 0 12px;color:var(--text)}
-    .api-panel pre{overflow-x:auto;background:#070a0e;border:1px solid var(--border);border-radius:12px;padding:18px;color:#bfc7d2;line-height:1.6;margin-bottom:28px}
-    dialog{border:0;padding:0;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;max-width:90vw;max-height:90vh;margin:auto}
-    dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}
-    .dialog{position:relative;width:min(440px,calc(100vw - 30px));padding:30px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:#0d1118;box-shadow:0 30px 100px rgba(0,0,0,.55)}
-    .dialog h2{margin:7px 0;font-size:25px;color:var(--text)}
-    .dialog>p{color:var(--muted);font-size:13px;margin:0 0 24px}
-    .dialog label{display:block;color:#9aa3b1;font-size:11px;margin:14px 0 7px}
-    .dialog input,.dialog textarea{width:100%;border:1px solid var(--border);border-radius:10px;outline:none;background:#080c11;color:#fff;padding:11px 12px}
-    .dialog textarea{min-height:100px;resize:vertical}
-    .dialog input:focus,.dialog textarea:focus{border-color:rgba(255,255,255,.28)}
-    .dialog-close{position:absolute;right:14px;top:12px;border:0;background:transparent;color:#727c8b;font-size:25px;cursor:pointer}
-    .dialog-close:hover{color:#fff}
-    .dialog-buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
-    .dialog-link{display:block;width:100%;border:0;background:transparent;color:#8f98a7;padding:12px;margin-top:5px}
-    .dialog-link:hover{color:#fff}
-    .form-message{color:#ff858f;font-size:12px;min-height:18px;margin-top:10px}
-    .form-hint{color:#687281;font-size:10px;line-height:1.5;margin-top:7px}
-    .created-keys{max-height:180px;overflow:auto;margin-top:20px;background:#070a0e;border-radius:10px;padding:13px;color:#fff}
-    #toast{position:fixed;right:25px;bottom:25px;z-index:100;padding:13px 17px;border-radius:11px;background:#151b24;border:1px solid var(--border);color:#fff;opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s;font-size:13px}
-    #toast.show{opacity:1;transform:translateY(0)}
-    #toast.success{border-color:rgba(69,226,139,.25)}
-    #toast.error{border-color:rgba(255,93,108,.3);color:#ff9aa3}
-    .contact-header{text-align:center;margin:0 0 12px}
-    .contact-header h1{font-size:32px;margin:0 0 6px;color:var(--text)}
-    .contact-header p{color:var(--muted);font-size:15px;margin:0}
-    .contact-hours{text-align:center;font-size:13px;color:var(--muted);background:rgba(255,255,255,.04);padding:12px 20px;border-radius:12px;border:1px solid var(--border);margin-bottom:28px}
-    .contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px}
-    .contact-card-zalo,.contact-card-tiktok{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:24px 22px 22px;transition:.3s;display:flex;flex-direction:column}
-    .contact-card-zalo:hover,.contact-card-tiktok:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.18);background:#111722}
-    .contact-card-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-    .contact-card-icon{font-size:20px}
-    .contact-card-badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--muted)}
-    .contact-card-zalo h3,.contact-card-tiktok h3{font-size:18px;margin:0 0 4px;color:var(--text)}
-    .contact-card-zalo p,.contact-card-tiktok p{font-size:13px;color:var(--muted);margin:0 0 8px;line-height:1.5;flex:1}
-    .contact-card-tag{font-size:12px;color:var(--muted);margin-bottom:14px}
-    .contact-card-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;background:#fff;color:#05070a;font-weight:600;font-size:13px;text-decoration:none;transition:.2s;align-self:flex-start;border:none;cursor:pointer}
-    .contact-card-btn:hover{opacity:.85;transform:scale(1.02)}
-    .contact-features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:8px}
-    .contact-feature{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px 20px;text-align:center}
-    .contact-feature .feature-icon{font-size:28px;margin-bottom:6px}
-    .contact-feature h4{margin:0 0 4px;font-size:15px;color:var(--text)}
-    .contact-feature p{margin:0;font-size:13px;color:var(--muted);line-height:1.5}
-    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:8px}
-    .history-card{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:14px;background:var(--panel);overflow:hidden;transition:.25s}
-    .history-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.15)}
-    .history-image{height:140px;overflow:hidden;background:#111722}
-    .history-image img{width:100%;height:100%;object-fit:cover;display:block}
-    .history-info{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:4px}
-    .history-info h3{margin:0;font-size:15px;color:var(--text)}
-    .history-meta{display:flex;gap:12px;font-size:12px;color:var(--muted)}
-    .history-time{font-size:11px;color:var(--muted)}
-    .history-status{display:inline-block;font-size:10px;font-weight:600;color:var(--green);background:rgba(69,226,139,.1);padding:3px 10px;border-radius:20px;align-self:flex-start;margin-top:4px}
-    .login-dialog-wrapper{background:var(--panel);border-radius:24px;padding:40px 36px;width:min(420px,calc(100vw - 30px));position:relative;margin:auto}
-    .login-dialog-header{text-align:center;margin-bottom:28px}
-    .login-dialog-brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
-    .login-dialog-brand .brand-icon{background:#fff;color:#05070a;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:14px;overflow:hidden}
-    .login-dialog-brand .brand-icon img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block}
-    .login-dialog-brand span:last-child{font-size:18px;font-weight:700;color:var(--text)}
-    .login-dialog-welcome{color:var(--muted);font-size:14px;margin:0 0 4px}
-    .login-dialog-header h2{font-size:28px;margin:0;color:var(--text)}
-    .login-dialog-form{display:flex;flex-direction:column;gap:16px}
-    .login-dialog-field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
-    .login-dialog-field input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#080c11;color:#fff;font-size:14px;outline:none;transition:.2s}
-    .login-dialog-field input:focus{border-color:rgba(255,255,255,.3)}
-    .login-dialog-field input::placeholder{color:#5a6475}
-    .login-dialog-submit{width:100%;padding:14px;border-radius:12px;border:0;background:#fff;color:#05070a;font-weight:700;font-size:15px;cursor:pointer;transition:.2s;margin-top:4px}
-    .login-dialog-submit:hover{opacity:.88;transform:translateY(-1px)}
-    .login-dialog-footer{display:flex;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-top:4px}
-    .login-dialog-footer button{background:none;border:0;color:#fff;font-weight:600;cursor:pointer;padding:4px 8px}
-    .login-dialog-footer button:hover{text-decoration:underline}
-    .settings-input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#080c11;color:#fff;font-size:14px;outline:none;transition:.2s}
-    .settings-input:focus{border-color:rgba(255,255,255,.25)}
-    .settings-input::placeholder{color:#5a6475}
-    .detail-dialog-wrapper-v2{background:var(--panel);border-radius:20px;width:min(740px,calc(100vw - 24px));max-height:85vh;overflow-y:auto;position:relative;margin:auto}
-    .detail-dialog-layout-v2{display:grid;grid-template-columns:1fr 1.2fr;gap:0;border-radius:20px;overflow:hidden}
-    .detail-dialog-image-v2{position:relative;height:100%;min-height:320px;max-height:400px;background:#111722;overflow:hidden;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center}
-    .detail-dialog-image-v2 img{width:100%;height:100%;object-fit:cover;display:block}
-    .detail-image-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:950;color:#2a3340;letter-spacing:-4px;pointer-events:none}
-    .detail-image-placeholder img{width:60px;height:60px;object-fit:contain;border-radius:12px}
-    .detail-dialog-content-v2{padding:20px 22px 22px 20px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:400px}
-    .detail-dialog-breadcrumb-v2{font-size:11px;color:var(--muted)}
-    .detail-dialog-breadcrumb-v2 span{color:var(--text)}
-    .detail-dialog-content-v2 h2{font-size:20px;margin:0;font-weight:700;line-height:1.2;color:var(--text)}
-    .detail-dialog-price-row-v2{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
-    .detail-dialog-price-v2{font-size:18px;font-weight:800;color:var(--green)}
-    .detail-dialog-download-btn-v2{background:#fff;color:#05070a;border:0;padding:8px 20px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap}
-    .detail-dialog-download-btn-v2:hover{opacity:.85;transform:translateY(-1px)}
-    .detail-dialog-desc-v2{color:var(--muted);font-size:13px;line-height:1.4;margin:2px 0}
-    .detail-dialog-info-grid-v2{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;padding:6px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-    .detail-dialog-info-grid-v2 div{display:flex;flex-direction:column;gap:1px}
-    .detail-dialog-info-grid-v2 span{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
-    .detail-dialog-info-grid-v2 strong{font-size:13px;font-weight:600;color:var(--text)}
-    .detail-dialog-extra-desc-v2{margin:2px 0}
-    .detail-dialog-extra-desc-v2 span{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:1px}
-    .detail-dialog-extra-desc-v2 p{font-size:13px;color:var(--text);margin:0}
-    .detail-dialog-key-section-v2{background:rgba(255,255,255,.035);border-radius:10px;padding:12px 14px;margin-top:2px}
-    .detail-dialog-key-section-v2 label{display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text)}
-    .detail-key-input-row-v2{display:flex;gap:6px}
-    .detail-key-input-row-v2 input{flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:#080c11;color:#fff;font-size:12px;outline:none}
-    .detail-key-input-row-v2 input:focus{border-color:rgba(255,255,255,.25)}
-    .detail-key-submit-btn-v2{background:#252d39;color:#fff;border:0;padding:8px 16px;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;white-space:nowrap;transition:.2s}
-    .detail-key-submit-btn-v2:hover{background:#323d4d}
-    .detail-key-hint-v2{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-    .detail-key-hint-v2 span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-    .detail-key-hint-v2 strong{font-size:13px;font-family:'Courier New',monospace;color:var(--green);letter-spacing:1px}
-    .theme-toggle{position:fixed;top:20px;right:24px;z-index:50;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--border);border-radius:12px;background:rgba(13,17,24,.9);color:var(--text);backdrop-filter:blur(16px);box-shadow:0 8px 25px rgba(0,0,0,.18);transition:.2s ease}
-    .theme-toggle:hover{transform:translateY(-1px);border-color:rgba(128,128,128,.35)}
-    .theme-toggle-icon{font-size:16px;line-height:1}
-    .theme-toggle-label{font-size:11px;font-weight:750;letter-spacing:.2px}
-    @media(max-width:1050px){.hero-logo{opacity:.18;right:5%}.stats{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:760px){.sidebar{display:none}.mobile-header{display:flex}.content{margin-left:0;padding:76px 16px 40px}.hero,.admin-hero{padding:24px;min-height:280px}.hero h2{font-size:32px}.hero-logo,.admin-hero-logo{display:none}.hero-buttons{flex-direction:column}.stats{grid-template-columns:1fr 1fr}.toolbar{flex-direction:column}.account-info{grid-template-columns:1fr}.topbar{gap:15px}.topbar h1{font-size:24px}.download-grid{grid-template-columns:1fr}.large-grid{grid-template-columns:1fr}.contact-grid{grid-template-columns:1fr}.contact-features{grid-template-columns:1fr}.detail-dialog-layout-v2{grid-template-columns:1fr}.detail-dialog-image-v2{min-height:160px;max-height:180px;aspect-ratio:auto}.detail-dialog-content-v2{padding:16px;max-height:none;overflow-y:visible}.detail-key-input-row-v2{flex-direction:column}.detail-key-submit-btn-v2{width:100%}.detail-dialog-price-row-v2{flex-direction:column;align-items:stretch}.theme-toggle{top:auto;bottom:20px;right:20px;background:rgba(13,17,24,.95)}.theme-toggle-label{display:none}}
-    @media(max-width:480px){.stats{grid-template-columns:1fr}.hero h2{font-size:26px}.topbar h1{font-size:20px}}
-    html[data-theme=light] .sidebar{background:rgba(255,255,255,.94);border-right-color:var(--border)}
-    html[data-theme=light] .nav-btn,html[data-theme=light] .admin-nav{color:#64748b}
-    html[data-theme=light] .nav-btn:hover,html[data-theme=light] .admin-nav:hover{color:#111827;background:rgba(15,23,42,.055)}
-    html[data-theme=light] .nav-btn.active,html[data-theme=light] .admin-nav.active{color:#111827;background:rgba(15,23,42,.08)}
-    html[data-theme=light] .side-action{background:#fff;color:#111827;border-color:var(--border)}
-    html[data-theme=light] .side-action.primary{background:#111827;color:#fff;border-color:#111827}
-    html[data-theme=light] .hero,html[data-theme=light] .admin-hero{border:1px solid rgba(15,23,42,.08);background:radial-gradient(circle at 85% 50%,rgba(15,23,42,.06),transparent 28%),#fff}
-    html[data-theme=light] .panel,html[data-theme=light] .account-card,html[data-theme=light] .stat-card{background:var(--panel)}
-    html[data-theme=light] .download-card{background:#fff}
-    html[data-theme=light] .toolbar input,html[data-theme=light] .toolbar select{background:#fff;color:#111827;border-color:var(--border)}
-    html[data-theme=light] th{color:#64748b}
-    html[data-theme=light] td{color:#334155}
-    html[data-theme=light] .small-btn{background:#f1f5f9;color:#334155}
-    html[data-theme=light] code{color:#111827;background:#eef2f7}
-    html[data-theme=light] .theme-toggle{background:rgba(255,255,255,.92);color:#111827;border-color:rgba(15,23,42,.12);box-shadow:0 8px 25px rgba(15,23,42,.1)}
-    html[data-theme=light] .contact-card-zalo,html[data-theme=light] .contact-card-tiktok,html[data-theme=light] .contact-feature{background:#fff}
-    html[data-theme=light] .contact-card-zalo:hover,html[data-theme=light] .contact-card-tiktok:hover{background:#f8fafc;border-color:rgba(15,23,42,.12)}
-    html[data-theme=light] .contact-card-btn{background:#111827;color:#fff}
-    html[data-theme=light] .contact-hours{background:rgba(0,0,0,.03)}
-    html[data-theme=light] .mobile-header{background:rgba(255,255,255,.94)}
-    html[data-theme=light] .mobile-menu{background:#fff}
-    html[data-theme=light] .hamburger span{background:#111827}
-    html[data-theme=light] .mobile-login-btn{background:#111827;color:#fff}
-    html[data-theme=light] .mobile-overlay{background:rgba(0,0,0,.5)}
-  </style>
+  <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
 
-<!-- ===== PHẦN HTML GIỮ NGUYÊN NHƯ FILE CŨ ===== -->
-<!-- Tao đã thay toàn bộ CSS vào thẻ <style> bên trên. -->
-<!-- Mày copy phần HTML từ file index.html cũ của mày vào đây, từ <body> đến </body>. -->
-<!-- Hoặc mày có thể dùng file index.html mới tao gửi ở tin nhắn trước (phần HTML). -->
+<body>
 
 <div id="toast"></div>
 
-<!-- ===== MOBILE HEADER ===== -->
-<header class="mobile-header">
-  <button class="hamburger" id="hamburgerBtn" aria-label="Mở menu">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="mobile-brand">
-    <img src="/logo.png" alt="AnhVuong" class="mobile-logo-img">
-    <span>AnhVuong License</span>
-  </div>
-  <button class="mobile-login-btn" id="mobileLoginBtn">Đăng nhập</button>
-</header>
-
-<!-- ===== MOBILE OVERLAY MENU ===== -->
-<div class="mobile-overlay" id="mobileOverlay">
-  <div class="mobile-menu">
-    <div class="mobile-menu-header">
-      <div class="mobile-menu-brand">
-        <img src="/logo.png" alt="AnhVuong" class="mobile-logo-img">
-        <span>AnhVuong License</span>
-      </div>
-      <button class="mobile-menu-close" id="mobileMenuClose">✕</button>
-    </div>
-    <nav class="mobile-nav">
-      <button class="mobile-nav-btn active" data-page="home">Trang chủ</button>
-      <button class="mobile-nav-btn" data-page="downloads">Tải xuống</button>
-      <button class="mobile-nav-btn hidden" id="mobileHistoryNav" data-page="history">Lịch sử</button>
-      <button class="mobile-nav-btn hidden" id="mobileAccountNav" data-page="account">Tài khoản</button>
-      <button class="mobile-nav-btn" data-page="contact">Liên hệ</button>
-      <div class="mobile-nav-divider"></div>
-      <button class="mobile-nav-btn" id="mobileLogoutBtn" style="color:var(--red);">Đăng xuất</button>
-    </nav>
-  </div>
-</div>
-
-<!-- ===== THEME TOGGLE ===== -->
 <button id="themeToggle" class="theme-toggle" type="button"
         aria-label="Chuyển giao diện sáng/tối"
         title="Chuyển giao diện sáng/tối">
@@ -357,290 +19,1017 @@
   <span id="themeToggleLabel" class="theme-toggle-label">Giao diện sáng</span>
 </button>
 
-<!-- ===== PUBLIC APP ===== -->
+
+<!-- =========================
+     PUBLIC APP
+========================= -->
 <div id="publicApp">
+
   <aside class="sidebar">
+
     <div class="sidebar-brand">
-      <div class="brand-mark"><img src="/logo.png" alt="AnhVuong"></div>
-      <div><strong>AnhVuong</strong><span>LICENSE</span></div>
-    </div>
-    <nav class="main-nav">
-      <div class="nav-group-label">MENU</div>
-      <button class="nav-btn active" data-page="home"><span>⌂</span>Trang chủ</button>
-      <button class="nav-btn" data-page="downloads"><span>↓</span>Tải xuống</button>
-      <button class="nav-btn hidden" id="historyNav" data-page="history"><span>📜</span>Lịch sử</button>
-      <button class="nav-btn hidden" id="accountNav" data-page="account"><span>♙</span>Tài khoản</button>
-      <div class="nav-group-label">HỖ TRỢ</div>
-      <button class="nav-btn" data-page="contact"><span>✉</span>Liên hệ</button>
-    </nav>
-    <div class="sidebar-bottom">
-      <div id="guestActions"><button class="side-action" id="loginBtn">Đăng nhập</button></div>
-      <div id="userActions" class="hidden">
-        <div class="user-mini"><div class="avatar" id="userAvatar">U</div><div><strong id="sideUsername">Khách</strong><span>Tài khoản khách</span></div></div>
-        <button class="side-action" id="logoutBtn">Đăng xuất</button>
+      <div class="brand-mark">
+        <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
+      </div>
+      <div>
+        <strong>AnhVuong</strong>
+        <span>LICENSE</span>
       </div>
     </div>
+
+    <nav class="main-nav">
+
+      <div class="nav-group-label">MENU</div>
+
+      <button class="nav-btn active" data-page="home">
+        <span>⌂</span>
+        Trang chủ
+      </button>
+
+      <button class="nav-btn" data-page="downloads">
+        <span>↓</span>
+        Tải xuống
+      </button>
+
+      <button class="nav-btn hidden" id="historyNav" data-page="history">
+        <span>📜</span>
+        Lịch sử
+      </button>
+
+      <button class="nav-btn hidden" id="accountNav" data-page="account">
+        <span>♙</span>
+        Tài khoản
+      </button>
+
+      <div class="nav-group-label">HỖ TRỢ</div>
+
+      <button class="nav-btn" data-page="contact">
+        <span>✉</span>
+        Liên hệ
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <div id="guestActions">
+        <button class="side-action" id="loginBtn">
+          Đăng nhập
+        </button>
+
+        <button class="side-action primary" id="registerBtn">
+          Đăng ký tài khoản
+        </button>
+      </div>
+
+      <div id="userActions" class="hidden">
+        <div class="user-mini">
+          <div class="avatar" id="userAvatar">U</div>
+          <div>
+            <strong id="sideUsername">Khách</strong>
+            <span>Tài khoản khách</span>
+          </div>
+        </div>
+
+        <button class="side-action" id="logoutBtn">
+          Đăng xuất
+        </button>
+      </div>
+
+    </div>
+
   </aside>
 
   <main class="content">
+
     <!-- HOME -->
     <section id="homePage" class="page">
-      <div class="topbar"><div><span class="eyebrow">ANHVUONG LICENSE</span><h1>Trang chủ</h1></div></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Trang chủ</h1>
+        </div>
+      </div>
+
       <section class="hero">
         <div class="hero-content">
           <span class="eyebrow">ANHVUONG LICENSE</span>
-          <h2>Hệ thống dịch vụ hỗ trợ game <span>uy tín & chất lượng.</span></h2>
-          <p>AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.</p>
+
+          <h2>
+            Hệ thống dịch vụ hỗ trợ game
+            <span>uy tín & chất lượng.</span>
+          </h2>
+
+          <p>
+            AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.
+          </p>
+
           <div class="hero-description">
-            <p>Chúng tôi cung cấp các giải pháp hỗ trợ kỹ thuật, tối ưu hệ thống và tư vấn cấu hình game.</p>
-            <p>Hoàn toàn không can thiệp vào game, đảm bảo an toàn cho tài khoản và thiết bị của bạn.</p>
+            <p>
+              Chúng tôi cung cấp các giải pháp hỗ trợ kỹ thuật,
+              tối ưu hệ thống và tư vấn cấu hình game.
+            </p>
+
+            <p>
+              Hoàn toàn không can thiệp vào game, đảm bảo an toàn
+              cho tài khoản và thiết bị của bạn.
+            </p>
           </div>
+
           <div class="hero-buttons">
-            <button class="primary-btn" data-page-target="downloads">Xem sản phẩm</button>
-            <button class="secondary-btn" id="heroRegister">Đăng ký tài khoản</button>
+            <button class="primary-btn" data-page-target="downloads">
+              Xem sản phẩm
+            </button>
+
+            <button class="secondary-btn" id="heroRegister">
+              Đăng ký tài khoản
+            </button>
           </div>
         </div>
-        <div class="hero-logo"><div class="hero-logo-inner"><img src="/logo.png" alt="AnhVuong"></div></div>
+
+        <div class="hero-logo">
+          <div class="hero-logo-inner">
+            <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+          </div>
+        </div>
       </section>
-      <div class="section-heading"><div><span class="eyebrow">SOFTWARE</span><h2>Tải xuống</h2></div><button class="text-btn" data-page-target="downloads">Xem tất cả →</button></div>
-      <div id="homeDownloads" class="download-grid"><div class="loading-card">Đang tải dữ liệu...</div></div>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">SOFTWARE</span>
+          <h2>Tải xuống</h2>
+        </div>
+
+        <button class="text-btn" data-page-target="downloads">
+          Xem tất cả →
+        </button>
+      </div>
+
+      <div id="homeDownloads" class="download-grid">
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+
     </section>
+
 
     <!-- DOWNLOADS -->
     <section id="downloadsPage" class="page hidden">
-      <div class="topbar"><div><span class="eyebrow">ANHVUONG LICENSE</span><h1>Tải xuống</h1><p class="top-description">Xem thông tin phần mềm và tải xuống sau khi đăng nhập.</p></div></div>
-      <div id="downloadsList" class="download-grid large-grid"><div class="loading-card">Đang tải dữ liệu...</div></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Tải xuống</h1>
+          <p class="top-description">
+            Xem thông tin phần mềm và tải xuống sau khi đăng nhập.
+          </p>
+        </div>
+      </div>
+
+      <div id="downloadsList" class="download-grid large-grid">
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+
     </section>
+
 
     <!-- ACCOUNT -->
     <section id="accountPage" class="page hidden">
-      <div class="topbar"><div><span class="eyebrow">ACCOUNT</span><h1>Tài khoản</h1></div></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ACCOUNT</span>
+          <h1>Tài khoản</h1>
+        </div>
+      </div>
+
       <div class="account-card">
-        <div class="account-header"><div class="big-avatar" id="accountAvatar">U</div><div><span class="eyebrow">TÀI KHOẢN KHÁCH</span><h2 id="accountUsername">Khách</h2><p>Tài khoản khách AnhVuong License</p></div></div>
-        <div class="account-info"><div><span>Tên tài khoản</span><strong id="accountNameInfo">—</strong></div><div><span>Loại tài khoản</span><strong>Tài khoản khách</strong></div></div>
+
+        <div class="account-header">
+          <div class="big-avatar" id="accountAvatar">U</div>
+
+          <div>
+            <span class="eyebrow">TÀI KHOẢN KHÁCH</span>
+            <h2 id="accountUsername">Khách</h2>
+            <p>Tài khoản khách AnhVuong License</p>
+          </div>
+        </div>
+
+        <div class="account-info">
+          <div>
+            <span>Tên tài khoản</span>
+            <strong id="accountNameInfo">—</strong>
+          </div>
+
+          <div>
+            <span>Loại tài khoản</span>
+            <strong>Tài khoản khách</strong>
+          </div>
+        </div>
+
       </div>
-      <div class="section-heading"><div><span class="eyebrow">ACTIVITY</span><h2>Nhật ký tài khoản</h2></div></div>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">ACTIVITY</span>
+          <h2>Nhật ký tài khoản</h2>
+        </div>
+      </div>
+
       <div class="panel table-panel">
-        <table><thead><tr><th>Thời gian</th><th>Hành động</th><th>Chi tiết</th><th>IP</th></tr></thead><tbody id="accountLogs"><tr><td colspan="4">Đang tải...</td></tr></tbody></table>
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Chi tiết</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+
+          <tbody id="accountLogs">
+            <tr>
+              <td colspan="4">Đang tải...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+
     </section>
+
 
     <!-- HISTORY -->
     <section id="historyPage" class="page hidden">
-      <div class="topbar"><div><span class="eyebrow">LỊCH SỬ</span><h1>Lịch sử tải xuống</h1><p class="top-description">Các sản phẩm bạn đã tải xuống.</p></div></div>
-      <div id="historyList" class="history-grid"><div class="loading-card">Đang tải lịch sử...</div></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LỊCH SỬ</span>
+          <h1>Lịch sử tải xuống</h1>
+          <p class="top-description">
+            Các sản phẩm bạn đã tải xuống.
+          </p>
+        </div>
+      </div>
+
+      <div id="historyList" class="history-grid">
+        <div class="loading-card">
+          Đang tải lịch sử...
+        </div>
+      </div>
+
     </section>
 
-    <!-- CONTACT -->
+
+    <!-- =========================
+         CONTACT — CHỈ 2 MỤC (Zalo Cá Nhân + TikTok)
+    ========================= -->
     <section id="contactPage" class="page hidden">
-      <div class="contact-header"><h1 id="contactTitle">Liên Hệ Hỗ Trợ</h1><p id="contactSubtitle">Chọn kênh phù hợp để liên hệ với chúng tôi</p></div>
-      <div class="contact-hours" id="contactHours">⏰ Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn</div>
+
+      <div class="contact-header">
+        <h1 id="contactTitle">Liên Hệ Hỗ Trợ</h1>
+        <p id="contactSubtitle">Chọn kênh phù hợp để liên hệ với chúng tôi</p>
+      </div>
+
+      <div class="contact-hours" id="contactHours">
+        ⏰ Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn
+      </div>
+
       <div class="contact-grid">
-        <div class="contact-card-zalo"><div class="contact-card-header"><span class="contact-card-icon">💬</span><span class="contact-card-badge" id="zaloPersonalLabel">Zalo</span></div><h3 id="zaloPersonalName">Zalo Cá Nhân</h3><p id="zaloPersonalDesc">Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất</p><div class="contact-card-tag" id="zaloPersonalTag">Cá Nhân · Phản hồi nhanh</div><a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="zaloPersonalBtn">📱 Di chuyển ngay</a></div>
-        <div class="contact-card-tiktok"><div class="contact-card-header"><span class="contact-card-icon">🎵</span><span class="contact-card-badge" id="tiktokLabel">TikTok</span></div><h3 id="tiktokName">TikTok</h3><p id="tiktokDesc">Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất</p><div class="contact-card-tag" id="tiktokTag">Cộng Đồng · Cập nhật ưu đãi</div><a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="tiktokBtn">🎵 Di chuyển ngay</a></div>
+
+        <!-- ZALO CÁ NHÂN -->
+        <div class="contact-card-zalo">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">💬</span>
+            <span class="contact-card-badge" id="zaloPersonalLabel">Zalo</span>
+          </div>
+          <h3 id="zaloPersonalName">Zalo Cá Nhân</h3>
+          <p id="zaloPersonalDesc">Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất</p>
+          <div class="contact-card-tag" id="zaloPersonalTag">Cá Nhân · Phản hồi nhanh</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="zaloPersonalBtn">📱 Di chuyển ngay</a>
+        </div>
+
+        <!-- TIKTOK -->
+        <div class="contact-card-tiktok">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">🎵</span>
+            <span class="contact-card-badge" id="tiktokLabel">TikTok</span>
+          </div>
+          <h3 id="tiktokName">TikTok</h3>
+          <p id="tiktokDesc">Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất</p>
+          <div class="contact-card-tag" id="tiktokTag">Cộng Đồng · Cập nhật ưu đãi</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="tiktokBtn">🎵 Di chuyển ngay</a>
+        </div>
+
       </div>
+
+      <!-- FEATURES -->
       <div class="contact-features">
-        <div class="contact-feature"><div class="feature-icon">⚡</div><h4 id="featureFast">Phản hồi nhanh</h4><p id="featureFastDesc">Thường trong vòng 5–15 phút trong giờ hỗ trợ</p></div>
-        <div class="contact-feature"><div class="feature-icon">🛡</div><h4 id="featureProfessional">Hỗ trợ chuyên nghiệp</h4><p id="featureProfessionalDesc">Đội ngũ hỗ trợ giàu kinh nghiệm về sản phẩm</p></div>
-        <div class="contact-feature"><div class="feature-icon">📡</div><h4 id="featureMultichannel">Đa kênh</h4><p id="featureMultichannelDesc">Zalo & TikTok đều được hỗ trợ đầy đủ</p></div>
+        <div class="contact-feature">
+          <div class="feature-icon">⚡</div>
+          <h4 id="featureFast">Phản hồi nhanh</h4>
+          <p id="featureFastDesc">Thường trong vòng 5–15 phút trong giờ hỗ trợ</p>
+        </div>
+        <div class="contact-feature">
+          <div class="feature-icon">🛡</div>
+          <h4 id="featureProfessional">Hỗ trợ chuyên nghiệp</h4>
+          <p id="featureProfessionalDesc">Đội ngũ hỗ trợ giàu kinh nghiệm về sản phẩm</p>
+        </div>
+        <div class="contact-feature">
+          <div class="feature-icon">📡</div>
+          <h4 id="featureMultichannel">Đa kênh</h4>
+          <p id="featureMultichannelDesc">Zalo & TikTok đều được hỗ trợ đầy đủ</p>
+        </div>
       </div>
+
     </section>
+
   </main>
+
 </div>
 
-<!-- ===== ADMIN APP ===== -->
+
+<!-- =========================
+     ADMIN APP
+========================= -->
 <div id="adminApp" class="hidden">
+
   <aside class="sidebar admin-sidebar">
-    <div class="sidebar-brand"><div class="brand-mark"><img src="/logo.png" alt="AnhVuong"></div><div><strong>AnhVuong</strong><span>ADMIN</span></div></div>
-    <nav class="main-nav">
-      <button class="admin-nav active" data-admin-page="dashboard"><span>⌂</span>Tổng quan</button>
-      <button class="admin-nav" data-admin-page="keys"><span>◆</span>License Keys</button>
-      <button class="admin-nav" data-admin-page="adminDownloads"><span>↓</span>Tải xuống</button>
-      <button class="admin-nav" data-admin-page="logs"><span>≡</span>Nhật ký</button>
-      <button class="admin-nav" data-admin-page="settings"><span>⚙</span>Cài đặt</button>
-      <button class="admin-nav" data-admin-page="api"><span>&lt;/&gt;</span>API</button>
-    </nav>
-    <div class="sidebar-bottom">
-      <div class="admin-profile"><div class="avatar">A</div><div><strong id="adminUsername">Admin</strong><span>Quản trị viên</span></div></div>
-      <button class="side-action" id="backToWeb">← Về trang chủ</button>
-      <button class="side-action danger" id="adminLogout">Đăng xuất Admin</button>
+
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
+      </div>
+      <div>
+        <strong>AnhVuong</strong>
+        <span>ADMIN</span>
+      </div>
     </div>
+
+    <nav class="main-nav">
+
+      <button class="admin-nav active" data-admin-page="dashboard">
+        <span>⌂</span>
+        Tổng quan
+      </button>
+
+      <button class="admin-nav" data-admin-page="keys">
+        <span>◆</span>
+        License Keys
+      </button>
+
+      <button class="admin-nav" data-admin-page="adminDownloads">
+        <span>↓</span>
+        Tải xuống
+      </button>
+
+      <button class="admin-nav" data-admin-page="logs">
+        <span>≡</span>
+        Nhật ký
+      </button>
+
+      <button class="admin-nav" data-admin-page="settings">
+        <span>⚙</span>
+        Cài đặt
+      </button>
+
+      <button class="admin-nav" data-admin-page="api">
+        <span>&lt;/&gt;</span>
+        API
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong id="adminUsername">Admin</strong>
+          <span>Quản trị viên</span>
+        </div>
+      </div>
+
+      <button class="side-action" id="backToWeb">
+        ← Về trang chủ
+      </button>
+
+      <button class="side-action danger" id="adminLogout">
+        Đăng xuất Admin
+      </button>
+    </div>
+
   </aside>
+
+
   <main class="content admin-content">
+
     <!-- ADMIN DASHBOARD -->
     <section id="adminDashboard" class="admin-page">
-      <div class="topbar"><div><span class="eyebrow">ADMIN CONSOLE</span><h1>Tổng quan</h1></div><button class="primary-btn" id="quickCreate">+ Tạo Key</button></div>
-      <section class="admin-hero"><div><span class="eyebrow">LICENSE CONTROL</span><h2>Quản lý license<br>đơn giản hơn.</h2><p>Kiểm soát key, HWID và thời hạn từ một bảng điều khiển.</p></div><div class="admin-hero-logo"><img src="/logo.png" alt="AnhVuong"></div></section>
-      <div class="stats">
-        <div class="stat-card"><span>Tổng Key</span><strong id="sTotal">0</strong></div>
-        <div class="stat-card"><span>Hoạt động</span><strong id="sActive">0</strong></div>
-        <div class="stat-card"><span>Bị khóa</span><strong id="sBanned">0</strong></div>
-        <div class="stat-card"><span>Đã bind HWID</span><strong id="sBound">0</strong></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ADMIN CONSOLE</span>
+          <h1>Tổng quan</h1>
+        </div>
+
+        <button class="primary-btn" id="quickCreate">
+          + Tạo Key
+        </button>
       </div>
-      <div class="panel status-panel"><span class="status-dot"></span>API đang hoạt động</div>
+
+      <section class="admin-hero">
+        <div>
+          <span class="eyebrow">LICENSE CONTROL</span>
+          <h2>Quản lý license<br>đơn giản hơn.</h2>
+          <p>
+            Kiểm soát key, HWID và thời hạn từ một bảng điều khiển.
+          </p>
+        </div>
+
+        <div class="admin-hero-logo">
+          <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+        </div>
+      </section>
+
+      <div class="stats">
+
+        <div class="stat-card">
+          <span>Tổng Key</span>
+          <strong id="sTotal">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Hoạt động</span>
+          <strong id="sActive">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Bị khóa</span>
+          <strong id="sBanned">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Đã bind HWID</span>
+          <strong id="sBound">0</strong>
+        </div>
+
+      </div>
+
+      <div class="panel status-panel">
+        <span class="status-dot"></span>
+        API đang hoạt động
+      </div>
+
     </section>
+
 
     <!-- ADMIN KEYS -->
     <section id="adminKeys" class="admin-page hidden">
-      <div class="topbar"><div><span class="eyebrow">LICENSE MANAGEMENT</span><h1>License Keys</h1></div><button class="primary-btn" id="createKey">+ Tạo Key</button></div>
-      <div class="toolbar"><input id="search" placeholder="Tìm key, HWID hoặc ghi chú..."><select id="filter"><option value="all">Tất cả</option><option value="active">Hoạt động</option><option value="banned">Bị khóa</option><option value="disabled">Vô hiệu</option></select><button class="secondary-btn" id="bulkCreate">Tạo hàng loạt</button></div>
-      <div class="panel table-panel"><table><thead><tr><th>Key</th><th>Trạng thái</th><th>Hạn</th><th>HWID</th><th>Thiết bị</th><th>Ghi chú</th><th>Thao tác</th></tr></thead><tbody id="rows"></tbody></table></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LICENSE MANAGEMENT</span>
+          <h1>License Keys</h1>
+        </div>
+
+        <button class="primary-btn" id="createKey">
+          + Tạo Key
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" placeholder="Tìm key, HWID hoặc ghi chú...">
+
+        <select id="filter">
+          <option value="all">Tất cả</option>
+          <option value="active">Hoạt động</option>
+          <option value="banned">Bị khóa</option>
+          <option value="disabled">Vô hiệu</option>
+        </select>
+
+        <button class="secondary-btn" id="bulkCreate">
+          Tạo hàng loạt
+        </button>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Trạng thái</th>
+              <th>Hạn</th>
+              <th>HWID</th>
+              <th>Thiết bị</th>
+              <th>Ghi chú</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
     </section>
+
 
     <!-- ADMIN DOWNLOADS -->
     <section id="adminDownloads" class="admin-page hidden">
-      <div class="topbar"><div><span class="eyebrow">DOWNLOAD MANAGEMENT</span><h1>Tải xuống</h1></div><button class="primary-btn" id="addDownload">+ Thêm mục</button></div>
-      <div id="adminDownloadList" class="download-grid"></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">DOWNLOAD MANAGEMENT</span>
+          <h1>Tải xuống</h1>
+        </div>
+
+        <button class="primary-btn" id="addDownload">
+          + Thêm mục
+        </button>
+      </div>
+
+      <div id="adminDownloadList" class="download-grid">
+      </div>
+
     </section>
+
 
     <!-- ADMIN LOGS -->
     <section id="adminLogs" class="admin-page hidden">
-      <div class="topbar"><div><span class="eyebrow">AUDIT</span><h1>Nhật ký</h1></div></div>
-      <div class="panel table-panel"><table><thead><tr><th>Thời gian</th><th>Hành động</th><th>Key</th><th>Chi tiết</th><th>IP</th></tr></thead><tbody id="logsRows"></tbody></table></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">AUDIT</span>
+          <h1>Nhật ký</h1>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Key</th>
+              <th>Chi tiết</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+
+          <tbody id="logsRows"></tbody>
+        </table>
+      </div>
+
     </section>
+
 
     <!-- ADMIN SETTINGS -->
     <section id="adminSettings" class="admin-page hidden">
-      <div class="topbar"><div><span class="eyebrow">CÀI ĐẶT</span><h1>Cài đặt liên hệ</h1><p class="top-description">Cập nhật nội dung trang liên hệ.</p></div></div>
-      <div class="panel" style="padding:28px;">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">CÀI ĐẶT</span>
+          <h1>Cài đặt liên hệ</h1>
+          <p class="top-description">Cập nhật nội dung trang liên hệ.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="padding: 28px;">
+
         <form id="settingsForm">
-          <h3>📄 Tiêu đề</h3>
-          <div style="display:grid;gap:12px;margin-bottom:20px;"><div><label>Tiêu đề</label><input id="settingsContactTitle" class="settings-input"></div><div><label>Mô tả</label><input id="settingsContactSubtitle" class="settings-input"></div><div><label>Giờ hỗ trợ</label><input id="settingsContactHours" class="settings-input"></div></div>
+          <h3 style="margin-top:0;">📄 Tiêu đề</h3>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>Tiêu đề</label><input id="settingsContactTitle" class="settings-input"></div>
+            <div><label>Mô tả</label><input id="settingsContactSubtitle" class="settings-input"></div>
+            <div><label>Giờ hỗ trợ</label><input id="settingsContactHours" class="settings-input"></div>
+          </div>
+
           <h3>💬 Zalo Cá Nhân</h3>
-          <div style="display:grid;gap:12px;margin-bottom:20px;"><div><label>📛 Tên hiển thị</label><input id="settingsZaloPersonalLabel" class="settings-input" placeholder="Zalo"></div><div><label>Số điện thoại</label><input id="settingsZaloPersonalPhone" class="settings-input" placeholder="0987654321"></div><div><label>Tên</label><input id="settingsZaloPersonalName" class="settings-input" placeholder="Zalo Cá Nhân"></div><div><label>Mô tả</label><input id="settingsZaloPersonalDesc" class="settings-input" placeholder="Nhắn tin trực tiếp..."></div><div><label>Tag</label><input id="settingsZaloPersonalTag" class="settings-input" placeholder="Cá Nhân · Phản hồi nhanh"></div></div>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>📛 Tên hiển thị</label><input id="settingsZaloPersonalLabel" class="settings-input" placeholder="Zalo"></div>
+            <div><label>Số điện thoại</label><input id="settingsZaloPersonalPhone" class="settings-input" placeholder="0987654321"></div>
+            <div><label>Tên</label><input id="settingsZaloPersonalName" class="settings-input" placeholder="Zalo Cá Nhân"></div>
+            <div><label>Mô tả</label><input id="settingsZaloPersonalDesc" class="settings-input" placeholder="Nhắn tin trực tiếp..."></div>
+            <div><label>Tag</label><input id="settingsZaloPersonalTag" class="settings-input" placeholder="Cá Nhân · Phản hồi nhanh"></div>
+          </div>
+
           <h3>🎵 TikTok</h3>
-          <div style="display:grid;gap:12px;margin-bottom:20px;"><div><label>📛 Tên hiển thị</label><input id="settingsTiktokLabel" class="settings-input" placeholder="TikTok"></div><div><label>Link TikTok</label><input id="settingsTiktokPhone" class="settings-input" placeholder="https://tiktok.com/@username"></div><div><label>Tên</label><input id="settingsTiktokName" class="settings-input" placeholder="TikTok"></div><div><label>Mô tả</label><input id="settingsTiktokDesc" class="settings-input" placeholder="Theo dõi TikTok..."></div><div><label>Tag</label><input id="settingsTiktokTag" class="settings-input" placeholder="Cộng Đồng · Cập nhật ưu đãi"></div></div>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>📛 Tên hiển thị</label><input id="settingsTiktokLabel" class="settings-input" placeholder="TikTok"></div>
+            <div><label>Link TikTok</label><input id="settingsTiktokPhone" class="settings-input" placeholder="https://tiktok.com/@username"></div>
+            <div><label>Tên</label><input id="settingsTiktokName" class="settings-input" placeholder="TikTok"></div>
+            <div><label>Mô tả</label><input id="settingsTiktokDesc" class="settings-input" placeholder="Theo dõi TikTok..."></div>
+            <div><label>Tag</label><input id="settingsTiktokTag" class="settings-input" placeholder="Cộng Đồng · Cập nhật ưu đãi"></div>
+          </div>
+
           <h3>⭐ Tính năng nổi bật</h3>
-          <div style="display:grid;gap:12px;margin-bottom:20px;"><div><label>Tính năng 1 (tiêu đề)</label><input id="settingsFeatureFast" class="settings-input" placeholder="Phản hồi nhanh"></div><div><label>Tính năng 1 (mô tả)</label><input id="settingsFeatureFastDesc" class="settings-input" placeholder="Thường trong vòng 5–15 phút..."></div><div><label>Tính năng 2 (tiêu đề)</label><input id="settingsFeatureProfessional" class="settings-input" placeholder="Hỗ trợ chuyên nghiệp"></div><div><label>Tính năng 2 (mô tả)</label><input id="settingsFeatureProfessionalDesc" class="settings-input" placeholder="Đội ngũ hỗ trợ giàu kinh nghiệm..."></div><div><label>Tính năng 3 (tiêu đề)</label><input id="settingsFeatureMultichannel" class="settings-input" placeholder="Đa kênh"></div><div><label>Tính năng 3 (mô tả)</label><input id="settingsFeatureMultichannelDesc" class="settings-input" placeholder="Zalo & TikTok đều được hỗ trợ..."></div></div>
-          <div style="margin-top:20px;display:flex;gap:10px;"><button type="submit" class="primary-btn">💾 Lưu cài đặt</button><button type="button" class="secondary-btn" onclick="loadSettingsAdmin()">🔄 Tải lại</button></div>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>Tính năng 1 (tiêu đề)</label><input id="settingsFeatureFast" class="settings-input" placeholder="Phản hồi nhanh"></div>
+            <div><label>Tính năng 1 (mô tả)</label><input id="settingsFeatureFastDesc" class="settings-input" placeholder="Thường trong vòng 5–15 phút..."></div>
+            <div><label>Tính năng 2 (tiêu đề)</label><input id="settingsFeatureProfessional" class="settings-input" placeholder="Hỗ trợ chuyên nghiệp"></div>
+            <div><label>Tính năng 2 (mô tả)</label><input id="settingsFeatureProfessionalDesc" class="settings-input" placeholder="Đội ngũ hỗ trợ giàu kinh nghiệm..."></div>
+            <div><label>Tính năng 3 (tiêu đề)</label><input id="settingsFeatureMultichannel" class="settings-input" placeholder="Đa kênh"></div>
+            <div><label>Tính năng 3 (mô tả)</label><input id="settingsFeatureMultichannelDesc" class="settings-input" placeholder="Zalo & TikTok đều được hỗ trợ..."></div>
+          </div>
+
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button type="submit" class="primary-btn">💾 Lưu cài đặt</button>
+            <button type="button" class="secondary-btn" onclick="loadSettingsAdmin()">🔄 Tải lại</button>
+          </div>
           <div id="settingsMsg" class="form-message"></div>
         </form>
+
       </div>
+
     </section>
+
 
     <!-- ADMIN API -->
     <section id="adminApi" class="admin-page hidden">
-      <div class="topbar"><div><span class="eyebrow">DEVELOPER</span><h1>Client API</h1></div></div>
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">DEVELOPER</span>
+          <h1>Client API</h1>
+        </div>
+      </div>
+
       <div class="panel api-panel">
+
         <h3>Kích hoạt License</h3>
+
         <pre>POST /api/license/activate
 
 {
   "key": "AAAAA-BBBBB-CCCCC-DDDDD",
   "hwid": "client-hwid"
 }</pre>
+
         <h3>Kiểm tra License</h3>
+
         <pre>POST /api/license/validate
 
 {
   "key": "AAAAA-BBBBB-CCCCC-DDDDD",
   "hwid": "client-hwid"
 }</pre>
+
       </div>
+
     </section>
+
   </main>
+
 </div>
 
-<!-- ===== LOGIN DIALOG ===== -->
+
+<!-- =========================
+     LOGIN DIALOG
+========================= -->
 <dialog id="loginDialog">
   <div class="login-dialog-wrapper">
-    <button type="button" class="dialog-close" onclick="closeDialog('loginDialog')">×</button>
-    <div class="login-dialog-header"><div class="login-dialog-brand"><span class="brand-icon"><img src="/logo.png" alt="AnhVuong"></span><span>AnhVuong License</span></div><p class="login-dialog-welcome">Chào mừng bạn trở lại</p><h2>Đăng nhập</h2></div>
+
+    <button type="button" class="dialog-close" onclick="closeDialog('loginDialog')">
+      ×
+    </button>
+
+    <div class="login-dialog-header">
+      <div class="login-dialog-brand">
+        <span class="brand-icon">
+          <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+        </span>
+        <span>AnhVuong License</span>
+      </div>
+      <p class="login-dialog-welcome">Chào mừng bạn trở lại</p>
+      <h2>Đăng nhập</h2>
+    </div>
+
     <form id="loginForm" class="login-dialog-form">
-      <div class="login-dialog-field"><label>Tên đăng nhập</label><input id="loginUsername" type="text" placeholder="Nhập tên đăng nhập" required autocomplete="username"></div>
-      <div class="login-dialog-field"><label>Mật khẩu</label><input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required autocomplete="current-password"></div>
+      <div class="login-dialog-field">
+        <label>Tên đăng nhập</label>
+        <input id="loginUsername" type="text" placeholder="Nhập tên đăng nhập" required autocomplete="username">
+      </div>
+
+      <div class="login-dialog-field">
+        <label>Mật khẩu</label>
+        <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+      </div>
+
       <div id="loginMsg" class="form-message"></div>
+
       <button class="login-dialog-submit" type="submit">Đăng nhập</button>
-      <div class="login-dialog-footer"><span>Chưa có tài khoản?</span><button type="button" id="switchRegister">Đăng ký</button></div>
+
+      <div class="login-dialog-footer">
+        <span>Chưa có tài khoản?</span>
+        <button type="button" id="switchRegister">Đăng ký</button>
+      </div>
     </form>
+
   </div>
 </dialog>
 
-<!-- ===== REGISTER DIALOG ===== -->
+
+<!-- =========================
+     REGISTER DIALOG
+========================= -->
 <dialog id="registerDialog">
   <div class="login-dialog-wrapper">
-    <button type="button" class="dialog-close" onclick="closeDialog('registerDialog')">×</button>
-    <div class="login-dialog-header"><div class="login-dialog-brand"><span class="brand-icon"><img src="/logo.png" alt="AnhVuong"></span><span>AnhVuong License</span></div><p class="login-dialog-welcome">Tạo tài khoản mới</p><h2>Đăng ký</h2></div>
+
+    <button type="button" class="dialog-close" onclick="closeDialog('registerDialog')">
+      ×
+    </button>
+
+    <div class="login-dialog-header">
+      <div class="login-dialog-brand">
+        <span class="brand-icon">
+          <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+        </span>
+        <span>AnhVuong License</span>
+      </div>
+      <p class="login-dialog-welcome">Tạo tài khoản mới</p>
+      <h2>Đăng ký</h2>
+    </div>
+
     <form id="registerForm" class="login-dialog-form">
-      <div class="login-dialog-field"><label>Tên đăng nhập</label><input id="registerUsername" type="text" placeholder="Nhập tên đăng nhập" minlength="3" maxlength="32" required></div>
-      <div class="login-dialog-field"><label>Mật khẩu</label><input id="registerPassword" type="password" placeholder="Nhập mật khẩu" minlength="6" required></div>
+      <div class="login-dialog-field">
+        <label>Tên đăng nhập</label>
+        <input id="registerUsername" type="text" placeholder="Nhập tên đăng nhập" minlength="3" maxlength="32" required>
+      </div>
+
+      <div class="login-dialog-field">
+        <label>Mật khẩu</label>
+        <input id="registerPassword" type="password" placeholder="Nhập mật khẩu" minlength="6" required>
+      </div>
+
       <div id="registerMsg" class="form-message"></div>
+
       <button class="login-dialog-submit" type="submit">Đăng ký</button>
-      <div class="login-dialog-footer"><span>Đã có tài khoản?</span><button type="button" id="switchLogin">Đăng nhập</button></div>
+
+      <div class="login-dialog-footer">
+        <span>Đã có tài khoản?</span>
+        <button type="button" id="switchLogin">Đăng nhập</button>
+      </div>
     </form>
+
   </div>
 </dialog>
 
-<!-- ===== ADMIN LOGIN DIALOG ===== -->
+
+<!-- =========================
+     ADMIN LOGIN DIALOG
+========================= -->
 <dialog id="adminLoginDialog">
+
   <form id="adminLoginForm" class="dialog">
-    <button type="button" class="dialog-close" data-close="adminLoginDialog">×</button>
-    <span class="eyebrow">ADMIN CONSOLE</span><h2>Đăng nhập Admin</h2><p>Khu vực dành riêng cho quản trị viên.</p>
-    <label>Tài khoản Admin</label><input id="adminUsernameInput" required>
-    <label>Mật khẩu</label><input id="adminPasswordInput" type="password" required>
+
+    <button type="button" class="dialog-close" data-close="adminLoginDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">ADMIN CONSOLE</span>
+    <h2>Đăng nhập Admin</h2>
+    <p>Khu vực dành riêng cho quản trị viên.</p>
+
+    <label>Tài khoản Admin</label>
+    <input id="adminUsernameInput" required>
+
+    <label>Mật khẩu</label>
+    <input id="adminPasswordInput" type="password" required>
+
     <div id="adminLoginMsg" class="form-message"></div>
-    <button class="primary-btn full" type="submit">Vào Admin</button>
+
+    <button class="primary-btn full" type="submit">
+      Vào Admin
+    </button>
+
   </form>
+
 </dialog>
 
-<!-- ===== DOWNLOAD DIALOG ===== -->
+
+<!-- =========================
+     DOWNLOAD DIALOG (Admin)
+========================= -->
 <dialog id="downloadDialog">
+
   <form id="downloadForm" class="dialog">
-    <button type="button" class="dialog-close" data-close="downloadDialog">×</button>
-    <span class="eyebrow">DOWNLOAD MANAGER</span><h2 id="downloadDialogTitle">Thêm mục tải xuống</h2>
-    <label>Tên</label><input id="downloadTitle" maxlength="120" required>
-    <label>Mô tả</label><textarea id="downloadDescription" maxlength="2000"></textarea>
-    <label>Link hình ảnh</label><input id="downloadImage" maxlength="2000" placeholder="https://...">
-    <label>Link tải xuống</label><input id="downloadUrl" maxlength="2000" placeholder="https://..." required>
-    <label>Giá</label><input id="downloadPrice" maxlength="50" placeholder="MIỄN PHÍ">
-    <label>Phiên bản</label><input id="downloadVersion" maxlength="50" placeholder="1.0.0">
-    <label>Dung lượng</label><input id="downloadFileSize" maxlength="50" placeholder="1 tập tin">
-    <label>Discord</label><input id="downloadDiscord" maxlength="200" placeholder="Vai trò + kênh">
-    <label>Tiêu đề mô tả thêm</label><input id="downloadExtraTitle" maxlength="100" placeholder="GIỚI THIỆU VỀ BẢN MOD NÀY">
-    <label>Nội dung mô tả thêm</label><textarea id="downloadExtraDescription" maxlength="500" placeholder="Thạch Chi Khong Biet"></textarea>
-    <label>Khóa bản quyền hiển thị</label><input id="downloadLicenseKey" maxlength="50" placeholder="VNT-XXXX-XXXX-XXXX">
-    <label>Thông tin vận chuyển</label><input id="downloadShipping" maxlength="100" placeholder="truy cập tức">
+
+    <button type="button" class="dialog-close" data-close="downloadDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">DOWNLOAD MANAGER</span>
+    <h2 id="downloadDialogTitle">Thêm mục tải xuống</h2>
+
+    <label>Tên</label>
+    <input id="downloadTitle" maxlength="120" required>
+
+    <label>Mô tả</label>
+    <textarea id="downloadDescription" maxlength="2000"></textarea>
+
+    <label>Link hình ảnh</label>
+    <input id="downloadImage" maxlength="2000" placeholder="https://...">
+
+    <label>Link tải xuống</label>
+    <input id="downloadUrl" maxlength="2000" placeholder="https://..." required>
+
+    <label>Giá</label>
+    <input id="downloadPrice" maxlength="50" placeholder="MIỄN PHÍ">
+
+    <label>Phiên bản</label>
+    <input id="downloadVersion" maxlength="50" placeholder="1.0.0">
+
+    <label>Dung lượng</label>
+    <input id="downloadFileSize" maxlength="50" placeholder="1 tập tin">
+
+    <label>Discord</label>
+    <input id="downloadDiscord" maxlength="200" placeholder="Vai trò + kênh">
+
+    <label>Tiêu đề mô tả thêm</label>
+    <input id="downloadExtraTitle" maxlength="100" placeholder="GIỚI THIỆU VỀ BẢN MOD NÀY">
+
+    <label>Nội dung mô tả thêm</label>
+    <textarea id="downloadExtraDescription" maxlength="500" placeholder="Thạch Chi Khong Biet"></textarea>
+
+    <label>Khóa bản quyền hiển thị</label>
+    <input id="downloadLicenseKey" maxlength="50" placeholder="VNT-XXXX-XXXX-XXXX">
+
+    <label>Thông tin vận chuyển</label>
+    <input id="downloadShipping" maxlength="100" placeholder="truy cập tức">
+
     <input id="downloadId" type="hidden">
-    <div class="dialog-buttons"><button type="button" class="secondary-btn" id="downloadCancel">Hủy</button><button class="primary-btn" type="submit">Lưu</button></div>
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="downloadCancel">
+        Hủy
+      </button>
+
+      <button class="primary-btn" type="submit">
+        Lưu
+      </button>
+    </div>
+
   </form>
+
 </dialog>
 
-<!-- ===== LICENSE DIALOG ===== -->
+
+<!-- =========================
+     LICENSE DIALOG - ĐÃ THÊM max_devices
+========================= -->
 <dialog id="licenseDialog">
+
   <form id="licenseForm" class="dialog">
-    <button type="button" class="dialog-close" data-close="licenseDialog">×</button>
-    <span class="eyebrow">LICENSE MANAGER</span><h2 id="licenseDialogTitle">Tạo License Key</h2>
-    <label>Số lượng</label><input id="count" type="number" min="1" max="500" value="1">
-    <label>Thời hạn (ngày)</label><input id="duration" type="number" min="0" value="30">
-    <div class="form-hint">Nhập 0 nếu muốn tạo key vĩnh viễn.</div>
-    <div id="maxDevicesGroup" style="margin-bottom:12px;"><label for="maxDevices" style="display:block;margin-bottom:4px;font-weight:600;color:var(--text);">Số thiết bị tối đa</label><input type="number" id="maxDevices" min="1" max="100" value="1" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);"><small style="display:block;margin-top:4px;color:var(--muted);font-size:12px;">Số thiết bị có thể kích hoạt key này (1-100)</small></div>
-    <label>Ghi chú</label><input id="note" maxlength="500" placeholder="Khách hàng #001">
-    <div class="dialog-buttons"><button type="button" class="secondary-btn" id="licenseCancel">Hủy</button><button class="primary-btn" type="submit">Tạo Key</button></div>
+
+    <button type="button" class="dialog-close" data-close="licenseDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">LICENSE MANAGER</span>
+
+    <h2 id="licenseDialogTitle">
+      Tạo License Key
+    </h2>
+
+    <label>Số lượng</label>
+    <input id="count" type="number" min="1" max="500" value="1">
+
+    <label>Thời hạn (ngày)</label>
+    <input id="duration" type="number" min="0" value="30">
+
+    <div class="form-hint">
+      Nhập 0 nếu muốn tạo key vĩnh viễn.
+    </div>
+
+    <!-- ===== SỐ THIẾT BỊ TỐI ĐA (THÊM MỚI) ===== -->
+    <div id="maxDevicesGroup" style="margin-bottom: 12px;">
+      <label for="maxDevices" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text);">
+        Số thiết bị tối đa
+      </label>
+      <input 
+        type="number" 
+        id="maxDevices" 
+        min="1" 
+        max="100" 
+        value="1" 
+        style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text);"
+      >
+      <small style="display: block; margin-top: 4px; color: var(--muted); font-size: 12px;">
+        Số thiết bị có thể kích hoạt key này (1-100)
+      </small>
+    </div>
+
+    <label>Ghi chú</label>
+    <input id="note" maxlength="500" placeholder="Khách hàng #001">
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="licenseCancel">
+        Hủy
+      </button>
+
+      <button class="primary-btn" type="submit">
+        Tạo Key
+      </button>
+    </div>
+
     <pre id="created" class="created-keys"></pre>
+
   </form>
+
 </dialog>
 
-<!-- ===== DOWNLOAD DETAIL DIALOG ===== -->
+
+<!-- =========================
+     DOWNLOAD DETAIL DIALOG
+========================= -->
 <dialog id="downloadDetailDialog">
   <div class="detail-dialog-wrapper-v2">
-    <button type="button" class="dialog-close" onclick="closeDialog('downloadDetailDialog')">×</button>
+
+    <button type="button" class="dialog-close" onclick="closeDialog('downloadDetailDialog')">
+      ×
+    </button>
+
     <div class="detail-dialog-layout-v2">
-      <div class="detail-dialog-image-v2"><img id="detailImageV2" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')"><div class="detail-image-placeholder" id="detailImagePlaceholder"><img src="/logo.png" alt="AnhVuong" style="width:60px;height:60px;object-fit:contain;border-radius:12px;"></div></div>
-      <div class="detail-dialog-content-v2">
-        <div class="detail-dialog-breadcrumb-v2">Trang chủ / Cửa hàng / <span id="detailTitleBreadcrumbV2">Sản phẩm</span></div>
-        <h2 id="detailTitleV2">Tên sản phẩm</h2>
-        <div class="detail-dialog-price-row-v2"><span class="detail-dialog-price-v2" id="detailPriceV2">MIỄN PHÍ</span><button class="detail-dialog-download-btn-v2" id="detailDownloadBtnV2">↓ Tải xuống</button></div>
-        <p class="detail-dialog-desc-v2" id="detailDescriptionV2">Tài khoản của bạn có quyền truy cập vào sản phẩm này.</p>
-        <div class="detail-dialog-info-grid-v2"><div><span>Giá</span><strong id="detailMetaPriceV2">MIỄN PHÍ</strong></div><div><span>Phiên bản</span><strong id="detailMetaVersionV2">—</strong></div><div><span>Vận chuyển</span><strong id="detailMetaShippingV2">truy cập tức</strong></div><div><span>Tải xuống</span><strong id="detailMetaFilesV2">1 tập tin</strong></div><div><span>Discord</span><strong id="detailMetaDiscordV2">Vai trò + kênh</strong></div></div>
-        <div class="detail-dialog-extra-desc-v2"><span id="detailExtraTitleV2">GIỚI THIỆU VỀ BẢN MOD NÀY</span><p id="detailExtraDescV2">Thạch Chi Khong Biet</p></div>
-        <div class="detail-dialog-key-section-v2"><label>Đổi mã khóa</label><div class="detail-key-input-row-v2"><input id="detailKeyInputV2" placeholder="Bạn đã có khóa chưa? Dán nó vào bên dưới."><button class="detail-key-submit-btn-v2" id="detailKeySubmitV2">Chuộc lại</button></div><div id="detailKeyMsgV2" class="form-message"></div><div class="detail-key-hint-v2"><span>Khóa bản quyền</span><strong id="detailKeyDisplayV2">VNT-XXXX-XXXX-XXXX</strong></div></div>
+
+      <div class="detail-dialog-image-v2">
+        <img id="detailImageV2" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')">
+        <div class="detail-image-placeholder" id="detailImagePlaceholder">
+          <img src="/logo.png" alt="AnhVuong" style="width:60px; height:60px; object-fit:contain; border-radius:12px;">
+        </div>
       </div>
+
+      <div class="detail-dialog-content-v2">
+
+        <div class="detail-dialog-breadcrumb-v2">
+          Trang chủ / Cửa hàng / <span id="detailTitleBreadcrumbV2">Sản phẩm</span>
+        </div>
+
+        <h2 id="detailTitleV2">Tên sản phẩm</h2>
+
+        <div class="detail-dialog-price-row-v2">
+          <span class="detail-dialog-price-v2" id="detailPriceV2">MIỄN PHÍ</span>
+          <button class="detail-dialog-download-btn-v2" id="detailDownloadBtnV2">
+            ↓ Tải xuống
+          </button>
+        </div>
+
+        <p class="detail-dialog-desc-v2" id="detailDescriptionV2">
+          Tài khoản của bạn có quyền truy cập vào sản phẩm này.
+        </p>
+
+        <div class="detail-dialog-info-grid-v2">
+          <div>
+            <span>Giá</span>
+            <strong id="detailMetaPriceV2">MIỄN PHÍ</strong>
+          </div>
+          <div>
+            <span>Phiên bản</span>
+            <strong id="detailMetaVersionV2">—</strong>
+          </div>
+          <div>
+            <span>Vận chuyển</span>
+            <strong id="detailMetaShippingV2">truy cập tức</strong>
+          </div>
+          <div>
+            <span>Tải xuống</span>
+            <strong id="detailMetaFilesV2">1 tập tin</strong>
+          </div>
+          <div>
+            <span>Discord</span>
+            <strong id="detailMetaDiscordV2">Vai trò + kênh</strong>
+          </div>
+        </div>
+
+        <div class="detail-dialog-extra-desc-v2">
+          <span id="detailExtraTitleV2">GIỚI THIỆU VỀ BẢN MOD NÀY</span>
+          <p id="detailExtraDescV2">Thạch Chi Khong Biet</p>
+        </div>
+
+        <div class="detail-dialog-key-section-v2">
+          <label>Đổi mã khóa</label>
+          <div class="detail-key-input-row-v2">
+            <input id="detailKeyInputV2" placeholder="Bạn đã có khóa chưa? Dán nó vào bên dưới.">
+            <button class="detail-key-submit-btn-v2" id="detailKeySubmitV2">Chuộc lại</button>
+          </div>
+          <div id="detailKeyMsgV2" class="form-message"></div>
+          <div class="detail-key-hint-v2">
+            <span>Khóa bản quyền</span>
+            <strong id="detailKeyDisplayV2">VNT-XXXX-XXXX-XXXX</strong>
+          </div>
+        </div>
+
+      </div>
+
     </div>
+
   </div>
 </dialog>
 
+
 <script>
-  (function() {
+  (function () {
     const root = document.documentElement;
     const button = document.getElementById('themeToggle');
     const icon = document.getElementById('themeToggleIcon');
@@ -649,6 +1038,7 @@
     function applyTheme(theme) {
       root.setAttribute('data-theme', theme);
       localStorage.setItem('anhvuong-theme', theme);
+
       if (theme === 'light') {
         icon.textContent = '☾';
         label.textContent = 'Giao diện tối';
@@ -659,10 +1049,16 @@
         button.title = 'Chuyển sang giao diện sáng';
       }
     }
+
     const saved = localStorage.getItem('anhvuong-theme');
     applyTheme(saved === 'light' ? 'light' : 'dark');
-    button.addEventListener('click', function() {
-      const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+
+    button.addEventListener('click', function () {
+      const next =
+        root.getAttribute('data-theme') === 'light'
+          ? 'dark'
+          : 'light';
+
       applyTheme(next);
     });
   })();
