@@ -1193,7 +1193,7 @@ code {
 
 
 /* =========================================================
-   DIALOG - SỬA LỖI HIỂN THỊ GIỮA MÀN HÌNH
+   DIALOG
 ========================================================= */
 
 dialog {
@@ -1957,10 +1957,7 @@ dialog::backdrop {
 }
 
 @media (max-width: 760px) {
-  /* Ẩn sidebar PC */
   .sidebar { display: none; }
-
-  /* Hiện mobile header */
   .mobile-header { display: flex; }
 
   .content {
@@ -2020,7 +2017,6 @@ dialog::backdrop {
   .hero h2 { font-size: 26px; }
   .topbar h1 { font-size: 20px; }
 }
-
 
 /* =========================================================
    LIGHT THEME OVERRIDES
