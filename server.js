@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const { query, pool } = require('./db');
 const crypto = require('crypto');
 const path = require('path');
+const dns = require('dns');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -28,6 +29,24 @@ app.use(session({
 }));
 
 const now = () => new Date().toISOString();
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+async function emailDomainExists(email) {
+  const domain = String(email || '').split('@')[1];
+  if (!domain) return false;
+  try {
+    const records = await dns.promises.resolveMx(domain);
+    if (records && records.length > 0) return true;
+  } catch {}
+  try {
+    // Một số tên miền không khai báo MX nhưng vẫn nhận mail qua A/AAAA record
+    const addresses = await dns.promises.resolve(domain);
+    return Array.isArray(addresses) && addresses.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 const ip = req =>
   String(
@@ -91,14 +110,31 @@ async function initDatabase() {
   `);
 
   await query(`
+    CREATE TABLE IF NOT EXISTS store_items (
+      id BIGSERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      image_url TEXT NOT NULL DEFAULT '',
+      price TEXT NOT NULL DEFAULT 'MIỄN PHÍ',
+      created_at TIMESTAMPTZ NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  await query(`
     CREATE TABLE IF NOT EXISTS users (
       id BIGSERIAL PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'guest',
+      email TEXT,
       created_at TIMESTAMPTZ NOT NULL,
       last_login TIMESTAMPTZ
     )
+  `);
+
+  await query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT
   `);
 
   await query(`
@@ -145,6 +181,11 @@ async function initDatabase() {
       ('tiktok_desc', 'Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất', $1),
       ('tiktok_tag', 'Cộng Đồng · Cập nhật ưu đãi', $1),
       ('tiktok_label', 'TikTok', $1),
+      ('discord_label', 'Discord', $1),
+      ('discord_name', 'Discord Server', $1),
+      ('discord_desc', 'Tham gia server Discord để nhận hỗ trợ và cập nhật mới nhất', $1),
+      ('discord_tag', 'Cộng đồng · Hỗ trợ 24/7', $1),
+      ('discord_link', 'https://discord.gg/anhvuong', $1),
       ('contact_title', 'Liên Hệ Hỗ Trợ', $1),
       ('contact_subtitle', 'Chọn kênh phù hợp để liên hệ với chúng tôi', $1),
       ('contact_hours', 'Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn', $1),
@@ -270,8 +311,18 @@ app.post('/api/admin/login', async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
+    const email = String(req.body.email || '').trim().toLowerCase();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: 'Vui lòng nhập email hợp lệ' });
+    }
+
+    const domainOk = await emailDomainExists(email);
+    if (!domainOk) {
+      return res.status(400).json({ error: 'Email không tồn tại, vui lòng kiểm tra lại' });
+    }
 
     if (!/^[A-Za-z0-9_]{3,32}$/.test(username)) {
       return res.status(400).json({ error: 'Tên tài khoản phải từ 3-32 ký tự, chỉ gồm chữ, số và _' });
@@ -288,9 +339,9 @@ app.post('/api/auth/register', async (req, res) => {
 
     const hash = await bcrypt.hash(password, 12);
     const result = await query(`
-      INSERT INTO users (username, password_hash, role, created_at)
-      VALUES ($1, $2, $3, $4) RETURNING id
-    `, [username, hash, 'guest', now()]);
+      INSERT INTO users (username, password_hash, role, email, created_at)
+      VALUES ($1, $2, $3, $4, $5) RETURNING id
+    `, [username, hash, 'guest', email, now()]);
 
     const userId = Number(result.rows[0].id);
     req.session.userId = userId;
@@ -480,6 +531,7 @@ app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
     const {
       zalo_personal_phone, zalo_personal_name, zalo_personal_desc, zalo_personal_tag, zalo_personal_label,
       tiktok_phone, tiktok_name, tiktok_desc, tiktok_tag, tiktok_label,
+      discord_label, discord_name, discord_desc, discord_tag, discord_link,
       contact_title, contact_subtitle, contact_hours,
       feature_fast, feature_fast_desc, feature_professional, feature_professional_desc,
       feature_multichannel, feature_multichannel_desc
@@ -496,6 +548,11 @@ app.patch('/api/admin/settings', requireAdmin, async (req, res) => {
       { key: 'tiktok_desc', value: tiktok_desc },
       { key: 'tiktok_tag', value: tiktok_tag },
       { key: 'tiktok_label', value: tiktok_label },
+      { key: 'discord_label', value: discord_label },
+      { key: 'discord_name', value: discord_name },
+      { key: 'discord_desc', value: discord_desc },
+      { key: 'discord_tag', value: discord_tag },
+      { key: 'discord_link', value: discord_link },
       { key: 'contact_title', value: contact_title },
       { key: 'contact_subtitle', value: contact_subtitle },
       { key: 'contact_hours', value: contact_hours },
@@ -885,6 +942,117 @@ async function validateLicense(req, res, action) {
     res.status(500).json({ ok: false, error: 'Lỗi máy chủ' });
   }
 }
+
+/* =========================================================
+   STORE API - RIÊNG BIỆT
+========================================================= */
+
+app.get('/api/store', async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id, title, description, image_url, price, created_at, updated_at
+      FROM store_items ORDER BY id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách sản phẩm' });
+  }
+});
+
+app.get('/api/admin/store', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id, title, description, image_url, price, created_at, updated_at
+      FROM store_items ORDER BY id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách sản phẩm' });
+  }
+});
+
+app.post('/api/admin/store', requireAdmin, async (req, res) => {
+  try {
+    const title = String(req.body.title || '').trim().slice(0, 120);
+    const description = String(req.body.description || '').trim().slice(0, 2000);
+    const image_url = String(req.body.image_url || '').trim().slice(0, 2000);
+    const price = String(req.body.price || 'MIỄN PHÍ').trim().slice(0, 50);
+
+    if (!title) {
+      return res.status(400).json({ error: 'Tên sản phẩm là bắt buộc' });
+    }
+
+    if (image_url) {
+      try { new URL(image_url); } catch {
+        return res.status(400).json({ error: 'Link hình ảnh không hợp lệ' });
+      }
+    }
+
+    const t = now();
+    const result = await query(`
+      INSERT INTO store_items (title, description, image_url, price, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+    `, [title, description, image_url, price, t, t]);
+
+    res.json({ item: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể tạo sản phẩm' });
+  }
+});
+
+app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
+  try {
+    const oldResult = await query('SELECT * FROM store_items WHERE id=$1', [req.params.id]);
+    const old = oldResult.rows[0];
+    if (!old) {
+      return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+    }
+
+    const title = String(req.body.title ?? old.title).trim().slice(0, 120);
+    const description = String(req.body.description ?? old.description).trim().slice(0, 2000);
+    const image_url = String(req.body.image_url ?? old.image_url).trim().slice(0, 2000);
+    const price = String(req.body.price ?? old.price).trim().slice(0, 50);
+
+    if (!title) {
+      return res.status(400).json({ error: 'Tên sản phẩm là bắt buộc' });
+    }
+
+    if (image_url) {
+      try { new URL(image_url); } catch {
+        return res.status(400).json({ error: 'Link hình ảnh không hợp lệ' });
+      }
+    }
+
+    const result = await query(`
+      UPDATE store_items SET
+        title=$1, description=$2, image_url=$3, price=$4, updated_at=$5
+      WHERE id=$6 RETURNING *
+    `, [title, description, image_url, price, now(), old.id]);
+
+    res.json({ item: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể cập nhật sản phẩm' });
+  }
+});
+
+app.delete('/api/admin/store/:id', requireAdmin, async (req, res) => {
+  try {
+    const oldResult = await query('SELECT * FROM store_items WHERE id=$1', [req.params.id]);
+    const row = oldResult.rows[0];
+    if (!row) {
+      return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+    }
+    await query('DELETE FROM store_items WHERE id=$1', [row.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể xóa sản phẩm' });
+  }
+});
 
 // =========================================================
 // === QUAN TRỌNG: API ROUTES PHẢI Ở TRƯỚC ===

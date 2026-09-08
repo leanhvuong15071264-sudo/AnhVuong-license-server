@@ -1,12 +1,16 @@
+document.addEventListener('DOMContentLoaded', function() {
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
 
 let licenses = [];
 let currentUser = null;
 let adminLoggedIn = false;
+let currentAdminPage = 'dashboard';
+let storeItems = [];
 
 // =========================================================
-// CHERRY BLOSSOM (CÁNH HOA ANH ĐÀO RƠI)
+// CHERRY BLOSSOM
 // =========================================================
 function createCherryBlossom() {
   const oldContainer = document.querySelector('.cherry-container');
@@ -30,7 +34,7 @@ function createCherryBlossom() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', createCherryBlossom);
+createCherryBlossom();
 
 let resizeTimer;
 window.addEventListener('resize', () => {
@@ -38,6 +42,8 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(createCherryBlossom, 500);
 });
 
+// =========================================================
+// API HELPERS
 // =========================================================
 
 async function api(url, options = {}) {
@@ -84,27 +90,48 @@ function formatDate(value) {
 
 function openDialog(id) {
   const dialog = $(`#${id}`);
-  if (dialog && typeof dialog.showModal === 'function') { dialog.showModal(); }
+  if (dialog && typeof dialog.showModal === 'function') { 
+    dialog.showModal(); 
+  }
 }
 
 function closeDialog(id) {
   const dialog = $(`#${id}`);
-  if (dialog && dialog.open) { dialog.close(); }
+  if (dialog && dialog.open) { 
+    dialog.close(); 
+  }
 }
 
 $$('[data-close]').forEach((button) => {
-  button.addEventListener('click', () => { closeDialog(button.dataset.close); });
+  button.addEventListener('click', () => { 
+    const id = button.dataset.close;
+    if (id) closeDialog(id);
+  });
 });
 
 // =========================================================
-// PUBLIC PAGE SWITCH (CÓ ANIMATION)
+// FLOATING CREATE KEY
 // =========================================================
-function showPublicPage(page) {
-  const oldPage = document.querySelector('.page:not(.hidden)');
-  const target = $(`#${page}Page`);
 
-  if (!target) return;
-  if (oldPage === target) return;
+function updateFloatingButton(show) {
+  const floatingBtn = document.getElementById('floatingCreateKey');
+  if (!floatingBtn) return;
+  
+  if (show === true && adminLoggedIn === true && currentAdminPage === 'keys') {
+    floatingBtn.classList.add('visible');
+  } else {
+    floatingBtn.classList.remove('visible');
+  }
+}
+
+// =========================================================
+// PAGE SWITCH
+// =========================================================
+
+function showPublicPage(page) {
+  console.log('showPublicPage called:', page);
+  const target = $(`#${page}Page`);
+  if (!target) { console.error('Page not found:', page); return; }
 
   $$('.page').forEach((el) => {
     el.classList.add('hidden');
@@ -124,19 +151,87 @@ function showPublicPage(page) {
     button.classList.toggle('active', button.dataset.page === page);
   });
 
+  if (page === 'store') loadStorePage();
   if (page === 'downloads') loadPublicDownloads();
   if (page === 'account') loadAccount();
   if (page === 'history') loadHistory();
   if (page === 'contact') loadSettings();
 }
 
-$$('.nav-btn').forEach((button) => {
-  button.addEventListener('click', () => { showPublicPage(button.dataset.page); });
-});
+function initNavButtons() {
+  $$('.nav-btn').forEach((button) => {
+    button.onclick = function() {
+      const page = this.dataset.page;
+      if (page) showPublicPage(page);
+    };
+  });
 
-$$('[data-page-target]').forEach((button) => {
-  button.addEventListener('click', () => { showPublicPage(button.dataset.pageTarget); });
-});
+  $$('[data-page-target]').forEach((button) => {
+    button.onclick = function() {
+      const page = this.dataset.pageTarget;
+      if (page) showPublicPage(page);
+    };
+  });
+}
+
+function initAdminNav() {
+  $$('.admin-nav').forEach((button) => {
+    button.onclick = function() {
+      if (!adminLoggedIn) {
+        showToast('Vui lòng đăng nhập Admin', 'error');
+        return;
+      }
+      const page = this.dataset.adminPage;
+      const targets = {
+        dashboard: '#adminDashboard',
+        keys: '#adminKeys',
+        adminDownloads: '#adminDownloads',
+        adminStore: '#adminStore',
+        logs: '#adminLogs',
+        settings: '#adminSettings',
+        api: '#adminApi'
+      };
+
+      const target = $(targets[page]);
+      if (!target) return;
+
+      const oldPage = document.querySelector('.admin-page:not(.hidden)');
+      if (oldPage === target) return;
+
+      $$('.admin-page').forEach((el) => {
+        el.classList.add('hidden');
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px) scale(0.97)';
+      });
+
+      target.classList.remove('hidden');
+      target.style.opacity = '0';
+      target.style.transform = 'translateY(20px) scale(0.97)';
+      void target.offsetWidth;
+      target.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      target.style.opacity = '1';
+      target.style.transform = 'translateY(0) scale(1)';
+
+      $$('.admin-nav').forEach((item) => item.classList.remove('active'));
+      this.classList.add('active');
+
+      currentAdminPage = page;
+      
+      updateFloatingButton(true);
+
+      if (page === 'dashboard') loadAdminDashboard();
+      if (page === 'keys') loadKeys();
+      if (page === 'adminDownloads') loadAdminDownloads();
+      if (page === 'adminStore') loadAdminStore();
+      if (page === 'logs') loadAdminLogs();
+      if (page === 'settings') loadSettingsAdmin();
+    };
+  });
+}
+
+// =========================================================
+// AUTH - KHÔNG TỰ MỞ
+// =========================================================
 
 const loginBtn = $('#loginBtn');
 if (loginBtn) {
@@ -208,9 +303,17 @@ if (loginForm) {
         });
         if (adminResult && adminResult.role === 'admin') {
           adminLoggedIn = true;
+          currentUser = { username, role: 'admin' };
           closeDialog('loginDialog');
-          showAdmin();
+          updateUserUI();
           showToast('Đăng nhập Admin thành công', 'success');
+          document.getElementById('adminApp')?.classList.remove('hidden');
+          document.getElementById('publicApp')?.classList.add('hidden');
+          document.querySelector('.admin-store-btn')?.classList.remove('hidden');
+          const floatingBtn = document.getElementById('floatingCreateKey');
+          if (floatingBtn) floatingBtn.classList.add('visible');
+          currentAdminPage = 'dashboard';
+          loadAdminDashboard();
           return;
         }
       } catch (adminError) {}
@@ -221,8 +324,12 @@ if (loginForm) {
       });
 
       currentUser = result;
+      adminLoggedIn = false;
       closeDialog('loginDialog');
       updateUserUI();
+      document.querySelector('.admin-store-btn')?.classList.add('hidden');
+      const floatingBtn = document.getElementById('floatingCreateKey');
+      if (floatingBtn) floatingBtn.classList.remove('visible');
       showToast(`Đăng nhập thành công. Xin chào ${result.username}!`, 'success');
 
     } catch (error) {
@@ -236,6 +343,7 @@ const registerForm = $('#registerForm');
 if (registerForm) {
   registerForm.onsubmit = async (event) => {
     event.preventDefault();
+    const email = $('#registerEmail')?.value.trim() || '';
     const username = $('#registerUsername')?.value.trim() || '';
     const password = $('#registerPassword')?.value || '';
 
@@ -245,11 +353,15 @@ if (registerForm) {
     try {
       const result = await api('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, username, password })
       });
       currentUser = result;
+      adminLoggedIn = false;
       closeDialog('registerDialog');
       updateUserUI();
+      document.querySelector('.admin-store-btn')?.classList.add('hidden');
+      const floatingBtn = document.getElementById('floatingCreateKey');
+      if (floatingBtn) floatingBtn.classList.remove('visible');
       showToast('Đăng ký thành công!', 'success');
     } catch (error) {
       if (message) { message.textContent = error.message; }
@@ -291,7 +403,13 @@ if (logoutBtn) {
     try {
       await api('/api/auth/logout', { method: 'POST' });
       currentUser = null;
+      adminLoggedIn = false;
       updateUserUI();
+      document.querySelector('.admin-store-btn')?.classList.add('hidden');
+      const floatingBtn = document.getElementById('floatingCreateKey');
+      if (floatingBtn) floatingBtn.classList.remove('visible');
+      document.getElementById('adminApp')?.classList.add('hidden');
+      document.getElementById('publicApp')?.classList.remove('hidden');
       showPublicPage('home');
       showToast('Đã đăng xuất', 'success');
     } catch (error) {
@@ -304,11 +422,38 @@ async function checkUser() {
   try {
     const result = await api('/api/auth/me');
     currentUser = result;
+    if (result && result.role === 'admin') {
+      adminLoggedIn = true;
+      document.getElementById('adminApp')?.classList.remove('hidden');
+      document.getElementById('publicApp')?.classList.add('hidden');
+      document.querySelector('.admin-store-btn')?.classList.remove('hidden');
+      const floatingBtn = document.getElementById('floatingCreateKey');
+      if (floatingBtn) floatingBtn.classList.add('visible');
+      currentAdminPage = 'dashboard';
+      loadAdminDashboard();
+    } else {
+      adminLoggedIn = false;
+      document.getElementById('adminApp')?.classList.add('hidden');
+      document.getElementById('publicApp')?.classList.remove('hidden');
+      document.querySelector('.admin-store-btn')?.classList.add('hidden');
+      const floatingBtn = document.getElementById('floatingCreateKey');
+      if (floatingBtn) floatingBtn.classList.remove('visible');
+    }
   } catch {
     currentUser = null;
+    adminLoggedIn = false;
+    document.getElementById('adminApp')?.classList.add('hidden');
+    document.getElementById('publicApp')?.classList.remove('hidden');
+    document.querySelector('.admin-store-btn')?.classList.add('hidden');
+    const floatingBtn = document.getElementById('floatingCreateKey');
+    if (floatingBtn) floatingBtn.classList.remove('visible');
   }
   updateUserUI();
 }
+
+// =========================================================
+// DOWNLOADS
+// =========================================================
 
 async function getDownloads() {
   return await api('/api/downloads');
@@ -473,8 +618,12 @@ if (detailKeySubmitV2) {
   };
 }
 
+// =========================================================
+// ACCOUNT
+// =========================================================
+
 async function loadAccount() {
-  if (!currentUser) { showPublicPage('home'); openDialog('loginDialog'); return; }
+  if (!currentUser) { showPublicPage('home'); return; }
   if ($('#accountUsername')) { $('#accountUsername').textContent = currentUser.username; }
   if ($('#accountNameInfo')) { $('#accountNameInfo').textContent = currentUser.username; }
   try {
@@ -482,7 +631,7 @@ async function loadAccount() {
     if ($('#accountLogs')) {
       $('#accountLogs').innerHTML = logs.length
         ? logs.map((row) => `
-            <tr><td>${formatDate(row.created_at)}</td><td>${esc(row.action)}</td><td>${esc(row.detail || '—')}</td><td>${esc(row.ip || '—')}</td></tr>
+            <tr><td data-label="Thời gian">${formatDate(row.created_at)}</td><td data-label="Hành động">${esc(row.action)}</td><td data-label="Chi tiết">${esc(row.detail || '—')}</td><td data-label="IP">${esc(row.ip || '—')}</td></tr>
           `).join('')
         : `<tr><td colspan="4">Chưa có hoạt động.</td></tr>`;
     }
@@ -491,10 +640,12 @@ async function loadAccount() {
   }
 }
 
+// =========================================================
+// HISTORY// =========================================================
+
 async function loadHistory() {
   if (!currentUser) {
     showPublicPage('home');
-    openDialog('loginDialog');
     return;
   }
 
@@ -545,6 +696,216 @@ async function loadHistory() {
 }
 
 // =========================================================
+// STORE
+// =========================================================
+
+window.goToContact = function() {
+  closeDialog('storeDetailDialog');
+  showPublicPage('contact');
+};
+
+window.openStorePurchase = function(id) {
+  const item = storeItems.find(x => Number(x.id) === Number(id));
+  if (!item) { showToast('Không tìm thấy sản phẩm.', 'error'); return; }
+
+  const img = $('#storeDetailImage');
+  if (img) {
+    if (item.image_url && item.image_url.trim() !== '') {
+      img.src = item.image_url;
+      img.alt = item.title || '';
+      img.style.display = 'block';
+      img.parentElement.classList.remove('image-error');
+    } else {
+      img.src = '';
+      img.alt = '';
+      img.style.display = 'none';
+      img.parentElement.classList.add('image-error');
+    }
+  }
+
+  $('#storeDetailTitleBreadcrumb').textContent = item.title || 'Sản phẩm';
+  $('#storeDetailTitle').textContent = item.title || 'Không có tên';
+  $('#storeDetailPrice').textContent = item.price || 'MIỄN PHÍ';
+  $('#storeDetailDescription').textContent = item.description || 'Liên hệ với admin để mua ngay sản phẩm này.';
+
+  openDialog('storeDetailDialog');
+};
+
+function storeCard(item) {
+  const image = item.image_url
+    ? `<div class="download-image"><img src="${esc(item.image_url)}" alt="${esc(item.title)}" loading="lazy" onerror="this.parentElement.classList.add('image-error')"></div>`
+    : `<div class="download-image no-image"><div class="download-placeholder-logo"><img src="/logo.png" alt="AnhVuong"></div></div>`;
+  
+  return `
+    <article class="download-card store-product-card">
+      ${image}
+      <div class="download-body">
+        <div class="download-title-row">
+          <h3>${esc(item.title)}</h3>
+          <span class="download-badge">${esc(item.price || 'MIỄN PHÍ')}</span>
+        </div>
+        <div class="download-description">${esc(item.description || 'Chưa có mô tả.')}</div>
+        <div class="download-details">
+          <div class="download-detail"><span class="detail-label">Sản phẩm</span><strong>${esc(item.title)}</strong></div>
+          <div class="download-detail"><span class="detail-label">Trạng thái</span><strong class="detail-status">Còn hàng</strong></div>
+        </div>
+        <div class="download-card-footer">
+          <button class="download-button" type="button" onclick="openStorePurchase(${Number(item.id)})">
+            <span>🛒</span><span>Mua ngay</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+async function loadStorePage() {
+  const container = $('#storeContent');
+  if (!container) return;
+  
+  container.innerHTML = `<div class="loading-card">Đang tải sản phẩm...</div>`;
+  
+  try {
+    const data = await api('/api/store');
+    storeItems = data;
+    
+    if (data.length) {
+      container.innerHTML = `
+        <div class="store-products">
+          <div id="storeProducts" class="download-grid large-grid">
+            ${data.map(storeCard).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-card">
+          <span style="display:block;margin-bottom:10px;color:var(--muted);"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+          <p style="color:var(--muted);">Hiện chưa có sản phẩm nào trong cửa hàng.</p>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error('Lỗi load store:', error);
+    container.innerHTML = `
+      <div class="empty-card">
+        Không thể tải sản phẩm. Vui lòng thử lại.
+      </div>
+    `;
+  }
+}
+
+// =========================================================
+// ADMIN STORE
+// =========================================================
+
+async function loadAdminStore() {
+  try {
+    const data = await api('/api/admin/store');
+    const list = $('#adminStoreList');
+    if (!list) { return; }
+    
+    if (data.length) {
+      list.innerHTML = data.map((item) => `
+        <article class="download-card store-product-card">
+          ${item.image_url ? `<div class="download-image"><img src="${esc(item.image_url)}" alt="${esc(item.title)}" onerror="this.parentElement.classList.add('image-error')"></div>` : `<div class="download-image no-image"><span>AV</span></div>`}
+          <div class="download-body">
+            <div class="download-title-row">
+              <h3>${esc(item.title)}</h3>
+              <span class="download-badge">${esc(item.price || 'MIỄN PHÍ')}</span>
+            </div>
+            <div class="download-description">${esc(item.description || 'Không có mô tả')}</div>
+            <div class="admin-download-actions">
+              <button class="small-btn" onclick="editStoreItem(${Number(item.id)})">Sửa</button>
+              <button class="small-btn danger-btn" onclick="deleteStoreItem(${Number(item.id)})">Xóa</button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    } else {
+      list.innerHTML = `<div class="empty-card">Chưa có sản phẩm nào trong cửa hàng.</div>`;
+    }
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function openStoreForm(item = null) {
+  if ($('#storeDialogTitle')) { $('#storeDialogTitle').textContent = item ? 'Sửa sản phẩm cửa hàng' : 'Thêm sản phẩm cửa hàng'; }
+  if ($('#storeId')) { $('#storeId').value = item?.id || ''; }
+  if ($('#storeTitle')) { $('#storeTitle').value = item?.title || ''; }
+  if ($('#storeDescription')) { $('#storeDescription').value = item?.description || ''; }
+  if ($('#storeImage')) { $('#storeImage').value = item?.image_url || ''; }
+  if ($('#storePrice')) { $('#storePrice').value = item?.price || 'MIỄN PHÍ'; }
+  openDialog('storeDialog');
+}
+
+window.editStoreItem = async function (id) {
+  try {
+    const data = await api('/api/admin/store');
+    const item = data.find((x) => Number(x.id) === Number(id));
+    if (item) { openStoreForm(item); } else { showToast('Không tìm thấy sản phẩm', 'error'); }
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
+window.deleteStoreItem = async function (id) {
+  if (!confirm('Xóa sản phẩm này?')) { return; }
+  try {
+    await api(`/api/admin/store/${id}`, { method: 'DELETE' });
+    await loadAdminStore();
+    await loadStorePage();
+    showToast('Đã xóa sản phẩm', 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
+const addStoreItem = $('#addStoreItem');
+if (addStoreItem) { addStoreItem.onclick = () => openStoreForm(); }
+
+const addStoreItemAdmin = $('#addStoreItemAdmin');
+if (addStoreItemAdmin) { addStoreItemAdmin.onclick = () => openStoreForm(); }
+
+const storeCancel = $('#storeCancel');
+if (storeCancel) { storeCancel.onclick = () => closeDialog('storeDialog'); }
+
+const storeForm = $('#storeForm');
+if (storeForm) {
+  storeForm.onsubmit = async (event) => {
+    event.preventDefault();
+
+    const id = $('#storeId')?.value || '';
+
+    const body = {
+      title: $('#storeTitle')?.value || '',
+      description: $('#storeDescription')?.value || '',
+      image_url: $('#storeImage')?.value || '',
+      price: $('#storePrice')?.value || 'MIỄN PHÍ'
+    };
+
+    try {
+      const url = '/api/admin/store' + (id ? `/${id}` : '');
+      const method = id ? 'PATCH' : 'POST';
+
+      await api(url, {
+        method: method,
+        body: JSON.stringify(body)
+      });
+
+      closeDialog('storeDialog');
+      await loadAdminStore();
+      await loadStorePage();
+      showToast(id ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm', 'success');
+
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  };
+}
+
+// =========================================================
 // SETTINGS
 // =========================================================
 
@@ -567,6 +928,12 @@ async function loadSettings() {
     setText('tiktokDesc', data.tiktok_desc || 'Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất');
     setText('tiktokTag', data.tiktok_tag || 'Cộng Đồng · Cập nhật ưu đãi');
     setLink('tiktokBtn', data.tiktok_phone || 'https://tiktok.com/@anhvuong.license');
+
+    setText('discordLabel', data.discord_label || 'Discord');
+    setText('discordName', data.discord_name || 'Discord Server');
+    setText('discordDesc', data.discord_desc || 'Tham gia server Discord để nhận hỗ trợ và cập nhật mới nhất');
+    setText('discordTag', data.discord_tag || 'Cộng đồng · Hỗ trợ 24/7');
+    setLink('discordBtn', data.discord_link || 'https://discord.gg/anhvuong');
 
     setText('featureFast', data.feature_fast || 'Phản hồi nhanh');
     setText('featureFastDesc', data.feature_fast_desc || 'Thường trong vòng 5–15 phút trong giờ hỗ trợ');
@@ -610,6 +977,11 @@ async function loadSettingsAdmin() {
       settingsTiktokName: 'tiktok_name',
       settingsTiktokDesc: 'tiktok_desc',
       settingsTiktokTag: 'tiktok_tag',
+      settingsDiscordLabel: 'discord_label',
+      settingsDiscordLink: 'discord_link',
+      settingsDiscordName: 'discord_name',
+      settingsDiscordDesc: 'discord_desc',
+      settingsDiscordTag: 'discord_tag',
       settingsFeatureFast: 'feature_fast',
       settingsFeatureFastDesc: 'feature_fast_desc',
       settingsFeatureProfessional: 'feature_professional',
@@ -631,7 +1003,6 @@ async function loadSettingsAdmin() {
   }
 }
 
-// Settings form
 const settingsForm = $('#settingsForm');
 if (settingsForm) {
   settingsForm.onsubmit = async (event) => {
@@ -656,6 +1027,11 @@ if (settingsForm) {
           tiktok_name: $('#settingsTiktokName').value.trim(),
           tiktok_desc: $('#settingsTiktokDesc').value.trim(),
           tiktok_tag: $('#settingsTiktokTag').value.trim(),
+          discord_label: $('#settingsDiscordLabel').value.trim(),
+          discord_link: $('#settingsDiscordLink').value.trim(),
+          discord_name: $('#settingsDiscordName').value.trim(),
+          discord_desc: $('#settingsDiscordDesc').value.trim(),
+          discord_tag: $('#settingsDiscordTag').value.trim(),
           feature_fast: $('#settingsFeatureFast').value.trim(),
           feature_fast_desc: $('#settingsFeatureFastDesc').value.trim(),
           feature_professional: $('#settingsFeatureProfessional').value.trim(),
@@ -694,6 +1070,10 @@ function showAdmin() {
   const adminApp = $('#adminApp');
   if (publicApp) { publicApp.classList.add('hidden'); }
   if (adminApp) { adminApp.classList.remove('hidden'); }
+  
+  document.querySelector('.admin-store-btn')?.classList.remove('hidden');
+  updateFloatingButton(false);
+  
   loadAdminDashboard();
 }
 
@@ -702,53 +1082,11 @@ if (backToWeb) {
   backToWeb.onclick = () => {
     $('#adminApp')?.classList.add('hidden');
     $('#publicApp')?.classList.remove('hidden');
+    document.querySelector('.admin-store-btn')?.classList.add('hidden');
     showPublicPage('home');
+    updateFloatingButton(false);
   };
 }
-
-// ADMIN NAV (CÓ ANIMATION)
-$$('.admin-nav').forEach((button) => {
-  button.addEventListener('click', () => {
-    const page = button.dataset.adminPage;
-    const targets = {
-      dashboard: '#adminDashboard',
-      keys: '#adminKeys',
-      adminDownloads: '#adminDownloads',
-      logs: '#adminLogs',
-      settings: '#adminSettings',
-      api: '#adminApi'
-    };
-
-    const target = $(targets[page]);
-    if (!target) return;
-
-    const oldPage = document.querySelector('.admin-page:not(.hidden)');
-    if (oldPage === target) return;
-
-    $$('.admin-page').forEach((el) => {
-      el.classList.add('hidden');
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px) scale(0.97)';
-    });
-
-    target.classList.remove('hidden');
-    target.style.opacity = '0';
-    target.style.transform = 'translateY(20px) scale(0.97)';
-    void target.offsetWidth;
-    target.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-    target.style.opacity = '1';
-    target.style.transform = 'translateY(0) scale(1)';
-
-    $$('.admin-nav').forEach((item) => item.classList.remove('active'));
-    button.classList.add('active');
-
-    if (page === 'dashboard') loadAdminDashboard();
-    if (page === 'keys') loadKeys();
-    if (page === 'adminDownloads') loadAdminDownloads();
-    if (page === 'logs') loadAdminLogs();
-    if (page === 'settings') loadSettingsAdmin();
-  });
-});
 
 async function loadAdminDashboard() {
   try {
@@ -778,13 +1116,13 @@ async function loadKeys() {
           const usedDevices = (row.hwids || []).length;
           return `
             <tr>
-              <td><code>${esc(row.key)}</code><button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button></td>
-              <td><span class="status ${esc(row.status)}">${esc(row.status)}</span></td>
-              <td>${row.expires_at ? formatDate(row.expires_at) : 'Vĩnh viễn'}</td>
-              <td>${esc(row.hwid || '—')}</td>
-              <td>${usedDevices}/${maxDevices}</td>
-              <td>${esc(row.note || '—')}</td>
-              <td class="actions">
+              <td data-label="Key"><code>${esc(row.key)}</code><button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button></td>
+              <td data-label="Trạng thái"><span class="status ${esc(row.status)}">${esc(row.status)}</span></td>
+              <td data-label="Hạn">${row.expires_at ? formatDate(row.expires_at) : 'Vĩnh viễn'}</td>
+              <td data-label="HWID">${esc(row.hwid || '—')}</td>
+              <td data-label="Thiết bị">${usedDevices}/${maxDevices}</td>
+              <td data-label="Ghi chú">${esc(row.note || '—')}</td>
+              <td class="actions" data-label="Thao tác">
                 <button class="small-btn" onclick="toggleKey(${Number(row.id)}, '${nextStatus}')">${buttonText}</button>
                 <button class="small-btn" onclick="resetHwid(${Number(row.id)})">Reset HWID</button>
                 <button class="small-btn danger-btn" onclick="deleteKey(${Number(row.id)})">Xóa</button>
@@ -814,7 +1152,6 @@ window.copyKey = async function (id) {
   }
 };
 
-// ===== LICENSE FORM =====
 function openLicenseForm(bulk = false) {
   if ($('#licenseDialogTitle')) { 
     $('#licenseDialogTitle').textContent = bulk ? 'Tạo License Key hàng loạt' : 'Tạo License Key'; 
@@ -935,7 +1272,7 @@ async function loadAdminLogs() {
     if (!rows) { return; }
     rows.innerHTML = data.length
       ? data.map((row) => `
-          <tr><td>${formatDate(row.created_at)}</td><td>${esc(row.action)}</td><td>${esc(row.key || '—')}</td><td>${esc(row.detail || '—')}</td><td>${esc(row.ip || '—')}</td></tr>
+          <tr><td data-label="Thời gian">${formatDate(row.created_at)}</td><td data-label="Hành động">${esc(row.action)}</td><td data-label="Key">${esc(row.key || '—')}</td><td data-label="Chi tiết">${esc(row.detail || '—')}</td><td data-label="IP">${esc(row.ip || '—')}</td></tr>
         `).join('')
       : `<tr><td colspan="5">Chưa có nhật ký.</td></tr>`;
   } catch (error) {
@@ -1021,8 +1358,6 @@ if (downloadForm) {
       shipping_info: $('#downloadShipping')?.value || 'truy cập tức'
     };
 
-    console.log('Sending data:', body);
-
     try {
       const url = '/api/admin/downloads' + (id ? `/${id}` : '');
       const method = id ? 'PATCH' : 'POST';
@@ -1032,8 +1367,6 @@ if (downloadForm) {
         body: JSON.stringify(body)
       });
 
-      console.log('Result:', result);
-
       closeDialog('downloadDialog');
       await loadAdminDownloads();
       await loadPublicDownloads();
@@ -1041,21 +1374,17 @@ if (downloadForm) {
       showToast(id ? 'Đã cập nhật mục tải xuống' : 'Đã thêm mục tải xuống', 'success');
 
     } catch (error) {
-      console.error('Error:', error);
       showToast(error.message, 'error');
     }
   };
 }
 
 window.editDownload = async function (id) {
-  console.log('editDownload called with id:', id);
   try {
     const data = await api('/api/admin/downloads');
-    console.log('downloads data:', data);
     const item = data.find((x) => Number(x.id) === Number(id));
     if (item) { openDownloadForm(item); } else { showToast('Không tìm thấy mục này', 'error'); }
   } catch (error) {
-    console.error(error);
     showToast(error.message, 'error');
   }
 };
@@ -1078,9 +1407,12 @@ if (adminLogout) {
     try {
       await api('/api/admin/logout', { method: 'POST' });
       adminLoggedIn = false;
+      currentAdminPage = 'dashboard';
       $('#adminApp')?.classList.add('hidden');
       $('#publicApp')?.classList.remove('hidden');
+      document.querySelector('.admin-store-btn')?.classList.add('hidden');
       showPublicPage('home');
+      updateFloatingButton(false);
       showToast('Đã đăng xuất Admin', 'success');
     } catch (error) {
       showToast(error.message, 'error');
@@ -1088,9 +1420,81 @@ if (adminLogout) {
   };
 }
 
-(async function init() {
+// =========================================================
+// FLOATING CREATE KEY - CLICK HANDLER
+// =========================================================
+
+const floatingCreateBtn = document.getElementById('floatingCreateKey');
+if (floatingCreateBtn) {
+  floatingCreateBtn.onclick = () => {
+    if (!adminLoggedIn) {
+      showToast('Vui lòng đăng nhập Admin trước', 'error');
+      return;
+    }
+    openLicenseForm(false);
+  };
+}
+
+// =========================================================
+// DIALOG CLOSE
+// =========================================================
+
+document.addEventListener('click', function(e) {
+  const closeBtn = e.target.closest('.dialog-close');
+  if (closeBtn) {
+    const dialog = closeBtn.closest('dialog');
+    if (dialog && dialog.open) {
+      dialog.close();
+    }
+  }
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.tagName === 'DIALOG') {
+    e.target.close();
+  }
+});
+
+// =========================================================
+// MOBILE MENU (HAMBURGER)
+// =========================================================
+
+function initMobileMenu() {
+  $$('.mobile-menu-toggle').forEach((toggle) => {
+    toggle.onclick = () => {
+      const sidebar = toggle.closest('.sidebar');
+      if (sidebar) sidebar.classList.toggle('mobile-open');
+    };
+  });
+
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar.mobile-open');
+    if (!sidebar) return;
+    if (sidebar.contains(e.target)) {
+      if (e.target.closest('.nav-btn, .admin-nav, .side-action')) {
+        sidebar.classList.remove('mobile-open');
+      }
+      return;
+    }
+    sidebar.classList.remove('mobile-open');
+  });
+}
+
+// =========================================================
+// INIT
+// =========================================================
+
+async function init() {
   await checkUser();
   await checkAdmin();
   await loadPublicDownloads();
+  await loadStorePage();
   await loadSettings();
-})();
+  initNavButtons();
+  initAdminNav();
+  initMobileMenu();
+}
+
+init();
+
+}); // end DOMContentLoaded
