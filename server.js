@@ -116,10 +116,15 @@ async function initDatabase() {
       description TEXT NOT NULL DEFAULT '',
       image_url TEXT NOT NULL DEFAULT '',
       price TEXT NOT NULL DEFAULT 'MIỄN PHÍ',
+      tag TEXT,
+      stock INTEGER,
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
   `);
+
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS tag TEXT`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stock INTEGER`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -950,7 +955,7 @@ async function validateLicense(req, res, action) {
 app.get('/api/store', async (req, res) => {
   try {
     const result = await query(`
-      SELECT id, title, description, image_url, price, created_at, updated_at
+      SELECT id, title, description, image_url, price, tag, stock, created_at, updated_at
       FROM store_items ORDER BY id DESC
     `);
     res.json(result.rows);
@@ -963,7 +968,7 @@ app.get('/api/store', async (req, res) => {
 app.get('/api/admin/store', requireAdmin, async (req, res) => {
   try {
     const result = await query(`
-      SELECT id, title, description, image_url, price, created_at, updated_at
+      SELECT id, title, description, image_url, price, tag, stock, created_at, updated_at
       FROM store_items ORDER BY id DESC
     `);
     res.json(result.rows);
@@ -979,6 +984,11 @@ app.post('/api/admin/store', requireAdmin, async (req, res) => {
     const description = String(req.body.description || '').trim().slice(0, 2000);
     const image_url = String(req.body.image_url || '').trim().slice(0, 2000);
     const price = String(req.body.price || 'MIỄN PHÍ').trim().slice(0, 50);
+    const tag = String(req.body.tag || '').trim().slice(0, 40) || null;
+    const stockRaw = req.body.stock;
+    const stock = (stockRaw === '' || stockRaw === null || stockRaw === undefined)
+      ? null
+      : Math.max(0, parseInt(stockRaw, 10) || 0);
 
     if (!title) {
       return res.status(400).json({ error: 'Tên sản phẩm là bắt buộc' });
@@ -992,9 +1002,9 @@ app.post('/api/admin/store', requireAdmin, async (req, res) => {
 
     const t = now();
     const result = await query(`
-      INSERT INTO store_items (title, description, image_url, price, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
-    `, [title, description, image_url, price, t, t]);
+      INSERT INTO store_items (title, description, image_url, price, tag, stock, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
+    `, [title, description, image_url, price, tag, stock, t, t]);
 
     res.json({ item: result.rows[0] });
   } catch (err) {
@@ -1015,6 +1025,13 @@ app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
     const description = String(req.body.description ?? old.description).trim().slice(0, 2000);
     const image_url = String(req.body.image_url ?? old.image_url).trim().slice(0, 2000);
     const price = String(req.body.price ?? old.price).trim().slice(0, 50);
+    const tag = req.body.tag === undefined
+      ? old.tag
+      : (String(req.body.tag || '').trim().slice(0, 40) || null);
+    const stockRaw = req.body.stock;
+    const stock = stockRaw === undefined
+      ? old.stock
+      : (stockRaw === '' || stockRaw === null ? null : Math.max(0, parseInt(stockRaw, 10) || 0));
 
     if (!title) {
       return res.status(400).json({ error: 'Tên sản phẩm là bắt buộc' });
@@ -1028,9 +1045,9 @@ app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
 
     const result = await query(`
       UPDATE store_items SET
-        title=$1, description=$2, image_url=$3, price=$4, updated_at=$5
-      WHERE id=$6 RETURNING *
-    `, [title, description, image_url, price, now(), old.id]);
+        title=$1, description=$2, image_url=$3, price=$4, tag=$5, stock=$6, updated_at=$7
+      WHERE id=$8 RETURNING *
+    `, [title, description, image_url, price, tag, stock, now(), old.id]);
 
     res.json({ item: result.rows[0] });
   } catch (err) {
