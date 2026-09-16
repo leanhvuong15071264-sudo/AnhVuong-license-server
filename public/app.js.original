@@ -8,6 +8,7 @@ let currentUser = null;
 let adminLoggedIn = false;
 let currentAdminPage = 'dashboard';
 let storeItems = [];
+let userStatsData = { users: [], downloads: [] };
 
 // =========================================================
 // CHERRY BLOSSOM
@@ -189,6 +190,7 @@ function initAdminNav() {
         adminStore: '#adminStore',
         logs: '#adminLogs',
         settings: '#adminSettings',
+        userStats: '#adminUserStats',
         api: '#adminApi'
       };
 
@@ -219,12 +221,13 @@ function initAdminNav() {
       
       updateFloatingButton(true);
 
-      if (page === 'dashboard') loadAdminDashboard();
+          if (page === 'dashboard') loadAdminDashboard();
       if (page === 'keys') loadKeys();
       if (page === 'adminDownloads') loadAdminDownloads();
       if (page === 'adminStore') loadAdminStore();
       if (page === 'logs') loadAdminLogs();
       if (page === 'settings') loadSettingsAdmin();
+      if (page === 'userStats') loadAdminUserStats();
     };
   });
 }
@@ -374,12 +377,15 @@ function updateUserUI() {
   const userActions = $('#userActions');
   const accountNav = $('#accountNav');
   const historyNav = $('#historyNav');
+  const floatingLogin = document.getElementById('floatingLoginBtn');
 
   if (!currentUser) {
     guestActions?.classList.remove('hidden');
     userActions?.classList.add('hidden');
     accountNav?.classList.add('hidden');
     historyNav?.classList.add('hidden');
+    // Hiện nút đăng nhập nổi trên mobile
+    floatingLogin?.classList.remove('hidden');
     return;
   }
 
@@ -387,6 +393,8 @@ function updateUserUI() {
   userActions?.classList.remove('hidden');
   accountNav?.classList.remove('hidden');
   historyNav?.classList.remove('hidden');
+  // Ẩn nút đăng nhập nổi khi đã login
+  floatingLogin?.classList.add('hidden');
 
   const name = currentUser.username || 'User';
   const first = name.charAt(0).toUpperCase();
@@ -429,6 +437,8 @@ async function checkUser() {
       document.querySelector('.admin-store-btn')?.classList.remove('hidden');
       const floatingBtn = document.getElementById('floatingCreateKey');
       if (floatingBtn) floatingBtn.classList.add('visible');
+       // Ẩn nút đăng nhập nổi
+      document.getElementById('floatingLoginBtn')?.classList.add('hidden');
       currentAdminPage = 'dashboard';
       loadAdminDashboard();
     } else {
@@ -1104,6 +1114,9 @@ function showAdmin() {
   document.querySelector('.admin-store-btn')?.classList.remove('hidden');
   updateFloatingButton(false);
   
+  // Ẩn nút đăng nhập nổi khi vào admin
+  document.getElementById('floatingLoginBtn')?.classList.add('hidden');
+  
   loadAdminDashboard();
 }
 
@@ -1451,6 +1464,227 @@ if (adminLogout) {
 }
 
 // =========================================================
+// ADMIN - USER STATS & MANAGEMENT
+// =========================================================
+
+async function loadAdminUserStats() {
+  await Promise.all([
+    loadUserStatsOverview(),
+    loadDownloadStats(),
+    loadUserList()
+  ]);
+}
+
+async function loadUserStatsOverview() {
+  try {
+    const data = await api('/api/admin/user-stats');
+
+    setText('statTotalUsers', data.users.total ?? 0);
+    setText('statTodayUsers', data.users.today ?? 0);
+    setText('statActiveUsers', data.users.active7d ?? 0);
+    setText('statConversion', (data.conversionRate ?? '0.00') + '%');
+
+    setText('statTotalViews', data.views.total ?? 0);
+    setText('statTodayViews', data.views.today ?? 0);
+    setText('statWeekViews', data.views.week ?? 0);
+    setText('statTotalDownloads', data.downloads.total ?? 0);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function loadDownloadStats() {
+  try {
+    const data = await api('/api/admin/download-stats');
+    const rows = document.getElementById('downloadStatsRows');
+    if (!rows) return;
+
+    if (!data.length) {
+      rows.innerHTML = `<tr><td colspan="5">Chưa có mục tải xuống nào.</td></tr>`;
+      return;
+    }
+
+    rows.innerHTML = data.map((row) => `
+      <tr>
+        <td data-label="ID">${Number(row.id)}</td>
+        <td data-label="Tiêu đề">${esc(row.title)}</td>
+        <td data-label="Phiên bản">${esc(row.version || '—')}</td>
+        <td data-label="Giá">${esc(row.price || 'MIỄN PHÍ')}</td>
+        <td data-label="Số lượt tải"><strong style="color: var(--green); font-size: 15px;">${Number(row.download_count)}</strong></td>
+      </tr>
+    `).join('');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function loadUserList() {
+  try {
+    const search = document.getElementById('userSearch')?.value || '';
+    const data = await api('/api/admin/users?q=' + encodeURIComponent(search));
+    userStatsData.users = data;
+    const rows = document.getElementById('userListRows');
+    if (!rows) return;
+
+    if (!data.length) {
+      rows.innerHTML = `<tr><td colspan="7">Chưa có tài khoản nào.</td></tr>`;
+      return;
+    }
+
+    rows.innerHTML = data.map((u) => `
+      <tr>
+        <td data-label="ID">${Number(u.id)}</td>
+        <td data-label="Tài khoản"><strong>${esc(u.username)}</strong></td>
+        <td data-label="Email">${esc(u.email || '—')}</td>
+        <td data-label="Ngày tạo">${formatDate(u.created_at)}</td>
+        <td data-label="Đăng nhập cuối">${u.last_login ? formatDate(u.last_login) : '—'}</td>
+        <td data-label="Tải xuống">${Number(u.download_count || 0)}</td>
+        <td class="actions" data-label="Thao tác">
+          <button class="small-btn" onclick="viewUserDetail(${Number(u.id)})">Thông tin chi tiết</button>
+          <button class="small-btn" onclick="resetUserPassword(${Number(u.id)})">Đổi mật khẩu</button>
+          <button class="small-btn danger-btn" onclick="deleteUser(${Number(u.id)})">Xóa tài khoản</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+// Xem chi tiết user
+window.viewUserDetail = async function (id) {
+  try {
+    const data = await api(`/api/admin/users/${id}`);
+    const body = document.getElementById('userDetailBody');
+    const title = document.getElementById('userDetailTitle');
+    if (!body || !title) return;
+
+    title.textContent = `Chi tiết: ${data.user.username}`;
+
+    const pwBlock = data.latestPassword
+      ? `<div style="background: rgba(69,226,139,.08); border: 1px solid rgba(69,226,139,.3); padding: 12px; border-radius: 10px;">
+           <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px;">Mật khẩu mới nhất (do admin reset)</div>
+           <div style="display: flex; align-items: center; gap: 10px;">
+             <code id="userLatestPw" style="font-size: 15px; background: rgba(255,255,255,.06); padding: 6px 12px; border-radius: 6px; letter-spacing: 2px;">${esc(data.latestPassword.plain_password)}</code>
+             <button class="small-btn" onclick="copyUserPw('${esc(data.latestPassword.plain_password)}')">Sao chép</button>
+           </div>
+           <div style="font-size: 11px; color: var(--muted); margin-top: 6px;">Reset lúc: ${formatDate(data.latestPassword.created_at)}</div>
+         </div>`
+      : `<div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px; color: var(--muted); font-size: 12px;">
+           ⚠️ Chưa có mật khẩu nào được admin reset. Mật khẩu gốc của user được hash an toàn, không thể xem.
+           <br>Nếu user quên mật khẩu, hãy nhấn "Đổi mật khẩu" để tạo mật khẩu mới.
+         </div>`;
+
+    const logsBlock = data.recentLogs && data.recentLogs.length
+      ? data.recentLogs.map(l => `
+          <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--border);">
+            <span>${esc(l.action)} — ${esc(l.detail || '—')}</span>
+            <span style="color: var(--muted); white-space: nowrap;">${formatDate(l.created_at)}</span>
+          </div>
+        `).join('')
+      : '<div style="color: var(--muted); font-size: 12px;">Chưa có hoạt động.</div>';
+
+    body.innerHTML = `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Tài khoản</div>
+          <div style="font-size: 15px; font-weight: 700; margin-top: 4px;">${esc(data.user.username)}</div>
+        </div>
+        <div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Email</div>
+          <div style="font-size: 14px; margin-top: 4px;">${esc(data.user.email || '—')}</div>
+        </div>
+        <div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Ngày tạo</div>
+          <div style="font-size: 14px; margin-top: 4px;">${formatDate(data.user.created_at)}</div>
+        </div>
+        <div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Đăng nhập cuối</div>
+          <div style="font-size: 14px; margin-top: 4px;">${data.user.last_login ? formatDate(data.user.last_login) : '—'}</div>
+        </div>
+        <div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Số lượt tải</div>
+          <div style="font-size: 15px; font-weight: 700; color: var(--green); margin-top: 4px;">${Number(data.downloadCount)}</div>
+        </div>
+        <div style="background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Vai trò</div>
+          <div style="font-size: 14px; margin-top: 4px;">${esc(data.user.role)}</div>
+        </div>
+      </div>
+      ${pwBlock}
+      <div>
+        <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Hoạt động gần đây</div>
+        <div style="max-height: 200px; overflow-y: auto;">${logsBlock}</div>
+      </div>
+    `;
+
+    openDialog('userDetailDialog');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
+window.copyUserPw = async function (pw) {
+  try {
+    await navigator.clipboard.writeText(pw);
+    showToast('Đã sao chép mật khẩu', 'success');
+  } catch {
+    prompt('Mật khẩu:', pw);
+  }
+};
+
+// Reset mật khẩu user
+window.resetUserPassword = async function (id) {
+  const user = userStatsData.users.find(u => Number(u.id) === Number(id));
+  const username = user ? user.username : 'này';
+  if (!confirm(`Đổi mật khẩu cho tài khoản "${username}"?\n\nHệ thống sẽ tạo mật khẩu mới và hiển thị cho bạn 1 lần.`)) {
+    return;
+  }
+  try {
+    const data = await api(`/api/admin/users/${id}/reset-password`, { method: 'POST' });
+    await loadUserList();
+    // Hiện dialog kết quả
+    alert(`✅ Đã đổi mật khẩu cho tài khoản: ${data.username}\n\n🔑 Mật khẩu mới: ${data.newPassword}\n\n⚠️ Hãy sao chép và gửi cho user ngay. Mật khẩu này cũng được lưu để bạn tra cứu sau.`);
+    showToast('Đã đổi mật khẩu thành công', 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
+// Xóa user
+window.deleteUser = async function (id) {
+  const user = userStatsData.users.find(u => Number(u.id) === Number(id));
+  const username = user ? user.username : 'này';
+  if (!confirm(`⚠️ XÓA VĨNH VIỄN tài khoản "${username}"?\n\nTài khoản sẽ không thể đăng nhập được nữa.\nHành động này KHÔNG THỂ HOÀN TÁC.`)) {
+    return;
+  }
+  try {
+    await api(`/api/admin/users/${id}`, { method: 'DELETE' });
+    await loadUserList();
+    await loadUserStatsOverview();
+    showToast('Đã xóa tài khoản', 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
+// Search input
+document.addEventListener('DOMContentLoaded', () => {
+  const userSearch = document.getElementById('userSearch');
+  if (userSearch) {
+    userSearch.addEventListener('input', () => {
+      clearTimeout(window.__userSearchTimer);
+      window.__userSearchTimer = setTimeout(loadUserList, 300);
+    });
+  }
+  const refreshBtn = document.getElementById('refreshUserStats');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => loadAdminUserStats());
+  }
+});
+
+
+// =========================================================
 // FLOATING CREATE KEY - CLICK HANDLER
 // =========================================================
 
@@ -1462,6 +1696,17 @@ if (floatingCreateBtn) {
       return;
     }
     openLicenseForm(false);
+  };
+}
+// Nút Đăng nhập nổi - CHỈ HIỆN TRÊN MOBILE
+const floatingLoginBtn = document.getElementById('floatingLoginBtn');
+if (floatingLoginBtn) {
+  floatingLoginBtn.onclick = () => {
+    const msg = $('#loginMsg');
+    if (msg) { msg.textContent = ''; }
+    const form = $('#loginForm');
+    if (form) { form.reset(); }
+    openDialog('loginDialog');
   };
 }
 

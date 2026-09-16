@@ -1,0 +1,362 @@
+/* =========================================================
+   MOBILE FIX v3 - AnhVuong License
+   Load SAU styles.css và app.css để ghi đè triệt để.
+   Fix: top bar chồng lên topbar của trang Home trên mobile.
+========================================================= */
+
+@media (max-width: 760px) {
+
+  /* ===== TOP BAR CỐ ĐỊNH 66px ===== */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 66px !important;
+    max-height: 100vh !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    background: rgba(7,9,13,.98) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 9999 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+
+  html[data-theme="light"] .sidebar {
+    background: rgba(255,255,255,.98) !important;
+  }
+
+  /* Khi mở menu */
+  .sidebar.mobile-open {
+    height: auto !important;
+    max-height: 88vh !important;
+  }
+
+  /* ===== BRAND + HAMBURGER ===== */
+  .sidebar-brand {
+    padding: 0 !important;
+    margin: 0 !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    display: flex !important;
+    width: 100% !important;
+    height: 42px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .brand-mark {
+    width: 42px !important;
+    height: 42px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sidebar-brand > div:not(.brand-mark) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.1;
+  }
+
+  .sidebar-brand strong { font-size: 14px !important; }
+  .sidebar-brand span { font-size: 9px !important; letter-spacing: 1.5px !important; }
+
+  .mobile-menu-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border) !important;
+    background: var(--panel-2) !important;
+    color: var(--text) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+    z-index: 10000 !important;
+    position: relative !important;
+  }
+
+  .mobile-menu-toggle svg {
+    pointer-events: none !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  /* ===== MENU ẨN MẶC ĐỊNH ===== */
+  .main-nav,
+  .sidebar-bottom {
+    display: none !important;
+  }
+
+  .sidebar.mobile-open .main-nav,
+  .sidebar.mobile-open .sidebar-bottom {
+    display: flex !important;
+    flex-direction: column !important;
+    margin-top: 16px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid var(--border) !important;
+  }
+
+  .sidebar.mobile-open .main-nav { gap: 4px !important; }
+  .sidebar.mobile-open .sidebar-bottom { gap: 8px !important; }
+
+  .nav-btn,
+  .admin-nav {
+    width: 100% !important;
+    text-align: left !important;
+    padding: 13px 14px !important;
+    font-size: 15px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .nav-btn span,
+  .admin-nav span {
+    width: 30px !important;
+    margin-right: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .side-action {
+    padding: 13px 14px !important;
+    font-size: 15px !important;
+    border-radius: 11px !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* ===== CONTENT: ĐẨY XUỐNG DƯỚI TOP BAR ===== */
+  .content,
+  .admin-content {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 100px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 100px !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Đảm bảo topbar của trang (Trang chủ, Cửa hàng...) không bị chồng */
+  .content > .topbar,
+  .page > .topbar,
+  .page > .section-heading,
+  .admin-page > .topbar {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .topbar h1 { font-size: 24px !important; margin-top: 4px !important; }
+
+  /* ===== HERO KHÔNG BỊ CHỒNG ===== */
+  .hero,
+  .admin-hero {
+    margin-top: 0 !important;
+    margin-bottom: 28px !important;
+    padding: 24px !important;
+    min-height: 280px !important;
+  }
+
+  .hero h2,
+  .admin-hero h2 {
+    font-size: 32px !important;
+    letter-spacing: -1.5px !important;
+  }
+
+  .hero-logo,
+  .admin-hero-logo { display: none !important; }
+
+  .hero-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .hero-buttons button { width: 100% !important; }
+
+  /* ===== THEME TOGGLE XUỐNG DƯỚI ===== */
+  .theme-toggle {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    left: auto !important;
+    z-index: 400 !important;
+    width: 42px !important;
+    height: 42px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    font-size: 20px !important;
+    border-radius: 50% !important;
+  }
+
+  .theme-toggle-label { display: none !important; }
+
+  /* ===== NÚT TẠO KEY ===== */
+  .floating-create-btn.visible {
+    bottom: 76px !important;
+    right: 20px !important;
+    z-index: 450 !important;
+  }
+
+  /* ===== TOAST ===== */
+  #toast {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 76px !important;
+    text-align: center !important;
+  }
+
+  /* ===== GRID ===== */
+  .stats { grid-template-columns: 1fr 1fr !important; }
+  .toolbar { flex-direction: column !important; }
+  .account-info { grid-template-columns: 1fr !important; }
+  .download-grid,
+  .large-grid { grid-template-columns: 1fr !important; }
+  .contact-grid,
+  .contact-features { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .stats { grid-template-columns: 1fr !important; }
+
+  .hero h2,
+  .admin-hero h2 { font-size: 26px !important; }
+
+  .topbar h1 { font-size: 20px !important; }
+
+  .theme-toggle {
+    width: 38px !important;
+    height: 38px !important;
+    bottom: 16px !important;
+    right: 16px !important;
+  }
+
+  .floating-create-btn.visible {
+    bottom: 66px !important;
+    right: 16px !important;
+  }
+
+  .content,
+  .admin-content {
+    padding-top: 96px !important;
+  }
+}
+
+/* =========================================================
+   NÚT ĐĂNG NHẬP NỔI - CHỈ HIỆN TRÊN MOBILE
+========================================================= */
+
+.floating-login-btn {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .floating-login-btn {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 450;
+    background: #fff;
+    color: #05070a;
+    border: none;
+    border-radius: 60px;
+    padding: 12px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+    cursor: pointer;
+    transition: .25s ease;
+  }
+
+  .floating-login-btn:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+  }
+
+  .floating-login-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Khi đã đăng nhập hoặc đang ở admin → ẩn nút */
+  .floating-login-btn.hidden {
+    display: none !important;
+  }
+
+  /* Light theme */
+  html[data-theme="light"] .floating-login-btn {
+    background: #111827;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .15);
+  }
+
+  html[data-theme="light"] .floating-login-btn:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+  }
+}
+
+/* Mobile nhỏ - thu gọn */
+@media (max-width: 480px) {
+  .floating-login-btn {
+    bottom: 16px;
+    left: 16px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .floating-login-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* =========================================================
+   ADMIN USER STATS - STYLE
+========================================================= */
+
+.stats-user {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1050px) {
+  .stats-user {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-user {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dialog user detail */
+#userDetailDialog .dialog {
+  width: min(500px, calc(100vw - 30px));
+  max-height: 88vh;
+  overflow-y: auto;
+}
