@@ -826,7 +826,8 @@ app.delete('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
     const total = await query('SELECT COUNT(*)::int AS c FROM licenses');
-    const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR expires_at > $1)', [now()]);
+    // Fix: Sử dụng phép so sánh an toàn bằng timestamp thay vì truyền chuỗi trực tiếp vào timestamptz
+    const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR EXTRACT(EPOCH FROM expires_at) * 1000 > $1)', [Date.now()]);
     const banned = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'banned\'');
     const bound = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE hwid IS NOT NULL AND hwid!=\'\'');
     res.json({ total: total.rows[0].c, active: active.rows[0].c, banned: banned.rows[0].c, bound: bound.rows[0].c });
@@ -1262,7 +1263,7 @@ async function validateLicense(req, res, action) {
       return signedJson(res, 403, { ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
-    // Kiểm tra thời hạn key một cách chính xác
+    // Fix: Kiểm tra thời hạn key tuyệt đối bằng mili-giây (loại bỏ lỗi lệch múi giờ timestamptz)
     if (row.expires_at) {
       const expiresTime = new Date(row.expires_at).getTime();
       const currentTime = Date.now();
