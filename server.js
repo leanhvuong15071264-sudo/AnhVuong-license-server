@@ -82,16 +82,16 @@ function signResponse(payload) {
 
 // Wrapper: ký payload rồi trả response
 function signedJson(res, statusCode, payload) {
-  const withTs = { ...payload, ts: Date.now() };
-  const signature = signResponse(withTs);
+  // Normalize payload (chuyển Date object → ISO string, loại bỏ undefined)
+  const normalized = JSON.parse(JSON.stringify({ ...payload, ts: Date.now() }));
+  const signature = signResponse(normalized);
 
   if (!signature) {
-    // Fallback: nếu chưa có key, trả không signature (dev mode)
     console.error('Không ký được response — trả raw');
-    return res.status(statusCode).json({ data: withTs, signature: null });
+    return res.status(statusCode).json({ data: normalized, signature: null });
   }
 
-  return res.status(statusCode).json({ data: withTs, signature: signature });
+  return res.status(statusCode).json({ data: normalized, signature: signature });
 }
 
 const app = express();
@@ -1266,9 +1266,20 @@ async function validateLicense(req, res, action) {
       return signedJson(res, 403, { ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
-    if (row.expires_at && new Date(row.expires_at) <= new Date()) {
-      return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
-    }
+    if (row.expires_at) {
+  let expiresMs;
+  if (row.expires_at instanceof Date) {
+    expiresMs = row.expires_at.getTime();
+  } else {
+    expiresMs = new Date(row.expires_at).getTime();
+  }
+
+  const nowMs = Date.now();
+
+  if (!isNaN(expiresMs) && expiresMs <= nowMs) {
+    return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
+  }
+}
 
     const hwids = row.hwids || [];
     const isBound = hwids.includes(hwid);
@@ -1293,15 +1304,15 @@ async function validateLicense(req, res, action) {
 
     await audit(req, action, row);
 
-    signedJson(res, 200, {
-      ok: true,
-      key: row.key,
-      status: row.status,
-      expires_at: row.expires_at,
-      max_devices: row.max_devices,
-      used_devices: (row.hwids || []).length,
-      hwid_bound: true
-    });
+  signedJson(res, 200, {
+  ok: true,
+  key: row.key,
+  status: row.status,
+  expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : null,
+  max_devices: row.max_devices,
+  used_devices: (row.hwids || []).length,
+  hwid_bound: true
+});
   } catch (err) {
     console.error(err);
     signedJson(res, 500, { ok: false, error: 'Lỗi máy chủ' });
