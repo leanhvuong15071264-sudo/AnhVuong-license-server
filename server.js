@@ -1242,10 +1242,6 @@ app.post('/api/admin/users/:id/reset-password', requireAdmin, async (req, res) =
    LICENSE VALIDATE
 ========================================================= */
 
-/* =========================================================
-   LICENSE VALIDATE
-========================================================= */
-
 async function validateLicense(req, res, action) {
   try {
     const key = String(req.body.key || '').trim().toUpperCase();
@@ -1266,20 +1262,15 @@ async function validateLicense(req, res, action) {
       return signedJson(res, 403, { ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
+    // Kiểm tra thời hạn key một cách chính xác
     if (row.expires_at) {
-  let expiresMs;
-  if (row.expires_at instanceof Date) {
-    expiresMs = row.expires_at.getTime();
-  } else {
-    expiresMs = new Date(row.expires_at).getTime();
-  }
+      const expiresTime = new Date(row.expires_at).getTime();
+      const currentTime = Date.now();
 
-  const nowMs = Date.now();
-
-  if (!isNaN(expiresMs) && expiresMs <= nowMs) {
-    return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
-  }
-}
+      if (!isNaN(expiresTime) && expiresTime <= currentTime) {
+        return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
+      }
+    }
 
     const hwids = row.hwids || [];
     const isBound = hwids.includes(hwid);
@@ -1304,15 +1295,15 @@ async function validateLicense(req, res, action) {
 
     await audit(req, action, row);
 
-  signedJson(res, 200, {
-  ok: true,
-  key: row.key,
-  status: row.status,
-  expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : null,
-  max_devices: row.max_devices,
-  used_devices: (row.hwids || []).length,
-  hwid_bound: true
-});
+    signedJson(res, 200, {
+      ok: true,
+      key: row.key,
+      status: row.status,
+      expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : null,
+      max_devices: row.max_devices,
+      used_devices: (row.hwids || []).length,
+      hwid_bound: true
+    });
   } catch (err) {
     console.error(err);
     signedJson(res, 500, { ok: false, error: 'Lỗi máy chủ' });
