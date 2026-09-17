@@ -7,6 +7,7 @@ const { query, pool } = require('./db');
 const crypto = require('crypto');
 const path = require('path');
 const dns = require('dns');
+<<<<<<< HEAD
 /* =========================================================
    RSA SIGNATURE
 ========================================================= */
@@ -94,9 +95,27 @@ function signedJson(res, statusCode, payload) {
 
   return res.status(statusCode).json({ data: withTs, signature: signature });
 }
+=======
+>>>>>>> 65a46fbc4b447479a74c8289782eab6bc7c63eea
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
+
+// Middleware đếm lượt truy cập (bỏ qua static files và API)
+app.use(async (req, res, next) => {
+  // Chỉ đếm request GET đến trang HTML (không đếm API, static)
+  if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.includes('.')) {
+    try {
+      await query(`
+        INSERT INTO page_views (path, ip, user_agent, created_at)
+        VALUES ($1, $2, $3, $4)
+      `, [req.path || '/', ip(req), String(req.headers['user-agent'] || '').slice(0, 500), now()]);
+    } catch (e) {
+      // Bỏ qua lỗi đếm view
+    }
+  }
+  next();
+});
 
 app.set('trust proxy', 1);
 
@@ -188,9 +207,10 @@ async function initDatabase() {
       file_size TEXT NOT NULL DEFAULT '1 tập tin',
       discord_info TEXT NOT NULL DEFAULT 'Vai trò + kênh',
       extra_title TEXT NOT NULL DEFAULT 'GIỚI THIỆU VỀ BẢN MOD NÀY',
-      extra_description TEXT NOT NULL DEFAULT 'Thạch Chi Khong Biet',
+      extra_description TEXT NOT NULL DEFAULT 'Nhập gì đó',
       license_key_display TEXT NOT NULL DEFAULT 'VNT-XXXX-XXXX-XXXX',
       shipping_info TEXT NOT NULL DEFAULT 'truy cập tức',
+      badge_label TEXT NOT NULL DEFAULT 'SOFTWARE',
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
@@ -212,6 +232,7 @@ async function initDatabase() {
 
   await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS tag TEXT`);
   await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stock INTEGER`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS badge_label TEXT NOT NULL DEFAULT 'SOFTWARE'`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -258,6 +279,26 @@ async function initDatabase() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS user_password_resets (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL,
+      plain_password TEXT NOT NULL,
+      reset_by TEXT NOT NULL DEFAULT 'admin',
+      created_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS page_views (
+      id BIGSERIAL PRIMARY KEY,
+      path TEXT NOT NULL DEFAULT '/',
+      ip TEXT NOT NULL DEFAULT '',
+      user_agent TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL
     )
   `);
 
@@ -570,7 +611,7 @@ app.get('/api/downloads', async (req, res) => {
     const result = await query(`
       SELECT id, title, description, image_url, download_url, price, version,
       file_size, discord_info, extra_title, extra_description, license_key_display, shipping_info,
-      created_at, updated_at FROM downloads ORDER BY id DESC
+      badge_label, created_at, updated_at FROM downloads ORDER BY id DESC
     `);
     res.json(result.rows);
   } catch (err) {
@@ -698,6 +739,7 @@ app.post('/api/admin/downloads', requireAdmin, async (req, res) => {
     const extra_description = String(req.body.extra_description || 'Thạch Chi Khong Biet').trim().slice(0, 500);
     const license_key_display = String(req.body.license_key_display || 'VNT-XXXX-XXXX-XXXX').trim().slice(0, 50);
     const shipping_info = String(req.body.shipping_info || 'truy cập tức').trim().slice(0, 100);
+    const badge_label = String(req.body.badge_label || 'SOFTWARE').trim().slice(0, 30).toUpperCase();
 
     if (!title || !download_url) {
       return res.status(400).json({ error: 'Tên và link tải xuống là bắt buộc' });
@@ -712,10 +754,11 @@ app.post('/api/admin/downloads', requireAdmin, async (req, res) => {
       INSERT INTO downloads (
         title, description, image_url, download_url, price, version, file_size,
         discord_info, extra_title, extra_description, license_key_display, shipping_info,
-        created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *
+        badge_label, created_at, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *
     `, [title, description, image_url, download_url, price, version, file_size,
-      discord_info, extra_title, extra_description, license_key_display, shipping_info, t, t]);
+      discord_info, extra_title, extra_description, license_key_display, shipping_info,
+      badge_label, t, t]);
 
     res.json({ download: result.rows[0] });
   } catch (err) {
@@ -744,6 +787,7 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
     const extra_description = String(req.body.extra_description ?? old.extra_description).trim().slice(0, 500);
     const license_key_display = String(req.body.license_key_display ?? old.license_key_display).trim().slice(0, 50);
     const shipping_info = String(req.body.shipping_info ?? old.shipping_info).trim().slice(0, 100);
+    const badge_label = String(req.body.badge_label ?? old.badge_label ?? 'SOFTWARE').trim().slice(0, 30).toUpperCase();
 
     if (!title || !download_url) {
       return res.status(400).json({ error: 'Tên và link tải xuống là bắt buộc' });
@@ -758,9 +802,10 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
         title=$1, description=$2, image_url=$3, download_url=$4,
         price=$5, version=$6, file_size=$7, discord_info=$8,
         extra_title=$9, extra_description=$10, license_key_display=$11, shipping_info=$12,
-        updated_at=$13 WHERE id=$14 RETURNING *
+        badge_label=$13, updated_at=$14 WHERE id=$15 RETURNING *
     `, [title, description, image_url, download_url, price, version, file_size,
-      discord_info, extra_title, extra_description, license_key_display, shipping_info, now(), old.id]);
+      discord_info, extra_title, extra_description, license_key_display, shipping_info,
+      badge_label, now(), old.id]);
 
     res.json({ download: result.rows[0] });
   } catch (err) {
@@ -791,7 +836,7 @@ app.delete('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
     const total = await query('SELECT COUNT(*)::int AS c FROM licenses');
-    const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR expires_at > $1)', [now()]);
+    const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR EXTRACT(EPOCH FROM expires_at) * 1000 > $1)', [Date.now()]);
     const banned = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'banned\'');
     const bound = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE hwid IS NOT NULL AND hwid!=\'\'');
     res.json({ total: total.rows[0].c, active: active.rows[0].c, banned: banned.rows[0].c, bound: bound.rows[0].c });
@@ -970,6 +1015,240 @@ app.get('/api/admin/logs', requireAdmin, async (req, res) => {
 });
 
 /* =========================================================
+   ADMIN - USER STATISTICS & MANAGEMENT
+========================================================= */
+
+// 1. Thống kê tổng quan
+app.get('/api/admin/user-stats', requireAdmin, async (req, res) => {
+  try {
+    // Tổng số user đã tạo
+    const totalUsers = await query('SELECT COUNT(*)::int AS c FROM users');
+    // User đăng ký hôm nay
+    const todayUsers = await query(`
+      SELECT COUNT(*)::int AS c FROM users 
+      WHERE created_at >= $1
+    `, [new Date(new Date().setHours(0, 0, 0, 0)).toISOString()]);
+    // User đăng nhập gần đây (7 ngày)
+    const activeUsers = await query(`
+      SELECT COUNT(*)::int AS c FROM users 
+      WHERE last_login >= $1
+    `, [new Date(Date.now() - 7 * 86400000).toISOString()]);
+
+    // Lượt truy cập
+    const totalViews = await query('SELECT COUNT(*)::int AS c FROM page_views');
+    const todayViews = await query(`
+      SELECT COUNT(*)::int AS c FROM page_views 
+      WHERE created_at >= $1
+    `, [new Date(new Date().setHours(0, 0, 0, 0)).toISOString()]);
+    const weekViews = await query(`
+      SELECT COUNT(*)::int AS c FROM page_views 
+      WHERE created_at >= $1
+    `, [new Date(Date.now() - 7 * 86400000).toISOString()]);
+
+    // Tổng lượt tải xuống
+    const totalDownloads = await query('SELECT COUNT(*)::int AS c FROM download_history');
+    const todayDownloads = await query(`
+      SELECT COUNT(*)::int AS c FROM download_history 
+      WHERE downloaded_at >= $1
+    `, [new Date(new Date().setHours(0, 0, 0, 0)).toISOString()]);
+
+    // Tỉ lệ chuyển đổi (user/views)
+    const views = totalViews.rows[0].c || 1;
+    const users = totalUsers.rows[0].c || 0;
+    const conversionRate = views > 0 ? ((users / views) * 100).toFixed(2) : '0.00';
+
+    res.json({
+      users: {
+        total: totalUsers.rows[0].c,
+        today: todayUsers.rows[0].c,
+        active7d: activeUsers.rows[0].c
+      },
+      views: {
+        total: totalViews.rows[0].c,
+        today: todayViews.rows[0].c,
+        week: weekViews.rows[0].c
+      },
+      downloads: {
+        total: totalDownloads.rows[0].c,
+        today: todayDownloads.rows[0].c
+      },
+      conversionRate: conversionRate
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy thống kê' });
+  }
+});
+
+// 2. Thống kê tải xuống theo từng mục
+app.get('/api/admin/download-stats', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT 
+        d.id,
+        d.title,
+        d.image_url,
+        d.price,
+        d.version,
+        COUNT(dh.id)::int AS download_count
+      FROM downloads d
+      LEFT JOIN download_history dh ON dh.download_id = d.id
+      GROUP BY d.id, d.title, d.image_url, d.price, d.version
+      ORDER BY download_count DESC, d.id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy thống kê tải xuống' });
+  }
+});
+
+// 3. Danh sách user
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const search = String(req.query.q || '').trim();
+    let sql = `
+      SELECT 
+        u.id, u.username, u.email, u.role, u.created_at, u.last_login,
+        (SELECT COUNT(*)::int FROM download_history WHERE user_id = u.id) AS download_count,
+        (SELECT COUNT(*)::int FROM user_logs WHERE user_id = u.id) AS log_count
+      FROM users u
+      WHERE u.role != 'admin'
+    `;
+    const args = [];
+    if (search) {
+      args.push(`%${search}%`);
+      sql += ` AND (u.username ILIKE $1 OR u.email ILIKE $1)`;
+    }
+    sql += ` ORDER BY u.id DESC LIMIT 500`;
+    const result = await query(sql, args);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách user' });
+  }
+});
+
+// 4. Lấy chi tiết user (kèm mật khẩu mới nhất nếu có)
+app.get('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const userResult = await query(`
+      SELECT id, username, email, role, created_at, last_login
+      FROM users WHERE id=$1
+    `, [req.params.id]);
+    const user = userResult.rows[0];
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy user' });
+    }
+
+    // Lấy mật khẩu mới nhất (nếu admin đã reset)
+    const pwResult = await query(`
+      SELECT plain_password, created_at 
+      FROM user_password_resets 
+      WHERE user_id=$1 
+      ORDER BY id DESC LIMIT 1
+    `, [user.id]);
+
+    // Đếm downloads
+    const dlResult = await query(`
+      SELECT COUNT(*)::int AS c FROM download_history WHERE user_id=$1
+    `, [user.id]);
+
+    // Log gần đây
+    const logsResult = await query(`
+      SELECT action, detail, ip, created_at 
+      FROM user_logs WHERE user_id=$1 
+      ORDER BY id DESC LIMIT 20
+    `, [user.id]);
+
+    res.json({
+      user,
+      latestPassword: pwResult.rows[0] || null,
+      downloadCount: dlResult.rows[0].c,
+      recentLogs: logsResult.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy chi tiết user' });
+  }
+});
+
+// 5. Xóa user
+app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const userResult = await client.query('SELECT * FROM users WHERE id=$1', [req.params.id]);
+    const user = userResult.rows[0];
+    if (!user) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Không tìm thấy user' });
+    }
+    if (user.role === 'admin') {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Không thể xóa tài khoản admin' });
+    }
+
+    // Xóa dữ liệu liên quan
+    await client.query('DELETE FROM download_history WHERE user_id=$1', [user.id]);
+    await client.query('DELETE FROM user_logs WHERE user_id=$1', [user.id]);
+    await client.query('DELETE FROM user_password_resets WHERE user_id=$1', [user.id]);
+    // Xóa user
+    await client.query('DELETE FROM users WHERE id=$1', [user.id]);
+
+    await client.query('COMMIT');
+    res.json({ ok: true, deleted: user.username });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Không thể xóa user' });
+  } finally {
+    client.release();
+  }
+});
+
+// 6. Reset mật khẩu user → trả về mật khẩu mới 1 lần
+app.post('/api/admin/users/:id/reset-password', requireAdmin, async (req, res) => {
+  try {
+    const userResult = await query('SELECT * FROM users WHERE id=$1', [req.params.id]);
+    const user = userResult.rows[0];
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy user' });
+    }
+
+    // Tạo mật khẩu mới ngẫu nhiên 10 ký tự
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let newPassword = '';
+    for (let i = 0; i < 10; i++) {
+      newPassword += chars[crypto.randomInt(0, chars.length)];
+    }
+
+    // Hash và cập nhật
+    const hash = await bcrypt.hash(newPassword, 12);
+    await query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, user.id]);
+
+    // Lưu plain password để admin tra cứu
+    await query(`
+      INSERT INTO user_password_resets (user_id, plain_password, reset_by, created_at)
+      VALUES ($1, $2, $3, $4)
+    `, [user.id, newPassword, req.session.username || 'admin', now()]);
+
+    // Ghi log
+    await userLog(req, user.id, 'admin_reset_password', `Admin reset mật khẩu cho ${user.username}`);
+
+    res.json({
+      ok: true,
+      username: user.username,
+      newPassword: newPassword
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể reset mật khẩu' });
+  }
+});
+
+/* =========================================================
    LICENSE VALIDATE
 ========================================================= */
 
@@ -979,22 +1258,28 @@ async function validateLicense(req, res, action) {
     const hwid = String(req.body.hwid || '').trim();
 
     if (!key || !hwid) {
-      return signedJson(res, 400, { ok: false, error: 'Thiếu key hoặc HWID' });
+      return res.status(400).json({ ok: false, error: 'Thiếu key hoặc HWID' });
     }
 
     const result = await query('SELECT * FROM licenses WHERE key=$1', [key]);
     let row = result.rows[0];
 
     if (!row) {
-      return signedJson(res, 404, { ok: false, error: 'Key không tồn tại' });
+      return res.status(404).json({ ok: false, error: 'Key không tồn tại' });
     }
 
     if (row.status !== 'active') {
-      return signedJson(res, 403, { ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
+      return res.status(403).json({ ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
-    if (row.expires_at && new Date(row.expires_at) <= new Date()) {
-      return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
+    // Kiểm tra thời hạn key bằng mili-giây (loại bỏ lỗi lệch múi giờ timestamptz)
+    if (row.expires_at) {
+      const expiresTime = new Date(row.expires_at).getTime();
+      const currentTime = Date.now();
+
+      if (!isNaN(expiresTime) && expiresTime <= currentTime) {
+        return res.status(403).json({ ok: false, error: 'Key đã hết hạn' });
+      }
     }
 
     const hwids = row.hwids || [];
@@ -1003,7 +1288,7 @@ async function validateLicense(req, res, action) {
     const currentDevices = hwids.length;
 
     if (!isBound && currentDevices >= maxDevices) {
-      return signedJson(res, 403, { ok: false, error: `Key đã được kích hoạt trên ${maxDevices} thiết bị tối đa!` });
+      return res.status(403).json({ ok: false, error: `Key đã được kích hoạt trên ${maxDevices} thiết bị tối đa!` });
     }
 
     if (!isBound) {
@@ -1020,18 +1305,18 @@ async function validateLicense(req, res, action) {
 
     await audit(req, action, row);
 
-    signedJson(res, 200, {
+    res.json({
       ok: true,
       key: row.key,
       status: row.status,
-      expires_at: row.expires_at,
+      expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : null,
       max_devices: row.max_devices,
       used_devices: (row.hwids || []).length,
       hwid_bound: true
     });
   } catch (err) {
     console.error(err);
-    signedJson(res, 500, { ok: false, error: 'Lỗi máy chủ' });
+    res.status(500).json({ ok: false, error: 'Lỗi máy chủ' });
   }
 }
 
