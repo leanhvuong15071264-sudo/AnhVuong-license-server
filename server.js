@@ -7,11 +7,10 @@ const { query, pool } = require('./db');
 const crypto = require('crypto');
 const path = require('path');
 const dns = require('dns');
-<<<<<<< HEAD
+
 /* =========================================================
    RSA SIGNATURE
 ========================================================= */
-
 
 const RSA_PRIVATE_KEY_B64 = process.env.LICENSE_RSA_PRIVATE_KEY || '';
 
@@ -95,11 +94,22 @@ function signedJson(res, statusCode, payload) {
 
   return res.status(statusCode).json({ data: withTs, signature: signature });
 }
-=======
->>>>>>> 65a46fbc4b447479a74c8289782eab6bc7c63eea
+
+/* =========================================================
+   APP SETUP
+========================================================= */
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
+
+const now = () => new Date().toISOString();
+
+const ip = req =>
+  String(
+    req.headers['x-forwarded-for'] ||
+    req.socket.remoteAddress ||
+    ''
+  ).split(',')[0].trim();
 
 // Middleware đếm lượt truy cập (bỏ qua static files và API)
 app.use(async (req, res, next) => {
@@ -134,8 +144,6 @@ app.use(session({
   }
 }));
 
-const now = () => new Date().toISOString();
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 async function emailDomainExists(email) {
@@ -153,13 +161,6 @@ async function emailDomainExists(email) {
     return false;
   }
 }
-
-const ip = req =>
-  String(
-    req.headers['x-forwarded-for'] ||
-    req.socket.remoteAddress ||
-    ''
-  ).split(',')[0].trim();
 
 const adminUsername = () =>
   String(process.env.ADMIN_USERNAME || 'admin');
@@ -1021,20 +1022,16 @@ app.get('/api/admin/logs', requireAdmin, async (req, res) => {
 // 1. Thống kê tổng quan
 app.get('/api/admin/user-stats', requireAdmin, async (req, res) => {
   try {
-    // Tổng số user đã tạo
     const totalUsers = await query('SELECT COUNT(*)::int AS c FROM users');
-    // User đăng ký hôm nay
     const todayUsers = await query(`
       SELECT COUNT(*)::int AS c FROM users 
       WHERE created_at >= $1
     `, [new Date(new Date().setHours(0, 0, 0, 0)).toISOString()]);
-    // User đăng nhập gần đây (7 ngày)
     const activeUsers = await query(`
       SELECT COUNT(*)::int AS c FROM users 
       WHERE last_login >= $1
     `, [new Date(Date.now() - 7 * 86400000).toISOString()]);
 
-    // Lượt truy cập
     const totalViews = await query('SELECT COUNT(*)::int AS c FROM page_views');
     const todayViews = await query(`
       SELECT COUNT(*)::int AS c FROM page_views 
@@ -1045,14 +1042,12 @@ app.get('/api/admin/user-stats', requireAdmin, async (req, res) => {
       WHERE created_at >= $1
     `, [new Date(Date.now() - 7 * 86400000).toISOString()]);
 
-    // Tổng lượt tải xuống
     const totalDownloads = await query('SELECT COUNT(*)::int AS c FROM download_history');
     const todayDownloads = await query(`
       SELECT COUNT(*)::int AS c FROM download_history 
       WHERE downloaded_at >= $1
     `, [new Date(new Date().setHours(0, 0, 0, 0)).toISOString()]);
 
-    // Tỉ lệ chuyển đổi (user/views)
     const views = totalViews.rows[0].c || 1;
     const users = totalUsers.rows[0].c || 0;
     const conversionRate = views > 0 ? ((users / views) * 100).toFixed(2) : '0.00';
@@ -1141,7 +1136,6 @@ app.get('/api/admin/users/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy user' });
     }
 
-    // Lấy mật khẩu mới nhất (nếu admin đã reset)
     const pwResult = await query(`
       SELECT plain_password, created_at 
       FROM user_password_resets 
@@ -1149,12 +1143,10 @@ app.get('/api/admin/users/:id', requireAdmin, async (req, res) => {
       ORDER BY id DESC LIMIT 1
     `, [user.id]);
 
-    // Đếm downloads
     const dlResult = await query(`
       SELECT COUNT(*)::int AS c FROM download_history WHERE user_id=$1
     `, [user.id]);
 
-    // Log gần đây
     const logsResult = await query(`
       SELECT action, detail, ip, created_at 
       FROM user_logs WHERE user_id=$1 
@@ -1190,11 +1182,9 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
       return res.status(403).json({ error: 'Không thể xóa tài khoản admin' });
     }
 
-    // Xóa dữ liệu liên quan
     await client.query('DELETE FROM download_history WHERE user_id=$1', [user.id]);
     await client.query('DELETE FROM user_logs WHERE user_id=$1', [user.id]);
     await client.query('DELETE FROM user_password_resets WHERE user_id=$1', [user.id]);
-    // Xóa user
     await client.query('DELETE FROM users WHERE id=$1', [user.id]);
 
     await client.query('COMMIT');
@@ -1217,24 +1207,20 @@ app.post('/api/admin/users/:id/reset-password', requireAdmin, async (req, res) =
       return res.status(404).json({ error: 'Không tìm thấy user' });
     }
 
-    // Tạo mật khẩu mới ngẫu nhiên 10 ký tự
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
     let newPassword = '';
     for (let i = 0; i < 10; i++) {
       newPassword += chars[crypto.randomInt(0, chars.length)];
     }
 
-    // Hash và cập nhật
     const hash = await bcrypt.hash(newPassword, 12);
     await query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, user.id]);
 
-    // Lưu plain password để admin tra cứu
     await query(`
       INSERT INTO user_password_resets (user_id, plain_password, reset_by, created_at)
       VALUES ($1, $2, $3, $4)
     `, [user.id, newPassword, req.session.username || 'admin', now()]);
 
-    // Ghi log
     await userLog(req, user.id, 'admin_reset_password', `Admin reset mật khẩu cho ${user.username}`);
 
     res.json({
@@ -1272,7 +1258,6 @@ async function validateLicense(req, res, action) {
       return res.status(403).json({ ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
-    // Kiểm tra thời hạn key bằng mili-giây (loại bỏ lỗi lệch múi giờ timestamptz)
     if (row.expires_at) {
       const expiresTime = new Date(row.expires_at).getTime();
       const currentTime = Date.now();
@@ -1443,18 +1428,20 @@ app.delete('/api/admin/store/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// =========================================================
-// === QUAN TRỌNG: API ROUTES PHẢI Ở TRƯỚC ===
-// =========================================================
+/* =========================================================
+   LICENSE ACTIVATE / VALIDATE ROUTES
+========================================================= */
 
-// --- API routes ---
 app.post('/api/license/activate', (req, res) => validateLicense(req, res, 'activate'));
 app.post('/api/license/validate', (req, res) => validateLicense(req, res, 'validate'));
 
-// --- Static files ---
+/* =========================================================
+   STATIC FILES + SPA ROUTE
+========================================================= */
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- SPA route - CHỈ ÁP DỤNG CHO CÁC REQUEST KHÔNG PHẢI API ---
+// SPA route - CHỈ ÁP DỤNG CHO CÁC REQUEST KHÔNG PHẢI API
 app.get(/^(?!\/api\/).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
