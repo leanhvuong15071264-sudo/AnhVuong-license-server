@@ -92,14 +92,6 @@ function signedJson(res, statusCode, payload) {
     data: normalized,
     signature: signature || null
   });
-=======
-  if (!signature) {
-    console.error('Không ký được response — trả raw');
-    return res.status(statusCode).json({ data: normalized, signature: null });
-  }
-
-  return res.status(statusCode).json({ data: normalized, signature: signature });
->>>>>>> b20d64c73c794a3d406f4d29b706d9407c4b484e
 }
 
 const app = express();
