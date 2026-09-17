@@ -7,92 +7,6 @@ const { query, pool } = require('./db');
 const crypto = require('crypto');
 const path = require('path');
 const dns = require('dns');
-/* =========================================================
-   RSA SIGNATURE
-========================================================= */
-
-const RSA_PRIVATE_KEY_B64 = process.env.LICENSE_RSA_PRIVATE_KEY || '';
-
-let _cachedPrivateKey = null;
-let _privateKeyFailed = false;
-
-function getPrivateKey() {
-  if (_cachedPrivateKey) return _cachedPrivateKey;
-  if (_privateKeyFailed) return null;
-  if (!RSA_PRIVATE_KEY_B64) {
-    console.error('LICENSE_RSA_PRIVATE_KEY chưa được cấu hình!');
-    _privateKeyFailed = true;
-    return null;
-  }
-
-  try {
-    const keyBuffer = Buffer.from(RSA_PRIVATE_KEY_B64, 'base64');
-    const privateKey = crypto.createPrivateKey({
-      key: keyBuffer,
-      format: 'der',
-      type: 'pkcs8'
-    });
-    _cachedPrivateKey = privateKey;
-    console.log('RSA private key loaded successfully');
-    return privateKey;
-  } catch (err) {
-    console.error('RSA private key parse error:', err.message);
-    _privateKeyFailed = true;
-    return null;
-  }
-}
-
-// Canonical JSON: sort keys alphabetically, no whitespace
-function canonicalize(obj) {
-  if (obj === null || obj === undefined) return 'null';
-  if (typeof obj === 'string') return JSON.stringify(obj);
-  if (typeof obj === 'number') return String(obj);
-  if (typeof obj === 'boolean') return obj ? 'true' : 'false';
-
-  if (Array.isArray(obj)) {
-    return '[' + obj.map(canonicalize).join(',') + ']';
-  }
-
-  if (typeof obj === 'object') {
-    const keys = Object.keys(obj).sort();
-    const parts = keys.map(k => JSON.stringify(k) + ':' + canonicalize(obj[k]));
-    return '{' + parts.join(',') + '}';
-  }
-
-  return JSON.stringify(obj);
-}
-
-function signResponse(payload) {
-  const privateKey = getPrivateKey();
-  if (!privateKey) return null;
-
-  try {
-    const canonical = canonicalize(payload);
-    const sign = crypto.createSign('SHA256');
-    sign.update(canonical);
-    sign.end();
-
-    const signature = sign.sign(privateKey);
-    return signature.toString('base64');
-  } catch (err) {
-    console.error('RSA sign error:', err.message);
-    return null;
-  }
-}
-
-// Wrapper: ký payload rồi trả response
-function signedJson(res, statusCode, payload) {
-  // Normalize payload (chuyển Date object → ISO string, loại bỏ undefined)
-  const normalized = JSON.parse(JSON.stringify({ ...payload, ts: Date.now() }));
-  const signature = signResponse(normalized);
-
-  // Trả cả 2 dạng: phẳng ở gốc (tương thích app cũ) + data/signature (cho app có xác thực chữ ký)
-  return res.status(statusCode).json({
-    ...normalized,
-    data: normalized,
-    signature: signature || null
-  });
-}
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -206,7 +120,7 @@ async function initDatabase() {
       extra_description TEXT NOT NULL DEFAULT 'Nhập gì đó',
       license_key_display TEXT NOT NULL DEFAULT 'VNT-XXXX-XXXX-XXXX',
       shipping_info TEXT NOT NULL DEFAULT 'truy cập tức',
-            badge_label TEXT NOT NULL DEFAULT 'SOFTWARE',
+      badge_label TEXT NOT NULL DEFAULT 'SOFTWARE',
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
@@ -278,7 +192,7 @@ async function initDatabase() {
     )
   `);
 
-    await query(`
+  await query(`
     CREATE TABLE IF NOT EXISTS user_password_resets (
       id BIGSERIAL PRIMARY KEY,
       user_id BIGINT NOT NULL,
@@ -604,7 +518,7 @@ app.get('/api/history', requireUser, async (req, res) => {
 
 app.get('/api/downloads', async (req, res) => {
   try {
-        const result = await query(`
+    const result = await query(`
       SELECT id, title, description, image_url, download_url, price, version,
       file_size, discord_info, extra_title, extra_description, license_key_display, shipping_info,
       badge_label, created_at, updated_at FROM downloads ORDER BY id DESC
@@ -793,7 +707,7 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Link không hợp lệ' });
     }
 
-        const result = await query(`
+    const result = await query(`
       UPDATE downloads SET
         title=$1, description=$2, image_url=$3, download_url=$4,
         price=$5, version=$6, file_size=$7, discord_info=$8,
@@ -832,7 +746,6 @@ app.delete('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
     const total = await query('SELECT COUNT(*)::int AS c FROM licenses');
-    // Fix: Sử dụng phép so sánh an toàn bằng timestamp thay vì truyền chuỗi trực tiếp vào timestamptz
     const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR EXTRACT(EPOCH FROM expires_at) * 1000 > $1)', [Date.now()]);
     const banned = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'banned\'');
     const bound = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE hwid IS NOT NULL AND hwid!=\'\'');
@@ -1255,27 +1168,27 @@ async function validateLicense(req, res, action) {
     const hwid = String(req.body.hwid || '').trim();
 
     if (!key || !hwid) {
-      return signedJson(res, 400, { ok: false, error: 'Thiếu key hoặc HWID' });
+      return res.status(400).json({ ok: false, error: 'Thiếu key hoặc HWID' });
     }
 
     const result = await query('SELECT * FROM licenses WHERE key=$1', [key]);
     let row = result.rows[0];
 
     if (!row) {
-      return signedJson(res, 404, { ok: false, error: 'Key không tồn tại' });
+      return res.status(404).json({ ok: false, error: 'Key không tồn tại' });
     }
 
     if (row.status !== 'active') {
-      return signedJson(res, 403, { ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
+      return res.status(403).json({ ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
-    // Fix: Kiểm tra thời hạn key tuyệt đối bằng mili-giây (loại bỏ lỗi lệch múi giờ timestamptz)
+    // Kiểm tra thời hạn key bằng mili-giây (loại bỏ lỗi lệch múi giờ timestamptz)
     if (row.expires_at) {
       const expiresTime = new Date(row.expires_at).getTime();
       const currentTime = Date.now();
 
       if (!isNaN(expiresTime) && expiresTime <= currentTime) {
-        return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
+        return res.status(403).json({ ok: false, error: 'Key đã hết hạn' });
       }
     }
 
@@ -1285,7 +1198,7 @@ async function validateLicense(req, res, action) {
     const currentDevices = hwids.length;
 
     if (!isBound && currentDevices >= maxDevices) {
-      return signedJson(res, 403, { ok: false, error: `Key đã được kích hoạt trên ${maxDevices} thiết bị tối đa!` });
+      return res.status(403).json({ ok: false, error: `Key đã được kích hoạt trên ${maxDevices} thiết bị tối đa!` });
     }
 
     if (!isBound) {
@@ -1302,7 +1215,7 @@ async function validateLicense(req, res, action) {
 
     await audit(req, action, row);
 
-    signedJson(res, 200, {
+    res.json({
       ok: true,
       key: row.key,
       status: row.status,
@@ -1313,7 +1226,7 @@ async function validateLicense(req, res, action) {
     });
   } catch (err) {
     console.error(err);
-    signedJson(res, 500, { ok: false, error: 'Lỗi máy chủ' });
+    res.status(500).json({ ok: false, error: 'Lỗi máy chủ' });
   }
 }
 
