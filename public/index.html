@@ -20,10 +20,6 @@
   <span id="themeToggleLabel" class="theme-toggle-label">Giao diện sáng</span>
 </button>
 
-
-<!-- =========================
-     FLOATING CREATE KEY BUTTON - CHỈ HIỆN KHI ADMIN
-========================= -->
 <!-- Nút Đăng nhập nổi - CHỈ HIỆN TRÊN MOBILE -->
 <button class="floating-login-btn" id="floatingLoginBtn" type="button">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -33,6 +29,8 @@
   </svg>
   Đăng nhập
 </button>
+
+<!-- Nút Tạo Key nổi - CHỈ HIỆN KHI ADMIN -->
 <button class="floating-create-btn" id="floatingCreateKey">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 5v14M5 12h14"/>
@@ -346,73 +344,83 @@
 
       <div class="contact-grid">
 
-       <!-- ZALO CÁ NHÂN -->
-<div class="contact-card-zalo">
-  <div class="contact-card-header">
-    <span class="contact-card-icon">
-      <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="12.466 19.2658 19.182 19.2658 12.466 29.4028 19.182 29.4028"/>
-        <path d="m41.517,4.5018l-29.011.0354C3.882,11.9372,1.282,21.9552,8.976,36.4482c.4875,1.7082-.359,3.42-1.9992,5.1283,2.3642.3218,4.7693-.1218,6.863-1.266,13.983,6.27,21.919,2.1805,29.644-2.7323l.0355-31.074c.0013-1.1046-.8931-2.001-1.9977-2.0023-.0015,0-.003,0-.0045,0h0Z"/>
-        <path d="m25.63,26.791c0,1.4425-1.2196,2.6118-2.724,2.6118s-2.724-1.1694-2.724-2.6118v-1.6978c0-1.4425,1.2196-2.6118,2.724-2.6118s2.724,1.1694,2.724,2.6118"/>
-        <path d="m34.7606,22.483h0c1.4987,0,2.7136,1.2149,2.7136,2.7136v1.4948c0,1.4987-1.2149,2.7136-2.7136,2.7136h0c-1.4987,0-2.7136-1.2149-2.7136-2.7136v-1.4948c0-1.4987,1.2149-2.7136,2.7136-2.7136Z"/>
-        <line x1="25.63" y1="29.403" x2="25.63" y2="22.482"/>
-        <path d="m28.311,18.955v9.1434c0,.7214.5848,1.3062,1.3062,1.3062h.3918"/>
-      </svg>
-    </span>
-    <span class="contact-card-badge" id="zaloPersonalLabel">Zalo</span>
-  </div>
-  <h3 id="zaloPersonalName">Zalo Cá Nhân</h3>
-  <p id="zaloPersonalDesc">Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất</p>
-  <div class="contact-card-tag" id="zaloPersonalTag">Cá Nhân · Phản hồi nhanh</div>
-  <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="zaloPersonalBtn">
-    <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
-    </svg>
-    Di chuyển ngay
-  </a>
-</div>
+        <!-- ZALO CÁ NHÂN -->
+        <div class="contact-card-zalo">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="12.466 19.2658 19.182 19.2658 12.466 29.4028 19.182 29.4028"/>
+                <path d="m41.517,4.5018l-29.011.0354C3.882,11.9372,1.282,21.9552,8.976,36.4482c.4875,1.7082-.359,3.42-1.9992,5.1283,2.3642.3218,4.7693-.1218,6.863-1.266,13.983,6.27,21.919,2.1805,29.644-2.7323l.0355-31.074c.0013-1.1046-.8931-2.001-1.9977-2.0023-.0015,0-.003,0-.0045,0h0Z"/>
+                <path d="m25.63,26.791c0,1.4425-1.2196,2.6118-2.724,2.6118s-2.724-1.1694-2.724-2.6118v-1.6978c0-1.4425,1.2196-2.6118,2.724-2.6118s2.724,1.1694,2.724,2.6118"/>
+                <path d="m34.7606,22.483h0c1.4987,0,2.7136,1.2149,2.7136,2.7136v1.4948c0,1.4987-1.2149,2.7136-2.7136,2.7136h0c-1.4987,0-2.7136-1.2149-2.7136-2.7136v-1.4948c0-1.4987,1.2149-2.7136,2.7136-2.7136Z"/>
+                <line x1="25.63" y1="29.403" x2="25.63" y2="22.482"/>
+                <path d="m28.311,18.955v9.1434c0,.7214.5848,1.3062,1.3062,1.3062h.3918"/>
+              </svg>
+            </span>
+            <span class="contact-card-badge" id="zaloPersonalLabel">Zalo</span>
+          </div>
+          <h3 id="zaloPersonalName">Zalo Cá Nhân</h3>
+          <p id="zaloPersonalDesc">Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất</p>
+          <div class="contact-card-tag" id="zaloPersonalTag">Cá Nhân · Phản hồi nhanh</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="zaloPersonalBtn">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
+            </svg>
+            Di chuyển ngay
+          </a>
+        </div>
 
         <!-- TIKTOK -->
-<div class="contact-card-tiktok">
-  <div class="contact-card-header">
-    <span class="contact-card-icon">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-      </svg>
-    </span>
-    <span class="contact-card-badge" id="tiktokLabel">TikTok</span>
-  </div>
-  <h3 id="tiktokName">TikTok</h3>
-  <p id="tiktokDesc">Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất</p>
-  <div class="contact-card-tag" id="tiktokTag">Cộng Đồng · Cập nhật ưu đãi</div>
-  <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="tiktokBtn">
-    <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
-    </svg>
-    Di chuyển ngay
-  </a>
-</div>
+        <div class="contact-card-tiktok">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+              </svg>
+            </span>
+            <span class="contact-card-badge" id="tiktokLabel">TikTok</span>
+          </div>
+          <h3 id="tiktokName">TikTok</h3>
+          <p id="tiktokDesc">Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất</p>
+          <div class="contact-card-tag" id="tiktokTag">Cộng Đồng · Cập nhật ưu đãi</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="tiktokBtn">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
+            </svg>
+            Di chuyển ngay
+          </a>
+        </div>
 
-      <!-- DISCORD -->
-<div class="contact-card-discord">
-  <div class="contact-card-header">
-    <span class="contact-card-icon">
-      <svg viewBox="0 0 256 199" width="20" height="16" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
-        <path d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" fill="#5865F2"/>
-      </svg>
-    </span>
-    <span class="contact-card-badge" id="discordLabel">Discord</span>
-  </div>
-  <h3 id="discordName">Discord Server</h3>
-  <p id="discordDesc">Tham gia server Discord để nhận hỗ trợ và cập nhật mới nhất</p>
-  <div class="contact-card-tag" id="discordTag">Cộng đồng · Hỗ trợ 24/7</div>
-  <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="discordBtn">
-    <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
-    </svg>
-    Tham gia ngay
-  </a>
+        <!-- DISCORD -->
+        <div class="contact-card-discord">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">
+              <svg viewBox="0 0 256 199" width="20" height="16" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+                <path d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" fill="#5865F2"/>
+              </svg>
+            </span>
+            <span class="contact-card-badge" id="discordLabel">Discord</span>
+          </div>
+          <h3 id="discordName">Discord Server</h3>
+          <p id="discordDesc">Tham gia server Discord để nhận hỗ trợ và cập nhật mới nhất</p>
+          <div class="contact-card-tag" id="discordTag">Cộng đồng · Hỗ trợ 24/7</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="discordBtn">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
+            </svg>
+            Tham gia ngay
+          </a>
+        </div>
+
+      </div>
+
+    </section>
+    <!-- ✅ ĐÓNG SECTION CONTACTPAGE Ở ĐÂY — TRƯỚC KHI VÀO ADMIN APP -->
+
+  </main>
+
 </div>
+<!-- ✅ ĐÓNG PUBLICAPP -->
 
 
 <!-- =========================
@@ -467,7 +475,7 @@
         Cài đặt
       </button>
 
-            <button class="admin-nav" data-admin-page="userStats">
+      <button class="admin-nav" data-admin-page="userStats">
         <span>♙</span>
         Thống kê người dùng
       </button>
@@ -893,7 +901,13 @@
   </main>
 
 </div>
+<!-- ✅ ĐÓNG ADMINAPP -->
 
+
+<!-- =====================================================
+     TẤT CẢ DIALOG NẰM TRỰC TIẾP TRONG BODY
+     KHÔNG NẰM TRONG SECTION NÀO
+====================================================== -->
 
 <!-- =========================
      LOGIN DIALOG
@@ -1073,7 +1087,8 @@
 
     <label>Thông tin vận chuyển</label>
     <input id="downloadShipping" maxlength="100" placeholder="truy cập tức">
-        <label>Nhãn hiển thị (badge)</label>
+
+    <label>Nhãn hiển thị (badge)</label>
     <input id="downloadBadge" maxlength="30" placeholder="SOFTWARE">
     <div class="form-hint">Nhãn sẽ phát sáng xanh lá trên thẻ tải xuống. VD: SOFTWARE, PREMIUM, HOT, NEW...</div>
 
@@ -1359,6 +1374,24 @@
 </dialog>
 
 
+<!-- =========================
+     USER DETAIL DIALOG
+========================= -->
+<dialog id="userDetailDialog">
+  <div class="dialog" style="max-width: 500px;">
+    <button type="button" class="dialog-close" data-close="userDetailDialog">×</button>
+    <span class="eyebrow">USER DETAILS</span>
+    <h2 id="userDetailTitle">Chi tiết tài khoản</h2>
+    <div id="userDetailBody" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div class="loading-card">Đang tải...</div>
+    </div>
+  </div>
+</dialog>
+
+
+<!-- =========================
+     THEME TOGGLE SCRIPT
+========================= -->
 <script>
   (function () {
     const root = document.documentElement;
@@ -1394,20 +1427,6 @@
     });
   })();
 </script>
-
-<!-- =========================
-     USER DETAIL DIALOG
-========================= -->
-<dialog id="userDetailDialog">
-  <div class="dialog" style="max-width: 500px;">
-    <button type="button" class="dialog-close" data-close="userDetailDialog">×</button>
-    <span class="eyebrow">USER DETAILS</span>
-    <h2 id="userDetailTitle">Chi tiết tài khoản</h2>
-    <div id="userDetailBody" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-      <div class="loading-card">Đang tải...</div>
-    </div>
-  </div>
-</dialog>
 
 <script src="/app.js"></script>
 
