@@ -82,16 +82,16 @@ function signResponse(payload) {
 
 // Wrapper: ký payload rồi trả response
 function signedJson(res, statusCode, payload) {
-  const withTs = { ...payload, ts: Date.now() };
-  const signature = signResponse(withTs);
+  // Normalize payload (chuyển Date object → ISO string, loại bỏ undefined)
+  const normalized = JSON.parse(JSON.stringify({ ...payload, ts: Date.now() }));
+  const signature = signResponse(normalized);
 
-  if (!signature) {
-    // Fallback: nếu chưa có key, trả không signature (dev mode)
-    console.error('Không ký được response — trả raw');
-    return res.status(statusCode).json({ data: withTs, signature: null });
-  }
-
-  return res.status(statusCode).json({ data: withTs, signature: signature });
+  // Trả cả 2 dạng: phẳng ở gốc (tương thích app cũ) + data/signature (cho app có xác thực chữ ký)
+  return res.status(statusCode).json({
+    ...normalized,
+    data: normalized,
+    signature: signature || null
+  });
 }
 
 const app = express();
@@ -203,9 +203,10 @@ async function initDatabase() {
       file_size TEXT NOT NULL DEFAULT '1 tập tin',
       discord_info TEXT NOT NULL DEFAULT 'Vai trò + kênh',
       extra_title TEXT NOT NULL DEFAULT 'GIỚI THIỆU VỀ BẢN MOD NÀY',
-      extra_description TEXT NOT NULL DEFAULT 'Thạch Chi Khong Biet',
+      extra_description TEXT NOT NULL DEFAULT 'Nhập gì đó',
       license_key_display TEXT NOT NULL DEFAULT 'VNT-XXXX-XXXX-XXXX',
       shipping_info TEXT NOT NULL DEFAULT 'truy cập tức',
+            badge_label TEXT NOT NULL DEFAULT 'SOFTWARE',
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
@@ -227,6 +228,7 @@ async function initDatabase() {
 
   await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS tag TEXT`);
   await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stock INTEGER`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS badge_label TEXT NOT NULL DEFAULT 'SOFTWARE'`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -602,10 +604,10 @@ app.get('/api/history', requireUser, async (req, res) => {
 
 app.get('/api/downloads', async (req, res) => {
   try {
-    const result = await query(`
+        const result = await query(`
       SELECT id, title, description, image_url, download_url, price, version,
       file_size, discord_info, extra_title, extra_description, license_key_display, shipping_info,
-      created_at, updated_at FROM downloads ORDER BY id DESC
+      badge_label, created_at, updated_at FROM downloads ORDER BY id DESC
     `);
     res.json(result.rows);
   } catch (err) {
@@ -733,6 +735,7 @@ app.post('/api/admin/downloads', requireAdmin, async (req, res) => {
     const extra_description = String(req.body.extra_description || 'Thạch Chi Khong Biet').trim().slice(0, 500);
     const license_key_display = String(req.body.license_key_display || 'VNT-XXXX-XXXX-XXXX').trim().slice(0, 50);
     const shipping_info = String(req.body.shipping_info || 'truy cập tức').trim().slice(0, 100);
+    const badge_label = String(req.body.badge_label || 'SOFTWARE').trim().slice(0, 30).toUpperCase();
 
     if (!title || !download_url) {
       return res.status(400).json({ error: 'Tên và link tải xuống là bắt buộc' });
@@ -747,10 +750,11 @@ app.post('/api/admin/downloads', requireAdmin, async (req, res) => {
       INSERT INTO downloads (
         title, description, image_url, download_url, price, version, file_size,
         discord_info, extra_title, extra_description, license_key_display, shipping_info,
-        created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *
+        badge_label, created_at, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *
     `, [title, description, image_url, download_url, price, version, file_size,
-      discord_info, extra_title, extra_description, license_key_display, shipping_info, t, t]);
+      discord_info, extra_title, extra_description, license_key_display, shipping_info,
+      badge_label, t, t]);
 
     res.json({ download: result.rows[0] });
   } catch (err) {
@@ -779,6 +783,7 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
     const extra_description = String(req.body.extra_description ?? old.extra_description).trim().slice(0, 500);
     const license_key_display = String(req.body.license_key_display ?? old.license_key_display).trim().slice(0, 50);
     const shipping_info = String(req.body.shipping_info ?? old.shipping_info).trim().slice(0, 100);
+    const badge_label = String(req.body.badge_label ?? old.badge_label ?? 'SOFTWARE').trim().slice(0, 30).toUpperCase();
 
     if (!title || !download_url) {
       return res.status(400).json({ error: 'Tên và link tải xuống là bắt buộc' });
@@ -788,14 +793,15 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Link không hợp lệ' });
     }
 
-    const result = await query(`
+        const result = await query(`
       UPDATE downloads SET
         title=$1, description=$2, image_url=$3, download_url=$4,
         price=$5, version=$6, file_size=$7, discord_info=$8,
         extra_title=$9, extra_description=$10, license_key_display=$11, shipping_info=$12,
-        updated_at=$13 WHERE id=$14 RETURNING *
+        badge_label=$13, updated_at=$14 WHERE id=$15 RETURNING *
     `, [title, description, image_url, download_url, price, version, file_size,
-      discord_info, extra_title, extra_description, license_key_display, shipping_info, now(), old.id]);
+      discord_info, extra_title, extra_description, license_key_display, shipping_info,
+      badge_label, now(), old.id]);
 
     res.json({ download: result.rows[0] });
   } catch (err) {
@@ -1237,10 +1243,6 @@ app.post('/api/admin/users/:id/reset-password', requireAdmin, async (req, res) =
     res.status(500).json({ error: 'Không thể reset mật khẩu' });
   }
 });
-
-/* =========================================================
-   LICENSE VALIDATE
-========================================================= */
 
 /* =========================================================
    LICENSE VALIDATE
