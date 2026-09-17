@@ -1382,22 +1382,26 @@ if (addDownload) { addDownload.onclick = () => openDownloadForm(); }
 const downloadCancel = $('#downloadCancel');
 if (downloadCancel) { downloadCancel.onclick = () => closeDialog('downloadDialog'); }
 
-function downloadCard(item) {
-  const image = item.image_url
-    ? `<div class="download-image">...`
-    : `<div class="download-image no-image">...`;
-  const version = item.version || item.version_name || item.app_version || '—';
-  const fileSize = item.file_size || item.size || '—';
-  const updatedAt = item.updated_at || item.created_at || null;
-  const badgeLabel = (item.badge_label || 'SOFTWARE').toUpperCase();
-  return `
-    <article class="download-card">
-      ${image}
-      <div class="download-body">
-        <div class="download-title-row">
-          <h3>${esc(item.title)}</h3>
-          <span class="download-badge glow-badge">${esc(badgeLabel)}</span>
-        </div>
+const downloadForm = $('#downloadForm');
+if (downloadForm) {
+  downloadForm.onsubmit = async (event) => {
+    event.preventDefault();
+    const id = $('#downloadId')?.value || '';
+    const body = {
+      title: $('#downloadTitle')?.value || '',
+      description: $('#downloadDescription')?.value || '',
+      image_url: $('#downloadImage')?.value || '',
+      download_url: $('#downloadUrl')?.value || '',
+      price: $('#downloadPrice')?.value || 'MIỄN PHÍ',
+      version: $('#downloadVersion')?.value || '',
+      file_size: $('#downloadFileSize')?.value || '',
+      discord_info: $('#downloadDiscord')?.value || '',
+      extra_title: $('#downloadExtraTitle')?.value || '',
+      extra_description: $('#downloadExtraDescription')?.value || '',
+      license_key_display: $('#downloadLicenseKey')?.value || '',
+      shipping_info: $('#downloadShipping')?.value || '',
+      badge_label: $('#downloadBadge')?.value || 'SOFTWARE'
+    };
 
     try {
       const url = '/api/admin/downloads' + (id ? `/${id}` : '');
