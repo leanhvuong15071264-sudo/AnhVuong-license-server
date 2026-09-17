@@ -476,14 +476,16 @@ function downloadCard(item) {
   const version = item.version || item.version_name || item.app_version || '—';
   const fileSize = item.file_size || item.size || '—';
   const updatedAt = item.updated_at || item.created_at || null;
+  const badgeLabel = (item.badge_label || 'SOFTWARE').toUpperCase();
   return `
     <article class="download-card">
       ${image}
       <div class="download-body">
         <div class="download-title-row">
           <h3>${esc(item.title)}</h3>
-          <span class="download-badge">SOFTWARE</span>
+          <span class="download-badge glow-badge">${esc(badgeLabel)}</span>
         </div>
+        ...
         <div class="download-description">${esc(item.description || 'Chưa có mô tả.')}</div>
         <div class="download-details">
           <div class="download-detail"><span class="detail-label">Sản phẩm</span><strong>${esc(item.title)}</strong></div>
@@ -1370,6 +1372,7 @@ function openDownloadForm(item = null) {
   if ($('#downloadExtraDescription')) { $('#downloadExtraDescription').value = item?.extra_description || 'Thạch Chi Khong Biet'; }
   if ($('#downloadLicenseKey')) { $('#downloadLicenseKey').value = item?.license_key_display || 'VNT-XXXX-XXXX-XXXX'; }
   if ($('#downloadShipping')) { $('#downloadShipping').value = item?.shipping_info || 'truy cập tức'; }
+  if ($('#downloadBadge')) { $('#downloadBadge').value = item?.badge_label || 'SOFTWARE'; }
   openDialog('downloadDialog');
 }
 
@@ -1379,27 +1382,22 @@ if (addDownload) { addDownload.onclick = () => openDownloadForm(); }
 const downloadCancel = $('#downloadCancel');
 if (downloadCancel) { downloadCancel.onclick = () => closeDialog('downloadDialog'); }
 
-const downloadForm = $('#downloadForm');
-if (downloadForm) {
-  downloadForm.onsubmit = async (event) => {
-    event.preventDefault();
-
-    const id = $('#downloadId')?.value || '';
-
-    const body = {
-      title: $('#downloadTitle')?.value || '',
-      description: $('#downloadDescription')?.value || '',
-      image_url: $('#downloadImage')?.value || '',
-      download_url: $('#downloadUrl')?.value || '',
-      price: $('#downloadPrice')?.value || 'MIỄN PHÍ',
-      version: $('#downloadVersion')?.value || '',
-      file_size: $('#downloadFileSize')?.value || '1 tập tin',
-      discord_info: $('#downloadDiscord')?.value || 'Vai trò + kênh',
-      extra_title: $('#downloadExtraTitle')?.value || 'GIỚI THIỆU VỀ BẢN MOD NÀY',
-      extra_description: $('#downloadExtraDescription')?.value || 'Thạch Chi Khong Biet',
-      license_key_display: $('#downloadLicenseKey')?.value || 'VNT-XXXX-XXXX-XXXX',
-      shipping_info: $('#downloadShipping')?.value || 'truy cập tức'
-    };
+function downloadCard(item) {
+  const image = item.image_url
+    ? `<div class="download-image">...`
+    : `<div class="download-image no-image">...`;
+  const version = item.version || item.version_name || item.app_version || '—';
+  const fileSize = item.file_size || item.size || '—';
+  const updatedAt = item.updated_at || item.created_at || null;
+  const badgeLabel = (item.badge_label || 'SOFTWARE').toUpperCase();
+  return `
+    <article class="download-card">
+      ${image}
+      <div class="download-body">
+        <div class="download-title-row">
+          <h3>${esc(item.title)}</h3>
+          <span class="download-badge glow-badge">${esc(badgeLabel)}</span>
+        </div>
 
     try {
       const url = '/api/admin/downloads' + (id ? `/${id}` : '');
