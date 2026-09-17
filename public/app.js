@@ -91,8 +91,23 @@ function formatDate(value) {
 
 function openDialog(id) {
   const dialog = $(`#${id}`);
-  if (dialog && typeof dialog.showModal === 'function') { 
-    dialog.showModal(); 
+  console.log('[DEBUG openDialog]', id, '-> tìm thấy element:', !!dialog);
+  if (!dialog) { return; }
+  console.log('[DEBUG openDialog] showModal tồn tại:', typeof dialog.showModal === 'function');
+  console.log('[DEBUG openDialog] dialog.open TRƯỚC khi mở:', dialog.open);
+  try {
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+    console.log('[DEBUG openDialog] dialog.open SAU khi mở:', dialog.open);
+    const rect = dialog.getBoundingClientRect();
+    console.log('[DEBUG openDialog] kích thước hiển thị (rect):', JSON.stringify(rect));
+    const cs = window.getComputedStyle(dialog);
+    console.log('[DEBUG openDialog] computed display:', cs.display, '| visibility:', cs.visibility, '| opacity:', cs.opacity, '| z-index:', cs.zIndex);
+  } catch (err) {
+    console.error('[DEBUG openDialog] LỖI khi mở dialog:', err);
   }
 }
 
