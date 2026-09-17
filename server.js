@@ -92,6 +92,14 @@ function signedJson(res, statusCode, payload) {
     data: normalized,
     signature: signature || null
   });
+=======
+  if (!signature) {
+    console.error('Không ký được response — trả raw');
+    return res.status(statusCode).json({ data: normalized, signature: null });
+  }
+
+  return res.status(statusCode).json({ data: normalized, signature: signature });
+>>>>>>> b20d64c73c794a3d406f4d29b706d9407c4b484e
 }
 
 const app = express();
@@ -832,7 +840,8 @@ app.delete('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
     const total = await query('SELECT COUNT(*)::int AS c FROM licenses');
-    const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR expires_at > $1)', [now()]);
+    // Fix: Sử dụng phép so sánh an toàn bằng timestamp thay vì truyền chuỗi trực tiếp vào timestamptz
+    const active = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'active\' AND (expires_at IS NULL OR EXTRACT(EPOCH FROM expires_at) * 1000 > $1)', [Date.now()]);
     const banned = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE status=\'banned\'');
     const bound = await query('SELECT COUNT(*)::int AS c FROM licenses WHERE hwid IS NOT NULL AND hwid!=\'\'');
     res.json({ total: total.rows[0].c, active: active.rows[0].c, banned: banned.rows[0].c, bound: bound.rows[0].c });
@@ -1268,8 +1277,14 @@ async function validateLicense(req, res, action) {
       return signedJson(res, 403, { ok: false, error: row.status === 'banned' ? 'Key đã bị khóa' : 'Key đã bị vô hiệu hóa' });
     }
 
-    if (row.expires_at && new Date(row.expires_at) <= new Date()) {
-      return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
+    // Fix: Kiểm tra thời hạn key tuyệt đối bằng mili-giây (loại bỏ lỗi lệch múi giờ timestamptz)
+    if (row.expires_at) {
+      const expiresTime = new Date(row.expires_at).getTime();
+      const currentTime = Date.now();
+
+      if (!isNaN(expiresTime) && expiresTime <= currentTime) {
+        return signedJson(res, 403, { ok: false, error: 'Key đã hết hạn' });
+      }
     }
 
     const hwids = row.hwids || [];
@@ -1299,7 +1314,7 @@ async function validateLicense(req, res, action) {
       ok: true,
       key: row.key,
       status: row.status,
-      expires_at: row.expires_at,
+      expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : null,
       max_devices: row.max_devices,
       used_devices: (row.hwids || []).length,
       hwid_bound: true
