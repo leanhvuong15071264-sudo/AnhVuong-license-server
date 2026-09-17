@@ -9,6 +9,7 @@ let adminLoggedIn = false;
 let currentAdminPage = 'dashboard';
 let storeItems = [];
 let userStatsData = { users: [], downloads: [] };
+let currentDetailItem = null;
 
 // =========================================================
 // CHERRY BLOSSOM
@@ -130,7 +131,6 @@ function updateFloatingButton(show) {
 // =========================================================
 
 function showPublicPage(page) {
-  console.log('showPublicPage called:', page);
   const target = $(`#${page}Page`);
   if (!target) { console.error('Page not found:', page); return; }
 
@@ -221,7 +221,7 @@ function initAdminNav() {
       
       updateFloatingButton(true);
 
-          if (page === 'dashboard') loadAdminDashboard();
+      if (page === 'dashboard') loadAdminDashboard();
       if (page === 'keys') loadKeys();
       if (page === 'adminDownloads') loadAdminDownloads();
       if (page === 'adminStore') loadAdminStore();
@@ -233,7 +233,7 @@ function initAdminNav() {
 }
 
 // =========================================================
-// AUTH - KHÔNG TỰ MỞ
+// AUTH
 // =========================================================
 
 const loginBtn = $('#loginBtn');
@@ -384,7 +384,6 @@ function updateUserUI() {
     userActions?.classList.add('hidden');
     accountNav?.classList.add('hidden');
     historyNav?.classList.add('hidden');
-    // Hiện nút đăng nhập nổi trên mobile
     floatingLogin?.classList.remove('hidden');
     return;
   }
@@ -393,7 +392,6 @@ function updateUserUI() {
   userActions?.classList.remove('hidden');
   accountNav?.classList.remove('hidden');
   historyNav?.classList.remove('hidden');
-  // Ẩn nút đăng nhập nổi khi đã login
   floatingLogin?.classList.add('hidden');
 
   const name = currentUser.username || 'User';
@@ -437,7 +435,6 @@ async function checkUser() {
       document.querySelector('.admin-store-btn')?.classList.remove('hidden');
       const floatingBtn = document.getElementById('floatingCreateKey');
       if (floatingBtn) floatingBtn.classList.add('visible');
-       // Ẩn nút đăng nhập nổi
       document.getElementById('floatingLoginBtn')?.classList.add('hidden');
       currentAdminPage = 'dashboard';
       loadAdminDashboard();
@@ -469,7 +466,58 @@ async function getDownloads() {
   return await api('/api/downloads');
 }
 
+function downloadCard(item) {
+  const image = item.image_url
+    ? `<div class="download-image"><img src="${esc(item.image_url)}" alt="${esc(item.title)}" loading="lazy" onerror="this.parentElement.classList.add('image-error')"></div>`
+    : `<div class="download-image no-image"><div class="download-placeholder-logo"><img src="/logo.png" alt="AnhVuong"></div></div>`;
+  const version = item.version || item.version_name || item.app_version || '—';
+  const fileSize = item.file_size || item.size || '—';
+  const updatedAt = item.updated_at || item.created_at || null;
+  const badgeLabel = (item.badge_label || 'SOFTWARE').toUpperCase();
+  return `
+    <article class="download-card">
+      ${image}
+      <div class="download-body">
+        <div class="download-title-row">
+          <h3>${esc(item.title)}</h3>
+          <span class="download-badge glow-badge">${esc(badgeLabel)}</span>
+        </div>
+        <div class="download-description">${esc(item.description || 'Chưa có mô tả.')}</div>
+        <div class="download-details">
+          <div class="download-detail"><span class="detail-label">Sản phẩm</span><strong>${esc(item.title)}</strong></div>
+          <div class="download-detail"><span class="detail-label">Phiên bản</span><strong>${esc(version)}</strong></div>
+          <div class="download-detail"><span class="detail-label">Dung lượng</span><strong>${esc(fileSize)}</strong></div>
+          <div class="download-detail"><span class="detail-label">Trạng thái</span><strong class="detail-status">Sẵn sàng</strong></div>
+          ${updatedAt ? `<div class="download-detail"><span class="detail-label">Cập nhật</span><strong>${formatDate(updatedAt)}</strong></div>` : ''}
+        </div>
+        <div class="download-card-footer">
+          <button class="download-button" type="button" onclick="downloadItem(${Number(item.id)})">
+            <span class="download-button-icon">↓</span><span>Tải xuống</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
 
+async function loadPublicDownloads() {
+  const containers = [$('#homeDownloads'), $('#downloadsList')];
+  containers.forEach((container) => {
+    if (container) { container.innerHTML = `<div class="loading-card">Đang tải dữ liệu...</div>`; }
+  });
+  try {
+    const data = await getDownloads();
+    const html = data.length ? data.map(downloadCard).join('') : `<div class="empty-card">Hiện chưa có phần mềm nào được đăng tải.</div>`;
+    containers.forEach((container) => {
+      if (container) { container.innerHTML = html; }
+    });
+  } catch (error) {
+    console.error(error);
+    containers.forEach((container) => {
+      if (container) { container.innerHTML = `<div class="empty-card">Không thể tải danh sách.</div>`; }
+    });
+  }
+}
 
 window.downloadItem = async function (id) {
   if (!currentUser) {
@@ -599,7 +647,8 @@ async function loadAccount() {
 }
 
 // =========================================================
-// HISTORY// =========================================================
+// HISTORY
+// =========================================================
 
 async function loadHistory() {
   if (!currentUser) {
@@ -681,9 +730,14 @@ window.openStorePurchase = function(id) {
     }
   }
 
-  $('#storeDetailTitleBreadcrumb').textContent = item.title || 'Sản phẩm';
-  $('#storeDetailTitle').textContent = item.title || 'Không có tên';
-  $('#storeDetailPrice').textContent = item.price || 'MIỄN PHÍ';
+  const breadcrumb = $('#storeDetailTitleBreadcrumb');
+  if (breadcrumb) breadcrumb.textContent = item.title || 'Sản phẩm';
+
+  const title = $('#storeDetailTitle');
+  if (title) title.textContent = item.title || 'Không có tên';
+
+  const price = $('#storeDetailPrice');
+  if (price) price.textContent = item.price || 'MIỄN PHÍ';
 
   const tagEl = $('#storeDetailTag');
   if (tagEl) { tagEl.textContent = item.tag || ''; }
@@ -1053,21 +1107,6 @@ async function checkAdmin() {
   return false;
 }
 
-function showAdmin() {
-  const publicApp = $('#publicApp');
-  const adminApp = $('#adminApp');
-  if (publicApp) { publicApp.classList.add('hidden'); }
-  if (adminApp) { adminApp.classList.remove('hidden'); }
-  
-  document.querySelector('.admin-store-btn')?.classList.remove('hidden');
-  updateFloatingButton(false);
-  
-  // Ẩn nút đăng nhập nổi khi vào admin
-  document.getElementById('floatingLoginBtn')?.classList.add('hidden');
-  
-  loadAdminDashboard();
-}
-
 const backToWeb = $('#backToWeb');
 if (backToWeb) {
   backToWeb.onclick = () => {
@@ -1328,28 +1367,34 @@ if (addDownload) { addDownload.onclick = () => openDownloadForm(); }
 const downloadCancel = $('#downloadCancel');
 if (downloadCancel) { downloadCancel.onclick = () => closeDialog('downloadDialog'); }
 
-function downloadCard(item) {
-  const image = item.image_url
-    ? `<div class="download-image">...`
-    : `<div class="download-image no-image">...`;
-  const version = item.version || item.version_name || item.app_version || '—';
-  const fileSize = item.file_size || item.size || '—';
-  const updatedAt = item.updated_at || item.created_at || null;
-  const badgeLabel = (item.badge_label || 'SOFTWARE').toUpperCase();
-  return `
-    <article class="download-card">
-      ${image}
-      <div class="download-body">
-        <div class="download-title-row">
-          <h3>${esc(item.title)}</h3>
-          <span class="download-badge glow-badge">${esc(badgeLabel)}</span>
-        </div>
+const downloadForm = $('#downloadForm');
+if (downloadForm) {
+  downloadForm.onsubmit = async (event) => {
+    event.preventDefault();
+
+    const id = $('#downloadId')?.value || '';
+
+    const body = {
+      title: $('#downloadTitle')?.value || '',
+      description: $('#downloadDescription')?.value || '',
+      image_url: $('#downloadImage')?.value || '',
+      download_url: $('#downloadUrl')?.value || '',
+      price: $('#downloadPrice')?.value || 'MIỄN PHÍ',
+      version: $('#downloadVersion')?.value || '',
+      file_size: $('#downloadFileSize')?.value || '1 tập tin',
+      discord_info: $('#downloadDiscord')?.value || 'Vai trò + kênh',
+      extra_title: $('#downloadExtraTitle')?.value || 'GIỚI THIỆU VỀ BẢN MOD NÀY',
+      extra_description: $('#downloadExtraDescription')?.value || 'Thạch Chi Khong Biet',
+      license_key_display: $('#downloadLicenseKey')?.value || 'VNT-XXXX-XXXX-XXXX',
+      shipping_info: $('#downloadShipping')?.value || 'truy cập tức',
+      badge_label: $('#downloadBadge')?.value || 'SOFTWARE'
+    };
 
     try {
       const url = '/api/admin/downloads' + (id ? `/${id}` : '');
       const method = id ? 'PATCH' : 'POST';
 
-      const result = await api(url, {
+      await api(url, {
         method: method,
         body: JSON.stringify(body)
       });
@@ -1495,7 +1540,6 @@ async function loadUserList() {
   }
 }
 
-// Xem chi tiết user
 window.viewUserDetail = async function (id) {
   try {
     const data = await api(`/api/admin/users/${id}`);
@@ -1577,7 +1621,6 @@ window.copyUserPw = async function (pw) {
   }
 };
 
-// Reset mật khẩu user
 window.resetUserPassword = async function (id) {
   const user = userStatsData.users.find(u => Number(u.id) === Number(id));
   const username = user ? user.username : 'này';
@@ -1587,7 +1630,6 @@ window.resetUserPassword = async function (id) {
   try {
     const data = await api(`/api/admin/users/${id}/reset-password`, { method: 'POST' });
     await loadUserList();
-    // Hiện dialog kết quả
     alert(`✅ Đã đổi mật khẩu cho tài khoản: ${data.username}\n\n🔑 Mật khẩu mới: ${data.newPassword}\n\n⚠️ Hãy sao chép và gửi cho user ngay. Mật khẩu này cũng được lưu để bạn tra cứu sau.`);
     showToast('Đã đổi mật khẩu thành công', 'success');
   } catch (error) {
@@ -1595,7 +1637,6 @@ window.resetUserPassword = async function (id) {
   }
 };
 
-// Xóa user
 window.deleteUser = async function (id) {
   const user = userStatsData.users.find(u => Number(u.id) === Number(id));
   const username = user ? user.username : 'này';
@@ -1612,7 +1653,6 @@ window.deleteUser = async function (id) {
   }
 };
 
-// Search input
 document.addEventListener('DOMContentLoaded', () => {
   const userSearch = document.getElementById('userSearch');
   if (userSearch) {
@@ -1626,7 +1666,6 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshBtn.addEventListener('click', () => loadAdminUserStats());
   }
 });
-
 
 // =========================================================
 // FLOATING CREATE KEY - CLICK HANDLER
@@ -1642,7 +1681,7 @@ if (floatingCreateBtn) {
     openLicenseForm(false);
   };
 }
-// Nút Đăng nhập nổi - CHỈ HIỆN TRÊN MOBILE
+
 const floatingLoginBtn = document.getElementById('floatingLoginBtn');
 if (floatingLoginBtn) {
   floatingLoginBtn.onclick = () => {
