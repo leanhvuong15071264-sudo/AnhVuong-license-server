@@ -469,61 +469,7 @@ async function getDownloads() {
   return await api('/api/downloads');
 }
 
-function downloadCard(item) {
-  const image = item.image_url
-    ? `<div class="download-image"><img src="${esc(item.image_url)}" alt="${esc(item.title)}" loading="lazy" onerror="this.parentElement.classList.add('image-error')"></div>`
-    : `<div class="download-image no-image"><div class="download-placeholder-logo"><img src="/logo.png" alt="AnhVuong"></div></div>`;
-  const version = item.version || item.version_name || item.app_version || '—';
-  const fileSize = item.file_size || item.size || '—';
-  const updatedAt = item.updated_at || item.created_at || null;
-  const badgeLabel = (item.badge_label || 'SOFTWARE').toUpperCase();
-  return `
-    <article class="download-card">
-      ${image}
-      <div class="download-body">
-        <div class="download-title-row">
-          <h3>${esc(item.title)}</h3>
-          <span class="download-badge glow-badge">${esc(badgeLabel)}</span>
-        </div>
-        ...
-        <div class="download-description">${esc(item.description || 'Chưa có mô tả.')}</div>
-        <div class="download-details">
-          <div class="download-detail"><span class="detail-label">Sản phẩm</span><strong>${esc(item.title)}</strong></div>
-          <div class="download-detail"><span class="detail-label">Phiên bản</span><strong>${esc(version)}</strong></div>
-          <div class="download-detail"><span class="detail-label">Dung lượng</span><strong>${esc(fileSize)}</strong></div>
-          <div class="download-detail"><span class="detail-label">Trạng thái</span><strong class="detail-status">Sẵn sàng</strong></div>
-          ${updatedAt ? `<div class="download-detail"><span class="detail-label">Cập nhật</span><strong>${formatDate(updatedAt)}</strong></div>` : ''}
-        </div>
-        <div class="download-card-footer">
-          <button class="download-button" type="button" onclick="downloadItem(${Number(item.id)})">
-            <span class="download-button-icon">↓</span><span>Tải xuống</span>
-          </button>
-        </div>
-      </div>
-    </article>
-  `;
-}
 
-async function loadPublicDownloads() {
-  const containers = [$('#homeDownloads'), $('#downloadsList')];
-  containers.forEach((container) => {
-    if (container) { container.innerHTML = `<div class="loading-card">Đang tải dữ liệu...</div>`; }
-  });
-  try {
-    const data = await getDownloads();
-    const html = data.length ? data.map(downloadCard).join('') : `<div class="empty-card">Hiện chưa có phần mềm nào được đăng tải.</div>`;
-    containers.forEach((container) => {
-      if (container) { container.innerHTML = html; }
-    });
-  } catch (error) {
-    console.error(error);
-    containers.forEach((container) => {
-      if (container) { container.innerHTML = `<div class="empty-card">Không thể tải danh sách.</div>`; }
-    });
-  }
-}
-
-let currentDetailItem = null;
 
 window.downloadItem = async function (id) {
   if (!currentUser) {
