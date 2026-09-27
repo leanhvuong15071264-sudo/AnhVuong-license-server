@@ -144,6 +144,16 @@ app.use(session({
   }
 }));
 
+// =========================================================
+// CHỐNG CACHE CHO API — Đảm bảo luôn lấy dữ liệu mới
+// =========================================================
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 async function emailDomainExists(email) {
@@ -184,6 +194,23 @@ async function initDatabase() {
     )
   `);
 
+    // BẢNG REVIEWS (ĐÁNH GIÁ KHÁCH HÀNG)
+  await query(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      content TEXT NOT NULL,
+      rating INTEGER NOT NULL DEFAULT 5,
+      ip TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'approved',
+      created_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  await query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'approved'`);
+  await query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS rating INTEGER NOT NULL DEFAULT 5`);
+  await query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS ip TEXT NOT NULL DEFAULT ''`);
+
   await query(`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id BIGSERIAL PRIMARY KEY,
@@ -212,6 +239,16 @@ async function initDatabase() {
       license_key_display TEXT NOT NULL DEFAULT 'VNT-XXXX-XXXX-XXXX',
       shipping_info TEXT NOT NULL DEFAULT 'truy cập tức',
       badge_label TEXT NOT NULL DEFAULT 'SOFTWARE',
+      -- CỘT MỚI CHO BIG UPDATE --
+      service_name TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'SOFTWARE',
+      price_vnd TEXT NOT NULL DEFAULT '',
+      stock INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
+      video_url TEXT NOT NULL DEFAULT '',
+      card_display_name TEXT NOT NULL DEFAULT '',
+      sold_count INTEGER NOT NULL DEFAULT 0,
+      sale_percent INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
@@ -226,6 +263,17 @@ async function initDatabase() {
       price TEXT NOT NULL DEFAULT 'MIỄN PHÍ',
       tag TEXT,
       stock INTEGER,
+      -- CỘT MỚI CHO BIG UPDATE --
+      service_name TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'SOFTWARE',
+      sub_category TEXT NOT NULL DEFAULT '',
+      price_vnd INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
+      download_url TEXT NOT NULL DEFAULT '',
+      card_display_name TEXT NOT NULL DEFAULT '',
+      sold_count INTEGER NOT NULL DEFAULT 0,
+      sale_percent INTEGER NOT NULL DEFAULT 0,
+      packages_count INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL
     )
@@ -233,7 +281,28 @@ async function initDatabase() {
 
   await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS tag TEXT`);
   await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stock INTEGER`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS service_name TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'SOFTWARE'`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS sub_category TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS price_vnd INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS download_url TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS card_display_name TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS sold_count INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS sale_percent INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS packages_count INTEGER NOT NULL DEFAULT 0`);
   await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS badge_label TEXT NOT NULL DEFAULT 'SOFTWARE'`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS service_name TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'SOFTWARE'`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS price_vnd INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS stock INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS video_url TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS card_display_name TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS sold_count INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS sale_percent INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS price_vnd TEXT NOT NULL DEFAULT ''`);
+  await query(`ALTER TABLE downloads ADD COLUMN IF NOT EXISTS price_vnd TEXT NOT NULL DEFAULT ''`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -332,6 +401,7 @@ async function initDatabase() {
     ON CONFLICT (key) DO NOTHING
   `, [now()]);
 
+  console.log('✅ Reviews table initialized');
   console.log('PostgreSQL database initialized');
 }
 
@@ -610,9 +680,13 @@ app.get('/api/history', requireUser, async (req, res) => {
 app.get('/api/downloads', async (req, res) => {
   try {
     const result = await query(`
-      SELECT id, title, description, image_url, download_url, price, version,
-      file_size, discord_info, extra_title, extra_description, license_key_display, shipping_info,
-      badge_label, created_at, updated_at FROM downloads ORDER BY id DESC
+      SELECT 
+        id, title, description, image_url, download_url, price, version,
+        file_size, discord_info, extra_title, extra_description, license_key_display, shipping_info,
+        badge_label, service_name, category, price_vnd, stock, status,
+        video_url, card_display_name, sold_count, sale_percent,
+        created_at, updated_at 
+      FROM downloads ORDER BY id DESC
     `);
     res.json(result.rows);
   } catch (err) {
@@ -741,6 +815,15 @@ app.post('/api/admin/downloads', requireAdmin, async (req, res) => {
     const license_key_display = String(req.body.license_key_display || 'VNT-XXXX-XXXX-XXXX').trim().slice(0, 50);
     const shipping_info = String(req.body.shipping_info || 'truy cập tức').trim().slice(0, 100);
     const badge_label = String(req.body.badge_label || 'SOFTWARE').trim().slice(0, 30).toUpperCase();
+    const service_name = String(req.body.service_name || '').trim().slice(0, 200);
+    const category = String(req.body.category || 'SOFTWARE').trim().slice(0, 50);
+    const price_vnd = String(req.body.price_vnd || '').trim().slice(0, 100);
+    const stock = Math.max(0, parseInt(req.body.stock, 10) || 0);
+    const status = String(req.body.status || 'active').trim().slice(0, 20);
+    const video_url = String(req.body.video_url || '').trim().slice(0, 2000);
+    const card_display_name = String(req.body.card_display_name || '').trim().slice(0, 200);
+    const sold_count = Math.max(0, parseInt(req.body.sold_count, 10) || 0);
+    const sale_percent = Math.max(0, Math.min(100, parseInt(req.body.sale_percent, 10) || 0));
 
     if (!title || !download_url) {
       return res.status(400).json({ error: 'Tên và link tải xuống là bắt buộc' });
@@ -755,11 +838,15 @@ app.post('/api/admin/downloads', requireAdmin, async (req, res) => {
       INSERT INTO downloads (
         title, description, image_url, download_url, price, version, file_size,
         discord_info, extra_title, extra_description, license_key_display, shipping_info,
-        badge_label, created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *
+        badge_label, service_name, category, price_vnd, stock, status,
+        video_url, card_display_name, sold_count, sale_percent,
+        created_at, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24) RETURNING *
     `, [title, description, image_url, download_url, price, version, file_size,
       discord_info, extra_title, extra_description, license_key_display, shipping_info,
-      badge_label, t, t]);
+      badge_label, service_name, category, price_vnd, stock, status,
+      video_url, card_display_name, sold_count, sale_percent,
+      t, t]);
 
     res.json({ download: result.rows[0] });
   } catch (err) {
@@ -789,6 +876,15 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
     const license_key_display = String(req.body.license_key_display ?? old.license_key_display).trim().slice(0, 50);
     const shipping_info = String(req.body.shipping_info ?? old.shipping_info).trim().slice(0, 100);
     const badge_label = String(req.body.badge_label ?? old.badge_label ?? 'SOFTWARE').trim().slice(0, 30).toUpperCase();
+    const service_name = String(req.body.service_name ?? old.service_name ?? '').trim().slice(0, 200);
+    const category = String(req.body.category ?? old.category ?? 'SOFTWARE').trim().slice(0, 50);
+    const price_vnd = req.body.price_vnd === undefined ? old.price_vnd : String(req.body.price_vnd || '').trim().slice(0, 100);
+    const stock = req.body.stock === undefined ? old.stock : Math.max(0, parseInt(req.body.stock, 10) || 0);
+    const status = String(req.body.status ?? old.status ?? 'active').trim().slice(0, 20);
+    const video_url = String(req.body.video_url ?? old.video_url ?? '').trim().slice(0, 2000);
+    const card_display_name = String(req.body.card_display_name ?? old.card_display_name ?? '').trim().slice(0, 200);
+    const sold_count = req.body.sold_count === undefined ? old.sold_count : Math.max(0, parseInt(req.body.sold_count, 10) || 0);
+    const sale_percent = req.body.sale_percent === undefined ? old.sale_percent : Math.max(0, Math.min(100, parseInt(req.body.sale_percent, 10) || 0));
 
     if (!title || !download_url) {
       return res.status(400).json({ error: 'Tên và link tải xuống là bắt buộc' });
@@ -798,15 +894,19 @@ app.patch('/api/admin/downloads/:id', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Link không hợp lệ' });
     }
 
-    const result = await query(`
+      const result = await query(`
       UPDATE downloads SET
         title=$1, description=$2, image_url=$3, download_url=$4,
         price=$5, version=$6, file_size=$7, discord_info=$8,
         extra_title=$9, extra_description=$10, license_key_display=$11, shipping_info=$12,
-        badge_label=$13, updated_at=$14 WHERE id=$15 RETURNING *
+        badge_label=$13, service_name=$14, category=$15, price_vnd=$16, stock=$17, status=$18,
+        video_url=$19, card_display_name=$20, sold_count=$21, sale_percent=$22,
+        updated_at=$23 WHERE id=$24 RETURNING *
     `, [title, description, image_url, download_url, price, version, file_size,
       discord_info, extra_title, extra_description, license_key_display, shipping_info,
-      badge_label, now(), old.id]);
+      badge_label, service_name, category, price_vnd, stock, status,
+      video_url, card_display_name, sold_count, sale_percent,
+      now(), old.id]);
 
     res.json({ download: result.rows[0] });
   } catch (err) {
@@ -1306,13 +1406,82 @@ async function validateLicense(req, res, action) {
 }
 
 /* =========================================================
-   STORE API - RIÊNG BIỆT
+   REVIEWS API (ĐÁNH GIÁ KHÁCH HÀNG)
 ========================================================= */
 
+// GET: Lấy danh sách đánh giá (public)
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const result = await query(`
+      SELECT id, name, content, rating, created_at
+      FROM reviews
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+      LIMIT $1
+    `, [limit]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách đánh giá' });
+  }
+});
+
+// POST: Gửi đánh giá mới (public, không cần đăng nhập)
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const name = String(req.body.name || '').trim().slice(0, 60);
+    const content = String(req.body.content || '').trim().slice(0, 1000);
+    const rating = Math.max(1, Math.min(5, parseInt(req.body.rating, 10) || 5));
+
+    if (!name) {
+      return res.status(400).json({ error: 'Vui lòng nhập tên' });
+    }
+    if (name.length < 2) {
+      return res.status(400).json({ error: 'Tên phải từ 2 ký tự trở lên' });
+    }
+    if (!content) {
+      return res.status(400).json({ error: 'Vui lòng nhập nội dung đánh giá' });
+    }
+    if (content.length < 5) {
+      return res.status(400).json({ error: 'Nội dung đánh giá phải từ 5 ký tự trở lên' });
+    }
+
+    // Chống spam: 1 IP chỉ gửi được 1 đánh giá / 10 phút
+    const clientIp = ip(req);
+    const recent = await query(`
+      SELECT id FROM reviews 
+      WHERE ip = $1 AND created_at > NOW() - INTERVAL '10 minutes'
+      LIMIT 1
+    `, [clientIp]);
+    if (recent.rows.length) {
+      return res.status(429).json({ error: 'Bạn vừa gửi đánh giá, vui lòng chờ 10 phút' });
+    }
+
+    const result = await query(`
+      INSERT INTO reviews (name, content, rating, ip, status, created_at)
+      VALUES ($1, $2, $3, $4, 'approved', $5)
+      RETURNING id, name, content, rating, created_at
+    `, [name, content, rating, clientIp, now()]);
+
+    res.json({ ok: true, review: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể gửi đánh giá' });
+  }
+});
+
+/* =========================================================
+   STORE API - RIÊNG BIỆT
+========================================================= */
 app.get('/api/store', async (req, res) => {
   try {
     const result = await query(`
-      SELECT id, title, description, image_url, price, tag, stock, created_at, updated_at
+      SELECT 
+        id, title, description, image_url, price, tag, stock,
+        service_name, category, sub_category, price_vnd, status,
+        download_url, card_display_name, sold_count, sale_percent, packages_count,
+        created_at, updated_at
       FROM store_items ORDER BY id DESC
     `);
     res.json(result.rows);
@@ -1325,7 +1494,11 @@ app.get('/api/store', async (req, res) => {
 app.get('/api/admin/store', requireAdmin, async (req, res) => {
   try {
     const result = await query(`
-      SELECT id, title, description, image_url, price, tag, stock, created_at, updated_at
+      SELECT 
+        id, title, description, image_url, price, tag, stock,
+        service_name, category, sub_category, price_vnd, status,
+        download_url, card_display_name, sold_count, sale_percent, packages_count,
+        created_at, updated_at
       FROM store_items ORDER BY id DESC
     `);
     res.json(result.rows);
@@ -1337,7 +1510,7 @@ app.get('/api/admin/store', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/store', requireAdmin, async (req, res) => {
   try {
-    const title = String(req.body.title || '').trim().slice(0, 120);
+    const title = String(req.body.title || '').trim().slice(0, 200);
     const description = String(req.body.description || '').trim().slice(0, 2000);
     const image_url = String(req.body.image_url || '').trim().slice(0, 2000);
     const price = String(req.body.price || 'MIỄN PHÍ').trim().slice(0, 50);
@@ -1346,6 +1519,18 @@ app.post('/api/admin/store', requireAdmin, async (req, res) => {
     const stock = (stockRaw === '' || stockRaw === null || stockRaw === undefined)
       ? null
       : Math.max(0, parseInt(stockRaw, 10) || 0);
+
+    // Các trường mới
+    const service_name = String(req.body.service_name || '').trim().slice(0, 200);
+    const category = String(req.body.category || 'SOFTWARE').trim().slice(0, 50);
+    const sub_category = String(req.body.sub_category || '').trim().slice(0, 50);
+    const price_vnd = String(req.body.price_vnd || '').trim().slice(0, 100);
+    const status = String(req.body.status || 'active').trim().slice(0, 20);
+    const download_url = String(req.body.download_url || '').trim().slice(0, 2000);
+    const card_display_name = String(req.body.card_display_name || '').trim().slice(0, 200);
+    const sold_count = Math.max(0, parseInt(req.body.sold_count, 10) || 0);
+    const sale_percent = Math.max(0, Math.min(100, parseInt(req.body.sale_percent, 10) || 0));
+    const packages_count = Math.max(0, parseInt(req.body.packages_count, 10) || 0);
 
     if (!title) {
       return res.status(400).json({ error: 'Tên sản phẩm là bắt buộc' });
@@ -1359,9 +1544,19 @@ app.post('/api/admin/store', requireAdmin, async (req, res) => {
 
     const t = now();
     const result = await query(`
-      INSERT INTO store_items (title, description, image_url, price, tag, stock, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
-    `, [title, description, image_url, price, tag, stock, t, t]);
+      INSERT INTO store_items (
+        title, description, image_url, price, tag, stock,
+        service_name, category, sub_category, price_vnd, status,
+        download_url, card_display_name, sold_count, sale_percent, packages_count,
+        created_at, updated_at
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *
+    `, [
+      title, description, image_url, price, tag, stock,
+      service_name, category, sub_category, price_vnd, status,
+      download_url, card_display_name, sold_count, sale_percent, packages_count,
+      t, t
+    ]);
 
     res.json({ item: result.rows[0] });
   } catch (err) {
@@ -1378,7 +1573,7 @@ app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
     }
 
-    const title = String(req.body.title ?? old.title).trim().slice(0, 120);
+    const title = String(req.body.title ?? old.title).trim().slice(0, 200);
     const description = String(req.body.description ?? old.description).trim().slice(0, 2000);
     const image_url = String(req.body.image_url ?? old.image_url).trim().slice(0, 2000);
     const price = String(req.body.price ?? old.price).trim().slice(0, 50);
@@ -1389,6 +1584,18 @@ app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
     const stock = stockRaw === undefined
       ? old.stock
       : (stockRaw === '' || stockRaw === null ? null : Math.max(0, parseInt(stockRaw, 10) || 0));
+
+    // Các trường mới
+    const service_name = String(req.body.service_name ?? old.service_name ?? '').trim().slice(0, 200);
+    const category = String(req.body.category ?? old.category ?? 'SOFTWARE').trim().slice(0, 50);
+    const sub_category = String(req.body.sub_category ?? old.sub_category ?? '').trim().slice(0, 50);
+    const price_vnd = req.body.price_vnd === undefined ? old.price_vnd : String(req.body.price_vnd || '').trim().slice(0, 100);
+    const status = String(req.body.status ?? old.status ?? 'active').trim().slice(0, 20);
+    const download_url = String(req.body.download_url ?? old.download_url ?? '').trim().slice(0, 2000);
+    const card_display_name = String(req.body.card_display_name ?? old.card_display_name ?? '').trim().slice(0, 200);
+    const sold_count = req.body.sold_count === undefined ? old.sold_count : Math.max(0, parseInt(req.body.sold_count, 10) || 0);
+    const sale_percent = req.body.sale_percent === undefined ? old.sale_percent : Math.max(0, Math.min(100, parseInt(req.body.sale_percent, 10) || 0));
+    const packages_count = req.body.packages_count === undefined ? old.packages_count : Math.max(0, parseInt(req.body.packages_count, 10) || 0);
 
     if (!title) {
       return res.status(400).json({ error: 'Tên sản phẩm là bắt buộc' });
@@ -1402,9 +1609,17 @@ app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
 
     const result = await query(`
       UPDATE store_items SET
-        title=$1, description=$2, image_url=$3, price=$4, tag=$5, stock=$6, updated_at=$7
-      WHERE id=$8 RETURNING *
-    `, [title, description, image_url, price, tag, stock, now(), old.id]);
+        title=$1, description=$2, image_url=$3, price=$4, tag=$5, stock=$6,
+        service_name=$7, category=$8, sub_category=$9, price_vnd=$10, status=$11,
+        download_url=$12, card_display_name=$13, sold_count=$14, sale_percent=$15, packages_count=$16,
+        updated_at=$17
+      WHERE id=$18 RETURNING *
+    `, [
+      title, description, image_url, price, tag, stock,
+      service_name, category, sub_category, price_vnd, status,
+      download_url, card_display_name, sold_count, sale_percent, packages_count,
+      now(), old.id
+    ]);
 
     res.json({ item: result.rows[0] });
   } catch (err) {

@@ -625,6 +625,178 @@ if (detailKeySubmitV2) {
 }
 
 // =========================================================
+// REVIEWS (ĐÁNH GIÁ KHÁCH HÀNG)
+// =========================================================
+
+let currentRating = 5;
+
+const DEFAULT_AVATAR_SVG = `
+  <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
+  </svg>
+`;
+
+function renderStars(rating) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    html += `<svg viewBox="0 0 24 24" fill="currentColor" class="${i <= rating ? '' : 'empty'}">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>`;
+  }
+  return html;
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return 'Gần đây';
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = Math.floor((now - then) / 1000);
+  if (diff < 60) return 'Vừa xong';
+  if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} ngày trước`;
+  if (diff < 2592000) return `${Math.floor(diff / 604800)} tuần trước`;
+  return formatDate(dateStr);
+}
+
+async function loadReviews() {
+  const container = document.getElementById('reviewsList');
+  if (!container) return;
+
+  try {
+    const data = await api('/api/reviews?limit=30');
+
+    if (!data || !data.length) {
+      container.innerHTML = `
+        <div class="reviews-empty">
+          <div>
+            <div style="font-size:32px;margin-bottom:8px;">💬</div>
+            <p style="margin:0;">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = data.map(review => `
+      <article class="review-card">
+        <div class="review-card-header">
+          <div class="review-avatar">${DEFAULT_AVATAR_SVG}</div>
+          <div class="review-info">
+            <h4 class="review-name">${esc(review.name)}</h4>
+            <div class="review-meta">
+              <span class="review-badge">
+                <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Chưa mua hàng
+              </span>
+            </div>
+          </div>
+          <div class="review-stars">${renderStars(review.rating)}</div>
+        </div>
+        <p class="review-content">"${esc(review.content)}"</p>
+        <div class="review-card-footer">
+          <span class="review-footer-left">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            Tự động 24/7
+          </span>
+          <span class="review-time">${timeAgo(review.created_at)}</span>
+        </div>
+      </article>
+    `).join('');
+
+    const loadMoreEl = document.getElementById('reviewsLoadMore');
+    if (loadMoreEl) {
+      if (data.length > 4) {
+        loadMoreEl.style.display = 'inline-flex';
+        const textEl = document.getElementById('reviewsLoadMoreText');
+        if (textEl) textEl.textContent = `Cuộn trong khung để xem thêm các feedback cũ (${data.length} đánh giá)`;
+      } else {
+        loadMoreEl.style.display = 'none';
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi load reviews:', error);
+    container.innerHTML = `
+      <div class="reviews-empty">
+        <div><p style="margin:0;">Không thể tải đánh giá. Vui lòng thử lại sau.</p></div>
+      </div>
+    `;
+  }
+}
+
+function initReviewDialog() {
+  const openBtn = document.getElementById('openReviewDialogBtn');
+  const cancelBtn = document.getElementById('reviewCancel');
+  const form = document.getElementById('reviewForm');
+  const starsContainer = document.getElementById('reviewRatingInput');
+  const ratingInput = document.getElementById('reviewRating');
+
+  if (openBtn) {
+    openBtn.onclick = () => {
+      if (form) form.reset();
+      currentRating = 5;
+      if (ratingInput) ratingInput.value = 5;
+      updateStarUI(5);
+      const msg = document.getElementById('reviewMsg');
+      if (msg) msg.textContent = '';
+      openDialog('reviewDialog');
+    };
+  }
+
+  if (cancelBtn) {
+    cancelBtn.onclick = () => closeDialog('reviewDialog');
+  }
+
+  if (starsContainer) {
+    starsContainer.querySelectorAll('.star-btn').forEach(btn => {
+      btn.onclick = () => {
+        const val = parseInt(btn.dataset.value, 10) || 5;
+        currentRating = val;
+        if (ratingInput) ratingInput.value = val;
+        updateStarUI(val);
+      };
+    });
+  }
+
+  function updateStarUI(rating) {
+    if (!starsContainer) return;
+    starsContainer.querySelectorAll('.star-btn').forEach(btn => {
+      const val = parseInt(btn.dataset.value, 10) || 0;
+      btn.classList.toggle('active', val <= rating);
+    });
+  }
+
+  if (form) {
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('reviewName')?.value.trim() || '';
+      const content = document.getElementById('reviewContent')?.value.trim() || '';
+      const rating = parseInt(document.getElementById('reviewRating')?.value, 10) || 5;
+      const msg = document.getElementById('reviewMsg');
+
+      if (msg) msg.textContent = 'Đang gửi...';
+
+      try {
+        await api('/api/reviews', {
+          method: 'POST',
+          body: JSON.stringify({ name, content, rating })
+        });
+        if (msg) msg.textContent = '';
+        closeDialog('reviewDialog');
+        showToast('✅ Cảm ơn bạn đã gửi đánh giá!', 'success');
+        await loadReviews();
+      } catch (error) {
+        if (msg) msg.textContent = error.message;
+      }
+    };
+  }
+}
+
+// =========================================================
 // ACCOUNT
 // =========================================================
 
@@ -758,36 +930,173 @@ window.openStorePurchase = function(id) {
   openDialog('storeDetailDialog');
 };
 
-function storeCard(item) {
-  const image = item.image_url
-    ? `<div class="download-image"><img src="${esc(item.image_url)}" alt="${esc(item.title)}" loading="lazy" onerror="this.parentElement.classList.add('image-error')"></div>`
-    : `<div class="download-image no-image"><div class="download-placeholder-logo"><img src="/logo.png" alt="AnhVuong"></div></div>`;
+// =========================================================
+// FORMAT PRICE — Tự format từng số trong chuỗi giá
+// Hỗ trợ: "50000", "25000-1250000", "Liên hệ", "50k - 1m"
+// =========================================================
+function formatPrice(value) {
+  const str = String(value == null ? '' : value).trim();
+  if (!str) return 'MIỄN PHÍ';
 
+  // Nếu chuỗi chứa dấu "-" (khoảng giá) → format từng phần
+  if (str.includes('-')) {
+    const parts = str.split('-').map(p => p.trim()).filter(Boolean);
+    return parts.map(part => formatSinglePrice(part)).join(' - ');
+  }
+
+  return formatSinglePrice(str);
+}
+
+// Format 1 giá trị đơn lẻ
+function formatSinglePrice(value) {
+  const str = String(value == null ? '' : value).trim();
+  if (!str) return '';
+
+  // Nếu chuỗi đã có chữ "đ" hoặc "k" hoặc "m" (đơn vị) → giữ nguyên
+  if (/[đĐkKmM]$/.test(str) && !/^\d+$/.test(str.replace(/[.,\s]/g, ''))) {
+    return str;
+  }
+
+  // Xóa dấu chấm, phẩy, khoảng trắng
+  const numericStr = str.replace(/[.,\s]/g, '');
+
+  // Nếu là chuỗi số thuần → format có dấu chấm + "đ"
+  if (/^\d+$/.test(numericStr)) {
+    const num = parseInt(numericStr, 10);
+    if (!isNaN(num) && num >= 0) {
+      return num.toLocaleString('vi-VN') + 'đ';
+    }
+  }
+
+  // Không phải số thuần → giữ nguyên
+  return str;
+}
+
+
+function storeCard(item) {
+  // Ảnh
+  const image = item.image_url
+    ? `<div class="store-card-v4-image"><img src="${esc(item.image_url)}" alt="${esc(item.title)}" loading="lazy" onerror="this.parentElement.classList.add('image-error')"></div>`
+    : `<div class="store-card-v4-image no-image"><img src="/logo.png" alt="AnhVuong"></div>`;
+
+  // Sale badge (chỉ hiện khi sale_percent > 0)
+  const saleBadge = item.sale_percent > 0
+    ? `<div class="store-card-v4-sale">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+        </svg>
+        <span>SALE -${Number(item.sale_percent)}%</span>
+      </div>`
+    : '';
+
+  // Status badge (CÒN HÀNG / HẾT HÀNG)
+  const isActive = item.status !== 'inactive';
+  const statusBadge = isActive
+    ? `<div class="store-card-v4-status in-stock">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>CÒN HÀNG</span>
+      </div>`
+    : `<div class="store-card-v4-status out-of-stock">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        <span>HẾT HÀNG</span>
+      </div>`;
+
+  // Tên hiển thị: ưu tiên card_display_name > title
+  const displayName = item.card_display_name || item.title || '';
+
+  // Tính giá hiển thị — ưu tiên price_vnd (text), fallback về price
+  const rawPrice = String(item.price_vnd || '').trim() || String(item.price || '').trim() || 'MIỄN PHÍ';
+  const priceDisplay = rawPrice;
+  // Features từ description
   const lines = String(item.description || '').split('\n').map((s) => s.trim()).filter(Boolean);
   const features = lines.length
-    ? lines.slice(0, 5).map((line) => `<li>${esc(line)}</li>`).join('')
+    ? lines.slice(0, 6).map((line) => `<li>${esc(line)}</li>`).join('')
     : `<li>${esc('Chưa có mô tả.')}</li>`;
 
-  const hasStock = item.stock !== null && item.stock !== undefined;
+  // Kho / gói / đã bán
+  const stockDisplay = (item.stock === null || item.stock === undefined || Number(item.stock) === 0)
+    ? '∞'
+    : Number(item.stock);
+
+  const packagesCount = Number(item.packages_count) || 0;
+  const soldCount = Number(item.sold_count) || 0;
+
+  // Danh mục con (nếu có)
+  const subCat = item.sub_category
+    ? `<span class="store-card-v4-subcategory">
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+        ${esc(item.sub_category)}
+      </span>`
+    : '';
 
   return `
-    <article class="store-card-v2">
-      ${image}
-      <div class="store-card-v2-body">
-        ${item.tag ? `<span class="store-card-v2-tag">${esc(item.tag)}</span>` : ''}
-        <h3 class="store-card-v2-title">${esc(item.title)}</h3>
-        <ul class="store-card-v2-features">${features}</ul>
-        <div class="store-card-v2-divider"></div>
-        <div class="store-card-v2-meta">
-          ${hasStock ? `<span>Kho: <strong>${Number(item.stock)}</strong></span>` : '<span></span>'}
+    <article class="store-card-v4">
+      <div class="store-card-v4-header">
+        ${image}
+        ${saleBadge}
+        ${statusBadge}
+      </div>
+      <div class="store-card-v4-body">
+        <div class="store-card-v4-title-row">
+          <h3 class="store-card-v4-title">
+            <span class="store-card-v4-title-badge">
+              <span class="dot"></span>
+              ${esc(displayName)}
+            </span>
+          </h3>
+          ${subCat}
         </div>
-        <div class="store-card-v2-footer">
-          <div>
-            <div class="store-card-v2-price-label">GIÁ BÁN</div>
-            <div class="store-card-v2-price">${esc(item.price || 'MIỄN PHÍ')}</div>
+        <ul class="store-card-v4-features">${features}</ul>
+        <div class="store-card-v4-stats">
+          <div class="store-card-v4-stat">
+            <span class="stat-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                <path d="m3.3 7 8.7 5 8.7-5"/>
+                <path d="M12 22V12"/>
+              </svg>
+            </span>
+            <span class="stat-label">Kho: <strong>${stockDisplay}</strong></span>
           </div>
-          <button class="store-card-v2-buy" type="button" onclick="openStorePurchase(${Number(item.id)})">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <div class="store-card-v4-stat">
+            <span class="stat-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m7.5 4.27 9 5.15"/>
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                <path d="m3.3 7 8.7 5 8.7-5"/>
+                <path d="M12 22V12"/>
+              </svg>
+            </span>
+            <span class="stat-label">Gói: <strong>${packagesCount}</strong></span>
+          </div>
+          <div class="store-card-v4-stat">
+            <span class="stat-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </span>
+            <span class="stat-label">Đã bán: <strong>${soldCount}</strong></span>
+          </div>
+        </div>
+        <div class="store-card-v4-footer">
+          <div class="store-card-v4-price">
+            <div class="price-label">TỪ</div>
+            <div class="price-value">${esc(priceDisplay)}</div>
+          </div>
+          <button class="store-card-v4-buy" type="button" onclick="openStorePurchase(${Number(item.id)})">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"/>
+              <circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
             MUA
           </button>
         </div>
@@ -876,7 +1185,19 @@ function openStoreForm(item = null) {
   if ($('#storeDescription')) { $('#storeDescription').value = item?.description || ''; }
   if ($('#storeImage')) { $('#storeImage').value = item?.image_url || ''; }
   if ($('#storePrice')) { $('#storePrice').value = item?.price || 'MIỄN PHÍ'; }
-  if ($('#storeStock')) { $('#storeStock').value = (item?.stock === null || item?.stock === undefined) ? '' : item.stock; }
+  if ($('#storeStock')) { $('#storeStock').value = (item?.stock === null || item?.stock === undefined) ? 0 : item.stock; }
+
+  // Các trường mới
+  if ($('#storePriceVnd')) { $('#storePriceVnd').value = item?.price_vnd || ''; }
+  if ($('#storeCategory')) { $('#storeCategory').value = item?.category || 'SOFTWARE'; }
+  if ($('#storeSubCategory')) { $('#storeSubCategory').value = item?.sub_category || ''; }
+  if ($('#storeStatus')) { $('#storeStatus').value = item?.status || 'active'; }
+  if ($('#storeDownloadUrl')) { $('#storeDownloadUrl').value = item?.download_url || ''; }
+  if ($('#storeCardDisplayName')) { $('#storeCardDisplayName').value = item?.card_display_name || ''; }
+  if ($('#storeSoldCount')) { $('#storeSoldCount').value = item?.sold_count || 0; }
+  if ($('#storeSalePercent')) { $('#storeSalePercent').value = item?.sale_percent || 0; }
+  if ($('#storePackagesCount')) { $('#storePackagesCount').value = item?.packages_count || 0; }
+
   openDialog('storeDialog');
 }
 
@@ -924,7 +1245,17 @@ if (storeForm) {
       description: $('#storeDescription')?.value || '',
       image_url: $('#storeImage')?.value || '',
       price: $('#storePrice')?.value || 'MIỄN PHÍ',
-      stock: $('#storeStock')?.value || ''
+      stock: $('#storeStock')?.value || 0,
+      // Các trường mới
+      price_vnd: String($('#storePriceVnd')?.value || '').trim(),
+      category: $('#storeCategory')?.value || 'SOFTWARE',
+      sub_category: $('#storeSubCategory')?.value || '',
+      status: $('#storeStatus')?.value || 'active',
+      download_url: $('#storeDownloadUrl')?.value || '',
+      card_display_name: $('#storeCardDisplayName')?.value || '',
+      sold_count: Number($('#storeSoldCount')?.value || 0),
+      sale_percent: Number($('#storeSalePercent')?.value || 0),
+      packages_count: Number($('#storePackagesCount')?.value || 0)
     };
 
     try {
@@ -1748,6 +2079,8 @@ async function init() {
   await loadPublicDownloads();
   await loadStorePage();
   await loadSettings();
+  await loadReviews();
+  initReviewDialog();
   initNavButtons();
   initAdminNav();
   initMobileMenu();
