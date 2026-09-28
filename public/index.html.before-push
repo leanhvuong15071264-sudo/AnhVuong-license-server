@@ -1,0 +1,1684 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.">
+  <title>AnhVuong License</title>
+
+  <!-- ✅ FAVICON (từ realfavicongenerator.net) -->
+  <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+  <meta name="theme-color" content="#000000">
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/mobile-fix.css">
+
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+
+<body>
+
+<div id="toast"></div>
+
+<button id="themeToggle" class="theme-toggle" type="button"
+        aria-label="Chuyển giao diện sáng/tối"
+        title="Chuyển giao diện sáng/tối">
+  <span id="themeToggleIcon" class="theme-toggle-icon">☀</span>
+  <span id="themeToggleLabel" class="theme-toggle-label">Giao diện sáng</span>
+</button>
+
+<!-- Nút Đăng nhập nổi - CHỈ HIỆN TRÊN MOBILE -->
+<button class="floating-login-btn" id="floatingLoginBtn" type="button">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+    <polyline points="10 17 15 12 10 7"/>
+    <line x1="15" y1="12" x2="3" y2="12"/>
+  </svg>
+  Đăng nhập
+</button>
+
+<!-- Nút Tạo Key nổi - CHỈ HIỆN KHI ADMIN -->
+<button class="floating-create-btn" id="floatingCreateKey">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+  Tạo Key
+</button>
+
+
+<!-- =========================
+     PUBLIC APP
+========================= -->
+<div id="publicApp">
+
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
+      </div>
+      <div>
+        <strong>AnhVuong</strong>
+        <span>LICENSE</span>
+      </div>
+      <button type="button" class="mobile-menu-toggle" aria-label="Mở menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="main-nav">
+
+      <div class="nav-group-label">MENU</div>
+
+      <button class="nav-btn active" data-page="home">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 8.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V8.5"/></svg></span>
+        Trang chủ
+      </button>
+
+      <button class="nav-btn" data-page="store">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+        Cửa hàng
+      </button>
+
+      <button class="nav-btn" data-page="downloads">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        Tải xuống
+      </button>
+
+      <button class="nav-btn hidden" id="historyNav" data-page="history">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        Lịch sử
+      </button>
+
+      <button class="nav-btn hidden" id="accountNav" data-page="account">
+        <span>♙</span>
+        Tài khoản
+      </button>
+
+      <div class="nav-group-label">HỖ TRỢ</div>
+
+      <button class="nav-btn" data-page="contact">
+        <span>✉</span>
+        Liên hệ
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <div id="guestActions">
+        <button class="side-action" id="loginBtn">
+          Đăng nhập
+        </button>
+      </div>
+
+      <div id="userActions" class="hidden">
+        <div class="user-mini">
+          <div class="avatar" id="userAvatar">U</div>
+          <div>
+            <strong id="sideUsername">Khách</strong>
+            <span>Tài khoản khách</span>
+          </div>
+        </div>
+
+        <button class="side-action" id="logoutBtn">
+          Đăng xuất
+        </button>
+      </div>
+
+    </div>
+
+  </aside>
+
+  <main class="content">
+
+    <!-- HOME -->
+    <section id="homePage" class="page">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Trang chủ</h1>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div class="hero-content">
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+
+          <h2>
+            Hệ thống dịch vụ hỗ trợ game
+            <span>uy tín & chất lượng.</span>
+          </h2>
+
+          <p>
+            AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.
+          </p>
+
+          <div class="hero-description">
+            <p>
+              Chúng tôi cung cấp các giải pháp hỗ trợ kỹ thuật,
+              tối ưu hệ thống và tư vấn cấu hình game.
+            </p>
+
+            <p>
+              Hoàn toàn không can thiệp vào game, đảm bảo an toàn
+              cho tài khoản và thiết bị của bạn.
+            </p>
+          </div>
+
+          <div class="hero-buttons">
+            <button class="primary-btn" data-page-target="store">
+              Xem sản phẩm
+            </button>
+
+            <button class="secondary-btn" id="heroRegister">
+              Đăng ký tài khoản
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-logo">
+          <div class="hero-logo-inner">
+            <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+           ĐÁNH GIÁ KHÁCH HÀNG
+      ========================== -->
+      <section class="reviews-section" id="reviewsSection">
+        <div class="reviews-header">
+          <span class="eyebrow">⭐ ĐÁNH GIÁ TỪ KHÁCH HÀNG</span>
+          <h2>Khách hàng nói gì về chúng tôi?</h2>
+          <p>Phản hồi chân thực từ các khách hàng đã mua và kích hoạt key tự động tại hệ thống.</p>
+        </div>
+
+        <div id="reviewsList" class="reviews-grid">
+          <div class="loading-card">Đang tải đánh giá...</div>
+        </div>
+
+        <div class="reviews-footer">
+          <div class="reviews-load-more" id="reviewsLoadMore" style="display:none;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="7 13 12 18 17 13"/>
+              <polyline points="7 6 12 11 17 6"/>
+            </svg>
+            <span id="reviewsLoadMoreText">Cuộn trong khung để xem thêm các feedback cũ (10 đánh giá)</span>
+          </div>
+
+          <button class="reviews-write-btn" id="openReviewDialogBtn" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+            VIẾT ĐÁNH GIÁ CỦA BẠN
+          </button>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">SOFTWARE</span>
+          <h2>Tải xuống</h2>
+        </div>
+
+        <button class="text-btn" data-page-target="downloads">
+          Xem tất cả →
+        </button>
+      </div>
+
+      <div id="homeDownloads" class="download-grid">
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- STORE -->
+    <section id="storePage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Cửa hàng</h1>
+          <p class="top-description">
+            Mua sắm các sản phẩm và dịch vụ của chúng tôi.
+          </p>
+        </div>
+        <button class="primary-btn admin-store-btn hidden" id="addStoreItem">
+          + Thêm sản phẩm
+        </button>
+      </div>
+
+      <div id="storeContent">
+        <div class="loading-card">Đang tải sản phẩm...</div>
+      </div>
+
+    </section>
+
+
+    <!-- DOWNLOADS -->
+    <section id="downloadsPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h1>Tải xuống</h1>
+          <p class="top-description">
+            Xem thông tin phần mềm và tải xuống sau khi đăng nhập.
+          </p>
+        </div>
+      </div>
+
+      <div id="downloadsList" class="download-grid large-grid">
+        <div class="loading-card">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ACCOUNT -->
+    <section id="accountPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ACCOUNT</span>
+          <h1>Tài khoản</h1>
+        </div>
+      </div>
+
+      <div class="account-card">
+
+        <div class="account-header">
+          <div class="big-avatar" id="accountAvatar">U</div>
+
+          <div>
+            <span class="eyebrow">TÀI KHOẢN KHÁCH</span>
+            <h2 id="accountUsername">Khách</h2>
+            <p>Tài khoản khách AnhVuong License</p>
+          </div>
+        </div>
+
+        <div class="account-info">
+          <div>
+            <span>Tên tài khoản</span>
+            <strong id="accountNameInfo">—</strong>
+          </div>
+
+          <div>
+            <span>Loại tài khoản</span>
+            <strong>Tài khoản khách</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">ACTIVITY</span>
+          <h2>Nhật ký tài khoản</h2>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Chi tiết</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+
+          <tbody id="accountLogs">
+            <tr>
+              <td colspan="4">Đang tải...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+
+    <!-- HISTORY -->
+    <section id="historyPage" class="page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LỊCH SỬ</span>
+          <h1>Lịch sử tải xuống</h1>
+          <p class="top-description">
+            Các sản phẩm bạn đã tải xuống.
+          </p>
+        </div>
+      </div>
+
+      <div id="historyList" class="history-grid">
+        <div class="loading-card">
+          Đang tải lịch sử...
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- CONTACT -->
+    <section id="contactPage" class="page hidden">
+
+      <div class="contact-header">
+        <h1 id="contactTitle">Liên Hệ Hỗ Trợ</h1>
+        <p id="contactSubtitle">Chọn kênh phù hợp để liên hệ với chúng tôi</p>
+      </div>
+
+      <div class="contact-hours" id="contactHours">
+        ⏰ Hỗ trợ 8:00 – 23:00 hằng ngày · Ngoài giờ vui lòng để lại tin nhắn
+      </div>
+
+      <div class="contact-grid">
+
+        <!-- ZALO CÁ NHÂN -->
+        <div class="contact-card-zalo">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="12.466 19.2658 19.182 19.2658 12.466 29.4028 19.182 29.4028"/>
+                <path d="m41.517,4.5018l-29.011.0354C3.882,11.9372,1.282,21.9552,8.976,36.4482c.4875,1.7082-.359,3.42-1.9992,5.1283,2.3642.3218,4.7693-.1218,6.863-1.266,13.983,6.27,21.919,2.1805,29.644-2.7323l.0355-31.074c.0013-1.1046-.8931-2.001-1.9977-2.0023-.0015,0-.003,0-.0045,0h0Z"/>
+                <path d="m25.63,26.791c0,1.4425-1.2196,2.6118-2.724,2.6118s-2.724-1.1694-2.724-2.6118v-1.6978c0-1.4425,1.2196-2.6118,2.724-2.6118s2.724,1.1694,2.724,2.6118"/>
+                <path d="m34.7606,22.483h0c1.4987,0,2.7136,1.2149,2.7136,2.7136v1.4948c0,1.4987-1.2149,2.7136-2.7136,2.7136h0c-1.4987,0-2.7136-1.2149-2.7136-2.7136v-1.4948c0-1.4987,1.2149-2.7136,2.7136-2.7136Z"/>
+                <line x1="25.63" y1="29.403" x2="25.63" y2="22.482"/>
+                <path d="m28.311,18.955v9.1434c0,.7214.5848,1.3062,1.3062,1.3062h.3918"/>
+              </svg>
+            </span>
+            <span class="contact-card-badge" id="zaloPersonalLabel">Zalo</span>
+          </div>
+          <h3 id="zaloPersonalName">Zalo Cá Nhân</h3>
+          <p id="zaloPersonalDesc">Nhắn tin trực tiếp để được hỗ trợ 1-1 nhanh nhất</p>
+          <div class="contact-card-tag" id="zaloPersonalTag">Cá Nhân · Phản hồi nhanh</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="zaloPersonalBtn">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
+            </svg>
+            Di chuyển ngay
+          </a>
+        </div>
+
+        <!-- TIKTOK -->
+        <div class="contact-card-tiktok">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+              </svg>
+            </span>
+            <span class="contact-card-badge" id="tiktokLabel">TikTok</span>
+          </div>
+          <h3 id="tiktokName">TikTok</h3>
+          <p id="tiktokDesc">Theo dõi TikTok để cập nhật thông tin và ưu đãi mới nhất</p>
+          <div class="contact-card-tag" id="tiktokTag">Cộng Đồng · Cập nhật ưu đãi</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="tiktokBtn">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
+            </svg>
+            Di chuyển ngay
+          </a>
+        </div>
+
+        <!-- DISCORD -->
+        <div class="contact-card-discord">
+          <div class="contact-card-header">
+            <span class="contact-card-icon">
+              <svg viewBox="0 0 256 199" width="20" height="16" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+                <path d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" fill="#5865F2"/>
+              </svg>
+            </span>
+            <span class="contact-card-badge" id="discordLabel">Discord</span>
+          </div>
+          <h3 id="discordName">Discord Server</h3>
+          <p id="discordDesc">Tham gia server Discord để nhận hỗ trợ và cập nhật mới nhất</p>
+          <div class="contact-card-tag" id="discordTag">Cộng đồng · Hỗ trợ 24/7</div>
+          <a href="#" target="_blank" rel="noopener" class="contact-card-btn" id="discordBtn">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M229.66,157.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,160H128A104.11,104.11,0,0,1,24,56a8,8,0,0,1,16,0,88.1,88.1,0,0,0,88,88h76.69l-34.35-34.34a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,157.66Z"/>
+            </svg>
+            Tham gia ngay
+          </a>
+        </div>
+
+      </div>
+
+    </section>
+    <!-- ✅ ĐÓNG SECTION CONTACTPAGE Ở ĐÂY — TRƯỚC KHI VÀO ADMIN APP -->
+
+  </main>
+
+</div>
+<!-- ✅ ĐÓNG PUBLICAPP -->
+
+
+<!-- =========================
+     ADMIN APP
+========================= -->
+<div id="adminApp" class="hidden">
+
+  <aside class="sidebar admin-sidebar">
+
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
+      </div>
+      <div>
+        <strong>AnhVuong</strong>
+        <span>ADMIN</span>
+      </div>
+      <button type="button" class="mobile-menu-toggle" aria-label="Mở menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="main-nav">
+
+      <button class="admin-nav active" data-admin-page="dashboard">
+        <span>⌂</span>
+        Tổng quan
+      </button>
+
+      <button class="admin-nav" data-admin-page="keys">
+        <span>◆</span>
+        License Keys
+      </button>
+
+      <button class="admin-nav" data-admin-page="adminDownloads">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        Tải xuống
+      </button>
+
+      <button class="admin-nav" data-admin-page="adminStore">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+        Cửa hàng
+      </button>
+
+      <button class="admin-nav" data-admin-page="logs">
+        <span>≡</span>
+        Nhật ký
+      </button>
+
+      <button class="admin-nav" data-admin-page="settings">
+        <span>⚙</span>
+        Cài đặt
+      </button>
+
+      <button class="admin-nav" data-admin-page="userStats">
+        <span>♙</span>
+        Thống kê người dùng
+      </button>
+
+      <button class="admin-nav" data-admin-page="api">
+        <span>&lt;/&gt;</span>
+        API
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong id="adminUsername">Admin</strong>
+          <span>Quản trị viên</span>
+        </div>
+      </div>
+
+      <button class="side-action" id="backToWeb">
+        ← Về trang chủ
+      </button>
+
+      <button class="side-action danger" id="adminLogout">
+        Đăng xuất Admin
+      </button>
+    </div>
+
+  </aside>
+
+
+  <main class="content admin-content">
+
+    <!-- ADMIN DASHBOARD -->
+    <section id="adminDashboard" class="admin-page">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">ADMIN CONSOLE</span>
+          <h1>Tổng quan</h1>
+        </div>
+
+        <button class="primary-btn" id="quickCreate">
+          + Tạo Key
+        </button>
+      </div>
+
+      <section class="admin-hero">
+        <div>
+          <span class="eyebrow">LICENSE CONTROL</span>
+          <h2>Quản lý license<br>đơn giản hơn.</h2>
+          <p>
+            Kiểm soát key, HWID và thời hạn từ một bảng điều khiển.
+          </p>
+        </div>
+
+        <div class="admin-hero-logo">
+          <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+        </div>
+      </section>
+
+      <div class="stats">
+
+        <div class="stat-card">
+          <span>Tổng Key</span>
+          <strong id="sTotal">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Hoạt động</span>
+          <strong id="sActive">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Bị khóa</span>
+          <strong id="sBanned">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Đã bind HWID</span>
+          <strong id="sBound">0</strong>
+        </div>
+
+      </div>
+
+      <div class="panel status-panel">
+        <span class="status-dot"></span>
+        API đang hoạt động
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN KEYS -->
+    <section id="adminKeys" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">LICENSE MANAGEMENT</span>
+          <h1>License Keys</h1>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" placeholder="Tìm key, HWID hoặc ghi chú...">
+
+        <select id="filter">
+          <option value="all">Tất cả</option>
+          <option value="active">Hoạt động</option>
+          <option value="banned">Bị khóa</option>
+          <option value="disabled">Vô hiệu</option>
+        </select>
+
+        <button class="secondary-btn" id="bulkCreate">
+          Tạo hàng loạt
+        </button>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Trạng thái</th>
+              <th>Hạn</th>
+              <th>HWID</th>
+              <th>Thiết bị</th>
+              <th>Ghi chú</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN DOWNLOADS -->
+    <section id="adminDownloads" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">DOWNLOAD MANAGEMENT</span>
+          <h1>Tải xuống</h1>
+        </div>
+
+        <button class="primary-btn" id="addDownload">
+          + Thêm mục
+        </button>
+      </div>
+
+      <div id="adminDownloadList" class="download-grid">
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN STORE -->
+    <section id="adminStore" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">STORE MANAGEMENT</span>
+          <h1>Quản lý cửa hàng</h1>
+        </div>
+
+        <button class="primary-btn" id="addStoreItemAdmin">
+          + Thêm sản phẩm
+        </button>
+      </div>
+
+      <div id="adminStoreList" class="download-grid">
+        <div class="loading-card">Đang tải...</div>
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN LOGS -->
+    <section id="adminLogs" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">AUDIT</span>
+          <h1>Nhật ký</h1>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Key</th>
+              <th>Chi tiết</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+
+          <tbody id="logsRows"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN SETTINGS -->
+    <section id="adminSettings" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">CÀI ĐẶT</span>
+          <h1>Cài đặt liên hệ</h1>
+          <p class="top-description">Cập nhật nội dung trang liên hệ.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="padding: 28px;">
+
+        <form id="settingsForm">
+          <h3 style="margin-top:0;">📄 Tiêu đề</h3>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>Tiêu đề</label><input id="settingsContactTitle" class="settings-input"></div>
+            <div><label>Mô tả</label><input id="settingsContactSubtitle" class="settings-input"></div>
+            <div><label>Giờ hỗ trợ</label><input id="settingsContactHours" class="settings-input"></div>
+          </div>
+
+          <h3>💬 Zalo Cá Nhân</h3>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>📛 Tên hiển thị</label><input id="settingsZaloPersonalLabel" class="settings-input" placeholder="Zalo"></div>
+            <div><label>Số điện thoại</label><input id="settingsZaloPersonalPhone" class="settings-input" placeholder="0987654321"></div>
+            <div><label>Tên</label><input id="settingsZaloPersonalName" class="settings-input" placeholder="Zalo Cá Nhân"></div>
+            <div><label>Mô tả</label><input id="settingsZaloPersonalDesc" class="settings-input" placeholder="Nhắn tin trực tiếp..."></div>
+            <div><label>Tag</label><input id="settingsZaloPersonalTag" class="settings-input" placeholder="Cá Nhân · Phản hồi nhanh"></div>
+          </div>
+
+          <h3>🎵 TikTok</h3>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>📛 Tên hiển thị</label><input id="settingsTiktokLabel" class="settings-input" placeholder="TikTok"></div>
+            <div><label>Link TikTok</label><input id="settingsTiktokPhone" class="settings-input" placeholder="https://tiktok.com/@username"></div>
+            <div><label>Tên</label><input id="settingsTiktokName" class="settings-input" placeholder="TikTok"></div>
+            <div><label>Mô tả</label><input id="settingsTiktokDesc" class="settings-input" placeholder="Theo dõi TikTok..."></div>
+            <div><label>Tag</label><input id="settingsTiktokTag" class="settings-input" placeholder="Cộng Đồng · Cập nhật ưu đãi"></div>
+          </div>
+
+          <h3>💬 Discord</h3>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>📛 Tên hiển thị</label><input id="settingsDiscordLabel" class="settings-input" placeholder="Discord"></div>
+            <div><label>Link mời</label><input id="settingsDiscordLink" class="settings-input" placeholder="https://discord.gg/..."></div>
+            <div><label>Tên</label><input id="settingsDiscordName" class="settings-input" placeholder="Discord Server"></div>
+            <div><label>Mô tả</label><input id="settingsDiscordDesc" class="settings-input" placeholder="Tham gia server Discord..."></div>
+            <div><label>Tag</label><input id="settingsDiscordTag" class="settings-input" placeholder="Cộng đồng · Hỗ trợ 24/7"></div>
+          </div>
+
+          <h3>⭐ Tính năng nổi bật</h3>
+          <div style="display:grid; gap:12px; margin-bottom:20px;">
+            <div><label>Tính năng 1 (tiêu đề)</label><input id="settingsFeatureFast" class="settings-input" placeholder="Phản hồi nhanh"></div>
+            <div><label>Tính năng 1 (mô tả)</label><input id="settingsFeatureFastDesc" class="settings-input" placeholder="Thường trong vòng 5–15 phút..."></div>
+            <div><label>Tính năng 2 (tiêu đề)</label><input id="settingsFeatureProfessional" class="settings-input" placeholder="Hỗ trợ chuyên nghiệp"></div>
+            <div><label>Tính năng 2 (mô tả)</label><input id="settingsFeatureProfessionalDesc" class="settings-input" placeholder="Đội ngũ hỗ trợ giàu kinh nghiệm..."></div>
+            <div><label>Tính năng 3 (tiêu đề)</label><input id="settingsFeatureMultichannel" class="settings-input" placeholder="Đa kênh"></div>
+            <div><label>Tính năng 3 (mô tả)</label><input id="settingsFeatureMultichannelDesc" class="settings-input" placeholder="Zalo & TikTok đều được hỗ trợ..."></div>
+          </div>
+
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button type="submit" class="primary-btn">💾 Lưu cài đặt</button>
+            <button type="button" class="secondary-btn" onclick="loadSettingsAdmin()">🔄 Tải lại</button>
+          </div>
+          <div id="settingsMsg" class="form-message"></div>
+        </form>
+
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN USER STATS -->
+    <section id="adminUserStats" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">USER ANALYTICS</span>
+          <h1>Thống kê người dùng</h1>
+          <p class="top-description">Theo dõi lượt truy cập, tài khoản và lượt tải xuống.</p>
+        </div>
+        <button class="secondary-btn" id="refreshUserStats">
+          🔄 Làm mới
+        </button>
+      </div>
+
+      <!-- STATS TỔNG QUAN -->
+      <div class="stats stats-user" id="userStatsCards">
+        <div class="stat-card">
+          <span>Tổng tài khoản</span>
+          <strong id="statTotalUsers">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Đăng ký hôm nay</span>
+          <strong id="statTodayUsers">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Hoạt động 7 ngày</span>
+          <strong id="statActiveUsers">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Tỉ lệ chuyển đổi</span>
+          <strong id="statConversion">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Tổng lượt truy cập</span>
+          <strong id="statTotalViews">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Truy cập hôm nay</span>
+          <strong id="statTodayViews">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Truy cập 7 ngày</span>
+          <strong id="statWeekViews">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Tổng lượt tải</span>
+          <strong id="statTotalDownloads">—</strong>
+        </div>
+      </div>
+
+      <!-- THỐNG KÊ TẢI XUỐNG -->
+      <div class="section-heading" style="margin-top: 32px;">
+        <div>
+          <span class="eyebrow">DOWNLOAD STATS</span>
+          <h2>Thống kê tải xuống theo mục</h2>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tiêu đề</th>
+              <th>Phiên bản</th>
+              <th>Giá</th>
+              <th>Số lượt tải</th>
+            </tr>
+          </thead>
+          <tbody id="downloadStatsRows">
+            <tr><td colspan="5">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- DANH SÁCH USER -->
+      <div class="section-heading" style="margin-top: 32px;">
+        <div>
+          <span class="eyebrow">USER MANAGEMENT</span>
+          <h2>Quản lý tài khoản</h2>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-bottom: 16px;">
+        <input id="userSearch" placeholder="Tìm theo username hoặc email...">
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tài khoản</th>
+              <th>Email</th>
+              <th>Ngày tạo</th>
+              <th>Đăng nhập cuối</th>
+              <th>Tải xuống</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="userListRows">
+            <tr><td colspan="7">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ADMIN API -->
+    <section id="adminApi" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">DEVELOPER</span>
+          <h1>Client API</h1>
+        </div>
+      </div>
+
+      <div class="panel api-panel">
+
+        <h3>Kích hoạt License</h3>
+
+        <pre>POST /api/license/activate
+
+{
+  "key": "AAAAA-BBBBB-CCCCC-DDDDD",
+  "hwid": "client-hwid"
+}</pre>
+
+        <h3>Kiểm tra License</h3>
+
+        <pre>POST /api/license/validate
+
+{
+  "key": "AAAAA-BBBBB-CCCCC-DDDDD",
+  "hwid": "client-hwid"
+}</pre>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+<!-- ✅ ĐÓNG ADMINAPP -->
+
+
+<!-- =====================================================
+     TẤT CẢ DIALOG NẰM TRỰC TIẾP TRONG BODY
+     KHÔNG NẰM TRONG SECTION NÀO
+====================================================== -->
+
+<!-- =========================
+     LOGIN DIALOG
+========================= -->
+<dialog id="loginDialog">
+  <div class="login-dialog-wrapper">
+
+    <button type="button" class="dialog-close" onclick="closeDialog('loginDialog')">
+      ×
+    </button>
+
+    <div class="login-dialog-header">
+      <div class="login-dialog-brand">
+        <span class="brand-icon">
+          <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+        </span>
+        <span>AnhVuong License</span>
+      </div>
+      <p class="login-dialog-welcome">Chào mừng bạn trở lại</p>
+      <h2>Đăng nhập</h2>
+    </div>
+
+    <form id="loginForm" class="login-dialog-form">
+      <div class="login-dialog-field">
+        <label>Tên đăng nhập</label>
+        <input id="loginUsername" type="text" placeholder="Nhập tên đăng nhập" required autocomplete="username">
+      </div>
+
+      <div class="login-dialog-field">
+        <label>Mật khẩu</label>
+        <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+      </div>
+
+      <!-- Cloudflare Turnstile -->
+      <div class="cf-turnstile" 
+           data-sitekey="0x4AAAAAAFGu2Lw1wSXqDJkD" 
+           data-theme="dark" 
+           data-size="flexible"></div>
+
+      <div id="loginMsg" class="form-message"></div>
+
+      <button class="login-dialog-submit" type="submit">Đăng nhập</button>
+
+      <div class="login-dialog-footer">
+        <span>Chưa có tài khoản?</span>
+        <button type="button" id="switchRegister">Đăng ký</button>
+      </div>
+    </form>
+
+  </div>
+</dialog>
+
+
+<!-- =========================
+     REGISTER DIALOG
+========================= -->
+<dialog id="registerDialog">
+  <div class="login-dialog-wrapper">
+
+    <button type="button" class="dialog-close" onclick="closeDialog('registerDialog')">
+      ×
+    </button>
+
+    <div class="login-dialog-header">
+      <div class="login-dialog-brand">
+        <span class="brand-icon">
+          <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+        </span>
+        <span>AnhVuong License</span>
+      </div>
+      <p class="login-dialog-welcome">Tạo tài khoản mới</p>
+      <h2>Đăng ký</h2>
+    </div>
+
+    <form id="registerForm" class="login-dialog-form">
+      <div class="login-dialog-field">
+        <label>Email</label>
+        <input id="registerEmail" type="email" placeholder="Vui lòng nhập email" required autocomplete="email">
+      </div>
+
+      <div class="login-dialog-field">
+        <label>Tên đăng nhập</label>
+        <input id="registerUsername" type="text" placeholder="Nhập tên đăng nhập" minlength="3" maxlength="32" required>
+      </div>
+
+      <div class="login-dialog-field">
+        <label>Mật khẩu</label>
+        <input id="registerPassword" type="password" placeholder="Nhập mật khẩu" minlength="6" required>
+      </div>
+
+      <!-- Cloudflare Turnstile -->
+      <div class="cf-turnstile" 
+           data-sitekey="0x4AAAAAAFGu2Lw1wSXqDJkD" 
+           data-theme="dark" 
+           data-size="flexible"></div>
+
+      <div id="registerMsg" class="form-message"></div>
+
+      <button class="login-dialog-submit" type="submit">Đăng ký</button>
+
+      <div class="login-dialog-footer">
+        <span>Đã có tài khoản?</span>
+        <button type="button" id="switchLogin">Đăng nhập</button>
+      </div>
+    </form>
+
+  </div>
+</dialog>
+
+
+<!-- =========================
+     ADMIN LOGIN DIALOG
+========================= -->
+<dialog id="adminLoginDialog">
+
+  <form id="adminLoginForm" class="dialog">
+
+    <button type="button" class="dialog-close" data-close="adminLoginDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">ADMIN CONSOLE</span>
+    <h2>Đăng nhập Admin</h2>
+    <p>Khu vực dành riêng cho quản trị viên.</p>
+
+    <label>Tài khoản Admin</label>
+    <input id="adminUsernameInput" required>
+
+    <label>Mật khẩu</label>
+    <input id="adminPasswordInput" type="password" required>
+
+    <div id="adminLoginMsg" class="form-message"></div>
+
+    <button class="primary-btn full" type="submit">
+      Vào Admin
+    </button>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================
+     DOWNLOAD DIALOG (Admin)
+========================= -->
+<dialog id="downloadDialog">
+
+  <form id="downloadForm" class="dialog">
+
+    <button type="button" class="dialog-close" data-close="downloadDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">DOWNLOAD MANAGER</span>
+    <h2 id="downloadDialogTitle">Thêm mục tải xuống</h2>
+
+    <label>Tên</label>
+    <input id="downloadTitle" maxlength="120" required>
+
+    <label>Mô tả</label>
+    <textarea id="downloadDescription" maxlength="2000"></textarea>
+
+    <label>Link hình ảnh</label>
+    <input id="downloadImage" maxlength="2000" placeholder="https://...">
+
+    <label>Link tải xuống</label>
+    <input id="downloadUrl" maxlength="2000" placeholder="https://..." required>
+
+    <label>Giá</label>
+    <input id="downloadPrice" maxlength="50" placeholder="MIỄN PHÍ">
+
+    <label>Phiên bản</label>
+    <input id="downloadVersion" maxlength="50" placeholder="1.0.0">
+
+    <label>Dung lượng</label>
+    <input id="downloadFileSize" maxlength="50" placeholder="1 tập tin">
+
+    <label>Discord</label>
+    <input id="downloadDiscord" maxlength="200" placeholder="Vai trò + kênh">
+
+    <label>Tiêu đề mô tả thêm</label>
+    <input id="downloadExtraTitle" maxlength="100" placeholder="GIỚI THIỆU VỀ BẢN MOD NÀY">
+
+    <label>Nội dung mô tả thêm</label>
+    <textarea id="downloadExtraDescription" maxlength="500" placeholder="Thạch Chi Khong Biet"></textarea>
+
+    <label>Khóa bản quyền hiển thị</label>
+    <input id="downloadLicenseKey" maxlength="50" placeholder="VNT-XXXX-XXXX-XXXX">
+
+    <label>Thông tin vận chuyển</label>
+    <input id="downloadShipping" maxlength="100" placeholder="truy cập tức">
+
+    <label>Nhãn hiển thị (badge)</label>
+    <input id="downloadBadge" maxlength="30" placeholder="SOFTWARE">
+    <div class="form-hint">Nhãn sẽ phát sáng xanh lá trên thẻ tải xuống. VD: SOFTWARE, PREMIUM, HOT, NEW...</div>
+
+    <input id="downloadId" type="hidden">
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="downloadCancel">
+        Hủy
+      </button>
+
+      <button class="primary-btn" type="submit">
+        Lưu
+      </button>
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================
+     STORE DIALOG (Admin)
+========================= -->
+<dialog id="storeDialog">
+  <form id="storeForm" class="dialog dialog-wide">
+    <button type="button" class="dialog-close" data-close="storeDialog">×</button>
+    <span class="eyebrow">STORE MANAGER</span>
+    <h2 id="storeDialogTitle">Thêm sản phẩm cửa hàng</h2>
+
+    <!-- HÀNG 1: Tên dịch vụ + Giá tiền -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Tên dịch vụ <span class="required">*</span></label>
+        <input id="storeTitle" maxlength="200" required placeholder="VD: graphics minecraft">
+      </div>
+      <div class="form-col">
+        <label>Giá tiền</label>
+        <input id="storePriceVnd" type="text" maxlength="100" placeholder="VD: 50k - 100k, Liên hệ, Miễn phí" value="">
+      </div>
+    </div>
+
+    <!-- HÀNG 2: Thuộc danh mục + Danh mục con -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Thuộc danh mục <span class="required">*</span></label>
+        <select id="storeCategory">
+          <option value="SOFTWARE">SOFTWARE</option>
+          <option value="Tools">Tools</option>
+          <option value="Panel">Panel</option>
+          <option value="Emulator">Emulator</option>
+        </select>
+      </div>
+      <div class="form-col">
+        <label>Danh mục con</label>
+        <input id="storeSubCategory" maxlength="50" placeholder="-- Không có --">
+      </div>
+    </div>
+
+    <!-- HÀNG 3: Link tải + Link ảnh -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Link tải Tool / Sản phẩm</label>
+        <input id="storeDownloadUrl" maxlength="2000" placeholder="https://...">
+      </div>
+      <div class="form-col">
+        <label>Link ảnh sản phẩm</label>
+        <input id="storeImage" maxlength="2000" placeholder="https://...">
+      </div>
+    </div>
+
+    <!-- HÀNG 4: Số lượng tồn kho + Trạng thái -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Số lượng tồn kho</label>
+        <input id="storeStock" type="number" min="0" value="0" placeholder="0">
+        <small class="form-hint">Số lượng tồn kho</small>
+      </div>
+      <div class="form-col">
+        <label>Trạng thái kinh doanh</label>
+        <select id="storeStatus">
+          <option value="active">Đang bán</option>
+          <option value="inactive">Ngừng bán</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- HÀNG 5: Tên hiển thị card + Lượt đã bán -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Tên hiển thị trên card</label>
+        <input id="storeCardDisplayName" maxlength="200" placeholder="VD: .panel, CSHELLVN">
+      </div>
+      <div class="form-col">
+        <label>Lượt đã bán</label>
+        <input id="storeSoldCount" type="number" min="0" value="0" placeholder="0">
+      </div>
+    </div>
+
+    <!-- HÀNG 6: Sale % + Số gói -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Sale (%)</label>
+        <input id="storeSalePercent" type="number" min="0" max="100" value="0" placeholder="0">
+        <small class="form-hint">Để 0 nếu không sale. VD: 20 → hiện "SALE -20%"</small>
+      </div>
+      <div class="form-col">
+        <label>Số gói</label>
+        <input id="storePackagesCount" type="number" min="0" value="0" placeholder="0">
+        <small class="form-hint">VD: 4 gói</small>
+      </div>
+    </div>
+
+    <!-- Nhãn badge -->
+    <label>Nhãn (badge) <span style="color:var(--muted); font-weight:400;">- không bắt buộc</span></label>
+    <input id="storeTag" maxlength="40" placeholder="VD: ACC CLONE FF">
+
+    <!-- Mô tả sản phẩm -->
+    <label>Mô tả sản phẩm &amp; Hướng dẫn</label>
+    <textarea id="storeDescription" maxlength="2000" placeholder="Mỗi dòng 1 tính năng, ví dụ:&#10;Aim safe&#10;Esp player&#10;Esp item"></textarea>
+    <div class="form-hint">Mỗi dòng sẽ hiện thành 1 gạch đầu dòng tính năng</div>
+
+    <!-- =========================
+         QUẢN LÝ GÓI SẢN PHẨM
+    ========================== -->
+    <div class="store-packages-section">
+      <div class="store-packages-header">
+        <label style="margin:0;">📦 Quản lý gói sản phẩm</label>
+        <button type="button" class="small-btn" id="addStorePackageBtn">+ Thêm gói</button>
+      </div>
+      <div class="form-hint" style="margin-bottom:10px;">
+        Mỗi gói có tên + giá gốc + giá sale + % sale + số key + thứ tự hiển thị.
+        <br>VD: "PANEL 1 NGÀY" — giá gốc 25.000đ — sale 20% → 20.000đ — còn ∞ key
+      </div>
+      <div id="storePackagesList" class="store-packages-list"></div>
+    </div>
+
+    <!-- Giá dạng text (fallback) -->
+    <input id="storePrice" type="hidden" value="MIỄN PHÍ">
+
+    <input id="storeId" type="hidden">
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="storeCancel">Hủy</button>
+      <button class="primary-btn" type="submit">Cập nhật</button>
+    </div>
+  </form>
+</dialog>
+
+
+<!-- =========================
+     LICENSE DIALOG
+========================= -->
+<dialog id="licenseDialog">
+
+  <form id="licenseForm" class="dialog">
+
+    <button type="button" class="dialog-close" data-close="licenseDialog">
+      ×
+    </button>
+
+    <span class="eyebrow">LICENSE MANAGER</span>
+
+    <h2 id="licenseDialogTitle">
+      Tạo License Key
+    </h2>
+
+    <label>Số lượng</label>
+    <input id="count" type="number" min="1" max="500" value="1">
+
+    <label>Thời hạn (ngày)</label>
+    <input id="duration" type="number" min="0" value="30">
+
+    <div class="form-hint">
+      Nhập 0 nếu muốn tạo key vĩnh viễn.
+    </div>
+
+    <div id="maxDevicesGroup" style="margin-bottom: 12px;">
+      <label for="maxDevices" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text);">
+        Số thiết bị tối đa
+      </label>
+      <input 
+        type="number" 
+        id="maxDevices" 
+        min="1" 
+        max="100" 
+        value="1" 
+        style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text);"
+      >
+      <small style="display: block; margin-top: 4px; color: var(--muted); font-size: 12px;">
+        Số thiết bị có thể kích hoạt key này (1-100)
+      </small>
+    </div>
+
+    <label>Ghi chú</label>
+    <input id="note" maxlength="500" placeholder="Khách hàng #001">
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="licenseCancel">
+        Hủy
+      </button>
+
+      <button class="primary-btn" type="submit">
+        Tạo Key
+      </button>
+    </div>
+
+    <pre id="created" class="created-keys"></pre>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================
+     DOWNLOAD DETAIL DIALOG
+========================= -->
+<dialog id="downloadDetailDialog">
+  <div class="detail-dialog-wrapper-v2">
+
+    <button type="button" class="dialog-close" onclick="closeDialog('downloadDetailDialog')">
+      ×
+    </button>
+
+    <div class="detail-dialog-layout-v2">
+
+      <div class="detail-dialog-image-v2">
+        <img id="detailImageV2" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')">
+        <div class="detail-image-placeholder" id="detailImagePlaceholder">
+          <img src="/logo.png" alt="AnhVuong" style="width:60px; height:60px; object-fit:contain; border-radius:12px;">
+        </div>
+      </div>
+
+      <div class="detail-dialog-content-v2">
+
+        <div class="detail-dialog-breadcrumb-v2">
+          Trang chủ / Cửa hàng / <span id="detailTitleBreadcrumbV2">Sản phẩm</span>
+        </div>
+
+        <h2 id="detailTitleV2">Tên sản phẩm</h2>
+
+        <div class="detail-dialog-price-row-v2">
+          <span class="detail-dialog-price-v2" id="detailPriceV2">MIỄN PHÍ</span>
+          <button class="detail-dialog-download-btn-v2" id="detailDownloadBtnV2">
+            ↓ Tải xuống
+          </button>
+        </div>
+
+        <p class="detail-dialog-desc-v2" id="detailDescriptionV2">
+          Tài khoản của bạn có quyền truy cập vào sản phẩm này.
+        </p>
+
+        <div class="detail-dialog-info-grid-v2">
+          <div>
+            <span>Giá</span>
+            <strong id="detailMetaPriceV2">MIỄN PHÍ</strong>
+          </div>
+          <div>
+            <span>Phiên bản</span>
+            <strong id="detailMetaVersionV2">—</strong>
+          </div>
+          <div>
+            <span>Vận chuyển</span>
+            <strong id="detailMetaShippingV2">truy cập tức</strong>
+          </div>
+          <div>
+            <span>Tải xuống</span>
+            <strong id="detailMetaFilesV2">1 tập tin</strong>
+          </div>
+          <div>
+            <span>Discord</span>
+            <strong id="detailMetaDiscordV2">Vai trò + kênh</strong>
+          </div>
+        </div>
+
+        <div class="detail-dialog-extra-desc-v2">
+          <span id="detailExtraTitleV2">GIỚI THIỆU VỀ BẢN MOD NÀY</span>
+          <p id="detailExtraDescV2">Thạch Chi Khong Biet</p>
+        </div>
+
+        <div class="detail-dialog-key-section-v2">
+          <label>Đổi mã khóa</label>
+          <div class="detail-key-input-row-v2">
+            <input id="detailKeyInputV2" placeholder="Bạn đã có khóa chưa? Dán nó vào bên dưới.">
+            <button class="detail-key-submit-btn-v2" id="detailKeySubmitV2">Chuộc lại</button>
+          </div>
+          <div id="detailKeyMsgV2" class="form-message"></div>
+          <div class="detail-key-hint-v2">
+            <span>Khóa bản quyền</span>
+            <strong id="detailKeyDisplayV2">VNT-XXXX-XXXX-XXXX</strong>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</dialog>
+
+
+<!-- =========================
+     STORE DETAIL DIALOG - MUA HÀNG (v3 - có gói)
+========================= -->
+<dialog id="storeDetailDialog">
+  <div class="store-buy-dialog">
+
+    <button type="button" class="dialog-close" onclick="closeDialog('storeDetailDialog')">
+      ×
+    </button>
+
+    <!-- HEADER -->
+    <div class="store-buy-header">
+      <div class="store-buy-brand">
+        <span class="store-buy-brand-logo">
+          <img src="/logo.png" alt="AnhVuong">
+        </span>
+        <span class="store-buy-brand-name" id="storeBuyBrandName">ANHVUONG</span>
+      </div>
+      <h2 class="store-buy-title" id="storeBuyTitle">Tên sản phẩm</h2>
+    </div>
+
+    <!-- BODY 2 CỘT -->
+    <div class="store-buy-body">
+
+      <!-- CỘT TRÁI: ảnh + mô tả -->
+      <div class="store-buy-left">
+        <div class="store-buy-image">
+          <img id="storeBuyImage" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')">
+          <div class="store-buy-image-placeholder">
+            <img src="/logo.png" alt="AnhVuong">
+          </div>
+        </div>
+
+        <div class="store-buy-features">
+          <div class="store-buy-features-title">
+            <span class="features-icon">📋</span>
+            <span>MÔ TẢ SẢN PHẨM</span>
+          </div>
+          <ul id="storeBuyFeatures"></ul>
+        </div>
+      </div>
+
+      <!-- CỘT PHẢI: chọn gói + số lượng + tổng kết -->
+      <div class="store-buy-right">
+
+        <!-- Badges: CÒN HÀNG + SALE -->
+        <div class="store-buy-badges">
+          <span class="store-buy-badge in-stock" id="storeBuyStockBadge">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            CÒN HÀNG
+          </span>
+          <span class="store-buy-badge sale" id="storeBuySaleBadge" style="display:none;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span id="storeBuySaleText">SALE -20%</span>
+          </span>
+        </div>
+
+        <!-- Giá chính -->
+        <div class="store-buy-price-block">
+          <div class="store-buy-price-main">
+            <span id="storeBuyPrice">0đ</span>
+            <span class="store-buy-price-original" id="storeBuyPriceOriginal" style="display:none;"></span>
+            <span class="store-buy-price-discount" id="storeBuyPriceDiscount" style="display:none;">-20%</span>
+          </div>
+          <div class="store-buy-meta">
+            <span>Kho: <strong id="storeBuyStock">∞</strong></span>
+            <span class="dot-sep">·</span>
+            <span>Đã bán: <strong id="storeBuySold">0</strong></span>
+          </div>
+        </div>
+
+        <!-- CHỌN GÓI -->
+        <div class="store-buy-section">
+          <div class="store-buy-section-title">Chọn gói</div>
+          <div class="store-buy-packages" id="storeBuyPackages"></div>
+        </div>
+
+        <!-- SỐ LƯỢNG -->
+        <div class="store-buy-section">
+          <div class="store-buy-section-title">Số lượng mua</div>
+          <div class="store-buy-qty-row">
+            <div class="store-buy-qty">
+              <button type="button" class="qty-btn" id="storeBuyQtyMinus">−</button>
+              <input type="text" id="storeBuyQtyInput" value="1" readonly>
+              <button type="button" class="qty-btn" id="storeBuyQtyPlus">+</button>
+            </div>
+            <div class="store-buy-qty-info">
+              Kho khả dụng: <strong id="storeBuyQtyStock">∞ key</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÃ GIẢM GIÁ -->
+        <div class="store-buy-section">
+          <div class="store-buy-section-title">Mã giảm giá</div>
+          <div class="store-buy-coupon">
+            <input type="text" id="storeBuyCouponInput" placeholder="Nhập mã...">
+            <button type="button" class="coupon-btn" id="storeBuyCouponBtn">Áp dụng</button>
+          </div>
+          <div class="store-buy-coupon-msg" id="storeBuyCouponMsg"></div>
+        </div>
+
+        <!-- TỔNG KẾT -->
+        <div class="store-buy-summary">
+          <div class="store-buy-summary-row">
+            <span>Đơn giá:</span>
+            <strong id="storeBuyUnitPrice">0đ</strong>
+          </div>
+          <div class="store-buy-summary-row">
+            <span>Số lượng:</span>
+            <strong id="storeBuyQtySummary">1</strong>
+          </div>
+          <div class="store-buy-summary-row total">
+            <span>Thành tiền:</span>
+            <strong id="storeBuyTotal">0đ</strong>
+          </div>
+        </div>
+
+        <!-- NÚT MUA -->
+        <button class="store-buy-submit" id="storeBuySubmit" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Liên hệ Admin để mua ngay
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</dialog>
+
+<!-- =========================
+     REVIEW DIALOG (Viết đánh giá)
+========================= -->
+<dialog id="reviewDialog">
+  <form id="reviewForm" class="dialog">
+    <button type="button" class="dialog-close" data-close="reviewDialog">×</button>
+
+    <span class="eyebrow">ĐÁNH GIÁ DỊCH VỤ</span>
+    <h2>Viết đánh giá của bạn</h2>
+    <p>Cảm ơn bạn đã sử dụng dịch vụ. Hãy để lại đánh giá để chúng tôi phục vụ tốt hơn!</p>
+
+    <label>Tên của bạn <span class="required">*</span></label>
+    <input id="reviewName" type="text" maxlength="60" placeholder="VD: Nguyễn Văn A" required>
+
+    <label>Số sao <span class="required">*</span></label>
+    <div class="review-rating-input" id="reviewRatingInput">
+      <button type="button" class="star-btn" data-value="1"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="2"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="3"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="4"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="5"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+    </div>
+    <input type="hidden" id="reviewRating" value="5">
+
+    <label>Nội dung đánh giá <span class="required">*</span></label>
+    <textarea id="reviewContent" maxlength="1000" placeholder="Chia sẻ trải nghiệm của bạn về dịch vụ..." required></textarea>
+
+    <div id="reviewMsg" class="form-message"></div>
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" id="reviewCancel">Hủy</button>
+      <button class="primary-btn" type="submit">Gửi đánh giá</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- =========================
+     USER DETAIL DIALOG
+========================= -->
+<dialog id="userDetailDialog">
+  <div class="dialog" style="max-width: 500px;">
+    <button type="button" class="dialog-close" data-close="userDetailDialog">×</button>
+    <span class="eyebrow">USER DETAILS</span>
+    <h2 id="userDetailTitle">Chi tiết tài khoản</h2>
+    <div id="userDetailBody" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div class="loading-card">Đang tải...</div>
+    </div>
+  </div>
+</dialog>
+
+
+<!-- =========================
+     THEME TOGGLE SCRIPT
+========================= -->
+<script>
+  (function () {
+    const root = document.documentElement;
+    const button = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeToggleIcon');
+    const label = document.getElementById('themeToggleLabel');
+
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      localStorage.setItem('anhvuong-theme', theme);
+
+      if (theme === 'light') {
+        icon.textContent = '☾';
+        label.textContent = 'Giao diện tối';
+        button.title = 'Chuyển sang giao diện tối';
+      } else {
+        icon.textContent = '☀';
+        label.textContent = 'Giao diện sáng';
+        button.title = 'Chuyển sang giao diện sáng';
+      }
+    }
+
+    const saved = localStorage.getItem('anhvuong-theme');
+    applyTheme(saved === 'light' ? 'light' : 'dark');
+
+    button.addEventListener('click', function () {
+      const next =
+        root.getAttribute('data-theme') === 'light'
+          ? 'dark'
+          : 'light';
+
+      applyTheme(next);
+    });
+  })();
+</script>
+
+<script src="/app.js"></script>
+
+</body>
+</html>
