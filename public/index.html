@@ -27,6 +27,9 @@
 
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/mobile-fix.css">
+
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body>
@@ -994,6 +997,12 @@
         <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required autocomplete="current-password">
       </div>
 
+      <!-- Cloudflare Turnstile -->
+      <div class="cf-turnstile" 
+           data-sitekey="0x4AAAAAAFGu2Lw1wSXqDJkD" 
+           data-theme="dark" 
+           data-size="flexible"></div>
+
       <div id="loginMsg" class="form-message"></div>
 
       <button class="login-dialog-submit" type="submit">Đăng nhập</button>
@@ -1044,6 +1053,12 @@
         <label>Mật khẩu</label>
         <input id="registerPassword" type="password" placeholder="Nhập mật khẩu" minlength="6" required>
       </div>
+
+      <!-- Cloudflare Turnstile -->
+      <div class="cf-turnstile" 
+           data-sitekey="0x4AAAAAAFGu2Lw1wSXqDJkD" 
+           data-theme="dark" 
+           data-size="flexible"></div>
 
       <div id="registerMsg" class="form-message"></div>
 
@@ -1263,6 +1278,21 @@
     <textarea id="storeDescription" maxlength="2000" placeholder="Mỗi dòng 1 tính năng, ví dụ:&#10;Aim safe&#10;Esp player&#10;Esp item"></textarea>
     <div class="form-hint">Mỗi dòng sẽ hiện thành 1 gạch đầu dòng tính năng</div>
 
+    <!-- =========================
+         QUẢN LÝ GÓI SẢN PHẨM
+    ========================== -->
+    <div class="store-packages-section">
+      <div class="store-packages-header">
+        <label style="margin:0;">📦 Quản lý gói sản phẩm</label>
+        <button type="button" class="small-btn" id="addStorePackageBtn">+ Thêm gói</button>
+      </div>
+      <div class="form-hint" style="margin-bottom:10px;">
+        Mỗi gói có tên + giá gốc + giá sale + % sale + số key + thứ tự hiển thị.
+        <br>VD: "PANEL 1 NGÀY" — giá gốc 25.000đ — sale 20% → 20.000đ — còn ∞ key
+      </div>
+      <div id="storePackagesList" class="store-packages-list"></div>
+    </div>
+
     <!-- Giá dạng text (fallback) -->
     <input id="storePrice" type="hidden" value="MIỄN PHÍ">
 
@@ -1428,61 +1458,128 @@
 
 
 <!-- =========================
-     STORE DETAIL DIALOG - MUA HÀNG
+     STORE DETAIL DIALOG - MUA HÀNG (v3 - có gói)
 ========================= -->
 <dialog id="storeDetailDialog">
-  <div class="detail-dialog-wrapper-v2 store-detail-v2">
+  <div class="store-buy-dialog">
 
     <button type="button" class="dialog-close" onclick="closeDialog('storeDetailDialog')">
       ×
     </button>
 
-    <div class="detail-dialog-layout-v2">
+    <!-- HEADER -->
+    <div class="store-buy-header">
+      <div class="store-buy-brand">
+        <span class="store-buy-brand-logo">
+          <img src="/logo.png" alt="AnhVuong">
+        </span>
+        <span class="store-buy-brand-name" id="storeBuyBrandName">ANHVUONG</span>
+      </div>
+      <h2 class="store-buy-title" id="storeBuyTitle">Tên sản phẩm</h2>
+    </div>
 
-      <div class="store-detail-v2-left">
-        <div class="detail-dialog-image-v2">
-          <img id="storeDetailImage" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')">
-          <div class="detail-image-placeholder" id="storeDetailPlaceholder">
-            <img src="/logo.png" alt="AnhVuong" style="width:60px; height:60px; object-fit:contain; border-radius:12px;">
+    <!-- BODY 2 CỘT -->
+    <div class="store-buy-body">
+
+      <!-- CỘT TRÁI: ảnh + mô tả -->
+      <div class="store-buy-left">
+        <div class="store-buy-image">
+          <img id="storeBuyImage" src="" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('image-error')">
+          <div class="store-buy-image-placeholder">
+            <img src="/logo.png" alt="AnhVuong">
           </div>
         </div>
 
-        <div class="store-detail-v2-features">
-          <h4>Tính năng sản phẩm</h4>
-          <ul id="storeDetailFeatures"></ul>
+        <div class="store-buy-features">
+          <div class="store-buy-features-title">
+            <span class="features-icon">📋</span>
+            <span>MÔ TẢ SẢN PHẨM</span>
+          </div>
+          <ul id="storeBuyFeatures"></ul>
         </div>
       </div>
 
-      <div class="detail-dialog-content-v2">
+      <!-- CỘT PHẢI: chọn gói + số lượng + tổng kết -->
+      <div class="store-buy-right">
 
-        <span class="store-detail-v2-tag" id="storeDetailTag"></span>
-
-        <div class="detail-dialog-breadcrumb-v2">
-          Trang chủ / Cửa hàng / <span id="storeDetailTitleBreadcrumb">Sản phẩm</span>
+        <!-- Badges: CÒN HÀNG + SALE -->
+        <div class="store-buy-badges">
+          <span class="store-buy-badge in-stock" id="storeBuyStockBadge">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            CÒN HÀNG
+          </span>
+          <span class="store-buy-badge sale" id="storeBuySaleBadge" style="display:none;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span id="storeBuySaleText">SALE -20%</span>
+          </span>
         </div>
 
-        <div class="store-detail-v2-title-row">
-          <h2 id="storeDetailTitle">Tên sản phẩm</h2>
-          <span class="status active">Còn hàng</span>
+        <!-- Giá chính -->
+        <div class="store-buy-price-block">
+          <div class="store-buy-price-main">
+            <span id="storeBuyPrice">0đ</span>
+            <span class="store-buy-price-original" id="storeBuyPriceOriginal" style="display:none;"></span>
+            <span class="store-buy-price-discount" id="storeBuyPriceDiscount" style="display:none;">-20%</span>
+          </div>
+          <div class="store-buy-meta">
+            <span>Kho: <strong id="storeBuyStock">∞</strong></span>
+            <span class="dot-sep">·</span>
+            <span>Đã bán: <strong id="storeBuySold">0</strong></span>
+          </div>
         </div>
 
-        <div class="detail-dialog-price-row-v2">
-          <span class="detail-dialog-price-v2" id="storeDetailPrice">MIỄN PHÍ</span>
+        <!-- CHỌN GÓI -->
+        <div class="store-buy-section">
+          <div class="store-buy-section-title">Chọn gói</div>
+          <div class="store-buy-packages" id="storeBuyPackages"></div>
         </div>
 
-        <div class="store-detail-v2-stock" id="storeDetailStock"></div>
-
-        <div class="store-detail-v2-divider"></div>
-
-        <div class="store-contact-info">
-          <p style="color: var(--muted); font-size: 13px; margin: 0 0 12px;">
-            📩 Liên hệ với Admin để mua ngay sản phẩm này
-          </p>
-          <button class="store-detail-v2-buy" onclick="goToContact()">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            Liên hệ Admin để mua ngay
-          </button>
+        <!-- SỐ LƯỢNG -->
+        <div class="store-buy-section">
+          <div class="store-buy-section-title">Số lượng mua</div>
+          <div class="store-buy-qty-row">
+            <div class="store-buy-qty">
+              <button type="button" class="qty-btn" id="storeBuyQtyMinus">−</button>
+              <input type="text" id="storeBuyQtyInput" value="1" readonly>
+              <button type="button" class="qty-btn" id="storeBuyQtyPlus">+</button>
+            </div>
+            <div class="store-buy-qty-info">
+              Kho khả dụng: <strong id="storeBuyQtyStock">∞ key</strong>
+            </div>
+          </div>
         </div>
+
+        <!-- MÃ GIẢM GIÁ -->
+        <div class="store-buy-section">
+          <div class="store-buy-section-title">Mã giảm giá</div>
+          <div class="store-buy-coupon">
+            <input type="text" id="storeBuyCouponInput" placeholder="Nhập mã...">
+            <button type="button" class="coupon-btn" id="storeBuyCouponBtn">Áp dụng</button>
+          </div>
+          <div class="store-buy-coupon-msg" id="storeBuyCouponMsg"></div>
+        </div>
+
+        <!-- TỔNG KẾT -->
+        <div class="store-buy-summary">
+          <div class="store-buy-summary-row">
+            <span>Đơn giá:</span>
+            <strong id="storeBuyUnitPrice">0đ</strong>
+          </div>
+          <div class="store-buy-summary-row">
+            <span>Số lượng:</span>
+            <strong id="storeBuyQtySummary">1</strong>
+          </div>
+          <div class="store-buy-summary-row total">
+            <span>Thành tiền:</span>
+            <strong id="storeBuyTotal">0đ</strong>
+          </div>
+        </div>
+
+        <!-- NÚT MUA -->
+        <button class="store-buy-submit" id="storeBuySubmit" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Liên hệ Admin để mua ngay
+        </button>
 
       </div>
 

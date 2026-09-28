@@ -7,6 +7,66 @@ const { query, pool } = require('./db');
 const crypto = require('crypto');
 const path = require('path');
 const dns = require('dns');
+const https = require('https');
+
+/* =========================================================
+   CLOUDFLARE TURNSTILE VERIFY
+========================================================= */
+
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET || '';
+
+async function verifyTurnstile(token, remoteip) {
+  // Nếu chưa cấu hình secret → bỏ qua verify (dev mode)
+  if (!TURNSTILE_SECRET) {
+    console.warn('⚠️  TURNSTILE_SECRET chưa cấu hình — bỏ qua verify captcha');
+    return true;
+  }
+
+  if (!token) return false;
+
+  return new Promise((resolve) => {
+    const postData = new URLSearchParams({
+      secret: TURNSTILE_SECRET,
+      response: token,
+      remoteip: remoteip || ''
+    }).toString();
+
+    const options = {
+      hostname: 'challenges.cloudflare.com',
+      path: '/turnstile/v0/siteverify',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (!result.success) {
+            console.warn('Turnstile verify failed:', result['error-codes'] || result);
+          }
+          resolve(result.success === true);
+        } catch (err) {
+          console.error('Turnstile parse error:', err.message);
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      console.error('Turnstile request error:', err.message);
+      resolve(false);
+    });
+
+    req.write(postData);
+    req.end();
+  });
+}
 
 /* =========================================================
    RSA SIGNATURE
@@ -111,15 +171,22 @@ const ip = req =>
     ''
   ).split(',')[0].trim();
 
-// Middleware đếm lượt truy cập (bỏ qua static files và API)
+// Middleware đếm lượt truy cập (TỐI ƯU: chỉ đếm 1 lần / session / path)
 app.use(async (req, res, next) => {
-  // Chỉ đếm request GET đến trang HTML (không đếm API, static)
   if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.includes('.')) {
     try {
-      await query(`
-        INSERT INTO page_views (path, ip, user_agent, created_at)
-        VALUES ($1, $2, $3, $4)
-      `, [req.path || '/', ip(req), String(req.headers['user-agent'] || '').slice(0, 500), now()]);
+      // Chỉ đếm 1 lần / session / path — giảm tải DB Neon
+      if (!req.session) req.session = {};
+      if (!req.session.viewedPaths) req.session.viewedPaths = {};
+      const pathKey = req.path || '/';
+      
+      if (!req.session.viewedPaths[pathKey]) {
+        req.session.viewedPaths[pathKey] = true;
+        await query(`
+          INSERT INTO page_views (path, ip, user_agent, created_at)
+          VALUES ($1, $2, $3, $4)
+        `, [pathKey, ip(req), String(req.headers['user-agent'] || '').slice(0, 500), now()]);
+      }
     } catch (e) {
       // Bỏ qua lỗi đếm view
     }
@@ -151,6 +218,29 @@ app.use('/api', (req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
+  next();
+});
+
+// =========================================================
+// ĐẾM LƯỢT TRUY CẬP (TỐI ƯU: 1 lần / session / path)
+// =========================================================
+app.use(async (req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.includes('.')) {
+    try {
+      if (!req.session.viewedPaths) req.session.viewedPaths = {};
+      const pathKey = req.path || '/';
+      
+      if (!req.session.viewedPaths[pathKey]) {
+        req.session.viewedPaths[pathKey] = true;
+        await query(`
+          INSERT INTO page_views (path, ip, user_agent, created_at)
+          VALUES ($1, $2, $3, $4)
+        `, [pathKey, ip(req), String(req.headers['user-agent'] || '').slice(0, 500), now()]);
+      }
+    } catch (e) {
+      // Bỏ qua lỗi đếm view
+    }
+  }
   next();
 });
 
@@ -479,6 +569,13 @@ app.post('/api/admin/login', async (req, res) => {
   try {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const turnstileToken = String(req.body.turnstileToken || '');
+
+    // ✅ VERIFY TURNSTILE
+    const captchaOk = await verifyTurnstile(turnstileToken, ip(req));
+    if (!captchaOk) {
+      return res.status(400).json({ error: 'Xác minh captcha thất bại, vui lòng thử lại' });
+    }
 
     const expectedUser = adminUsername();
     const expectedPassword = String(process.env.ADMIN_PASSWORD || '');
@@ -518,6 +615,13 @@ app.post('/api/auth/register', async (req, res) => {
     const email = String(req.body.email || '').trim().toLowerCase();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const turnstileToken = String(req.body.turnstileToken || '');
+
+    // ✅ VERIFY TURNSTILE
+    const captchaOk = await verifyTurnstile(turnstileToken, ip(req));
+    if (!captchaOk) {
+      return res.status(400).json({ error: 'Xác minh captcha thất bại, vui lòng thử lại' });
+    }
 
     if (!email || !EMAIL_REGEX.test(email)) {
       return res.status(400).json({ error: 'Vui lòng nhập email hợp lệ' });
@@ -576,6 +680,13 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const turnstileToken = String(req.body.turnstileToken || '');
+
+    // ✅ VERIFY TURNSTILE
+    const captchaOk = await verifyTurnstile(turnstileToken, ip(req));
+    if (!captchaOk) {
+      return res.status(400).json({ error: 'Xác minh captcha thất bại, vui lòng thử lại' });
+    }
 
     const result = await query('SELECT * FROM users WHERE username=$1', [username]);
     const user = result.rows[0];
@@ -1484,7 +1595,20 @@ app.get('/api/store', async (req, res) => {
         created_at, updated_at
       FROM store_items ORDER BY id DESC
     `);
-    res.json(result.rows);
+
+    const items = result.rows;
+    const itemIds = items.map(it => it.id);
+
+    // Lấy packages cho tất cả sản phẩm (1 query)
+    const packagesMap = await getPackagesForItems(itemIds);
+
+    // Gắn packages vào từng item
+    const enriched = items.map(it => ({
+      ...it,
+      packages: packagesMap[String(it.id)] || []
+    }));
+
+    res.json(enriched);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Không thể lấy danh sách sản phẩm' });
@@ -1501,7 +1625,17 @@ app.get('/api/admin/store', requireAdmin, async (req, res) => {
         created_at, updated_at
       FROM store_items ORDER BY id DESC
     `);
-    res.json(result.rows);
+
+    const items = result.rows;
+    const itemIds = items.map(it => it.id);
+    const packagesMap = await getPackagesForItems(itemIds);
+
+    const enriched = items.map(it => ({
+      ...it,
+      packages: packagesMap[String(it.id)] || []
+    }));
+
+    res.json(enriched);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Không thể lấy danh sách sản phẩm' });
@@ -1543,22 +1677,61 @@ app.post('/api/admin/store', requireAdmin, async (req, res) => {
     }
 
     const t = now();
-    const result = await query(`
-      INSERT INTO store_items (
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const result = await client.query(`
+        INSERT INTO store_items (
+          title, description, image_url, price, tag, stock,
+          service_name, category, sub_category, price_vnd, status,
+          download_url, card_display_name, sold_count, sale_percent, packages_count,
+          created_at, updated_at
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *
+      `, [
         title, description, image_url, price, tag, stock,
         service_name, category, sub_category, price_vnd, status,
         download_url, card_display_name, sold_count, sale_percent, packages_count,
-        created_at, updated_at
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *
-    `, [
-      title, description, image_url, price, tag, stock,
-      service_name, category, sub_category, price_vnd, status,
-      download_url, card_display_name, sold_count, sale_percent, packages_count,
-      t, t
-    ]);
+        t, t
+      ]);
 
-    res.json({ item: result.rows[0] });
+      const newItem = result.rows[0];
+
+      // Insert packages nếu có
+      const packages = Array.isArray(req.body.packages) ? req.body.packages : [];
+      const inserted = [];
+      for (let i = 0; i < packages.length; i++) {
+        const p = packages[i];
+        const pName = String(p.name || '').trim().slice(0, 200);
+        if (!pName) continue;
+
+        const pResult = await client.query(`
+          INSERT INTO store_packages (
+            store_item_id, name, price_original, price_sale,
+            sale_percent, stock, sort_order, created_at, updated_at
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
+        `, [
+          newItem.id,
+          pName,
+          String(p.price_original || '').trim().slice(0, 100),
+          String(p.price_sale || '').trim().slice(0, 100),
+          Math.max(0, Math.min(100, parseInt(p.sale_percent, 10) || 0)),
+          Math.max(0, parseInt(p.stock, 10) || 0),
+          parseInt(p.sort_order, 10) || i,
+          t, t
+        ]);
+        inserted.push(pResult.rows[0]);
+      }
+
+      await client.query('COMMIT');
+      res.json({ item: { ...newItem, packages: inserted } });
+    } catch (innerErr) {
+      await client.query('ROLLBACK');
+      throw innerErr;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Không thể tạo sản phẩm' });
@@ -1607,21 +1780,69 @@ app.patch('/api/admin/store/:id', requireAdmin, async (req, res) => {
       }
     }
 
-    const result = await query(`
-      UPDATE store_items SET
-        title=$1, description=$2, image_url=$3, price=$4, tag=$5, stock=$6,
-        service_name=$7, category=$8, sub_category=$9, price_vnd=$10, status=$11,
-        download_url=$12, card_display_name=$13, sold_count=$14, sale_percent=$15, packages_count=$16,
-        updated_at=$17
-      WHERE id=$18 RETURNING *
-    `, [
-      title, description, image_url, price, tag, stock,
-      service_name, category, sub_category, price_vnd, status,
-      download_url, card_display_name, sold_count, sale_percent, packages_count,
-      now(), old.id
-    ]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    res.json({ item: result.rows[0] });
+      const result = await client.query(`
+        UPDATE store_items SET
+          title=$1, description=$2, image_url=$3, price=$4, tag=$5, stock=$6,
+          service_name=$7, category=$8, sub_category=$9, price_vnd=$10, status=$11,
+          download_url=$12, card_display_name=$13, sold_count=$14, sale_percent=$15, packages_count=$16,
+          updated_at=$17
+        WHERE id=$18 RETURNING *
+      `, [
+        title, description, image_url, price, tag, stock,
+        service_name, category, sub_category, price_vnd, status,
+        download_url, card_display_name, sold_count, sale_percent, packages_count,
+        now(), old.id
+      ]);
+
+      const updatedItem = result.rows[0];
+
+      // Nếu client gửi packages → thay thế toàn bộ
+      if (Array.isArray(req.body.packages)) {
+        await client.query('DELETE FROM store_packages WHERE store_item_id=$1', [old.id]);
+
+        const t = now();
+        const inserted = [];
+        for (let i = 0; i < req.body.packages.length; i++) {
+          const p = req.body.packages[i];
+          const pName = String(p.name || '').trim().slice(0, 200);
+          if (!pName) continue;
+
+          const pResult = await client.query(`
+            INSERT INTO store_packages (
+              store_item_id, name, price_original, price_sale,
+              sale_percent, stock, sort_order, created_at, updated_at
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
+          `, [
+            old.id,
+            pName,
+            String(p.price_original || '').trim().slice(0, 100),
+            String(p.price_sale || '').trim().slice(0, 100),
+            Math.max(0, Math.min(100, parseInt(p.sale_percent, 10) || 0)),
+            Math.max(0, parseInt(p.stock, 10) || 0),
+            parseInt(p.sort_order, 10) || i,
+            t, t
+          ]);
+          inserted.push(pResult.rows[0]);
+        }
+
+        await client.query('COMMIT');
+        res.json({ item: { ...updatedItem, packages: inserted } });
+      } else {
+        // Không gửi packages → giữ nguyên packages cũ
+        await client.query('COMMIT');
+        const pkgs = await getPackagesByItemId(old.id);
+        res.json({ item: { ...updatedItem, packages: pkgs } });
+      }
+    } catch (innerErr) {
+      await client.query('ROLLBACK');
+      throw innerErr;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Không thể cập nhật sản phẩm' });
@@ -1640,6 +1861,236 @@ app.delete('/api/admin/store/:id', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Không thể xóa sản phẩm' });
+  }
+});
+
+/* =========================================================
+   STORE PACKAGES API (CÁC GÓI CỦA SẢN PHẨM)
+========================================================= */
+
+// Helper: Lấy packages của 1 sản phẩm
+async function getPackagesByItemId(itemId) {
+  const result = await query(`
+    SELECT id, store_item_id, name, price_original, price_sale,
+           sale_percent, stock, sort_order, created_at, updated_at
+    FROM store_packages
+    WHERE store_item_id = $1
+    ORDER BY sort_order ASC, id ASC
+  `, [itemId]);
+  return result.rows;
+}
+
+// Helper: Lấy packages cho nhiều sản phẩm (1 query)
+async function getPackagesForItems(itemIds) {
+  if (!itemIds || itemIds.length === 0) return {};
+  const result = await query(`
+    SELECT id, store_item_id, name, price_original, price_sale,
+           sale_percent, stock, sort_order
+    FROM store_packages
+    WHERE store_item_id = ANY($1::bigint[])
+    ORDER BY store_item_id ASC, sort_order ASC, id ASC
+  `, [itemIds]);
+  
+  const map = {};
+  for (const row of result.rows) {
+    const key = String(row.store_item_id);
+    if (!map[key]) map[key] = [];
+    map[key].push(row);
+  }
+  return map;
+}
+
+// GET: Lấy packages của 1 sản phẩm (public)
+app.get('/api/store/:id/packages', async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id, 10);
+    if (!itemId) {
+      return res.status(400).json({ error: 'ID không hợp lệ' });
+    }
+    const packages = await getPackagesByItemId(itemId);
+    res.json(packages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách gói' });
+  }
+});
+
+// GET: Lấy packages của 1 sản phẩm (admin)
+app.get('/api/admin/store/:id/packages', requireAdmin, async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id, 10);
+    if (!itemId) {
+      return res.status(400).json({ error: 'ID không hợp lệ' });
+    }
+    const packages = await getPackagesByItemId(itemId);
+    res.json(packages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách gói' });
+  }
+});
+
+// POST: Thêm 1 gói mới cho sản phẩm
+app.post('/api/admin/store/:id/packages', requireAdmin, async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id, 10);
+    if (!itemId) {
+      return res.status(400).json({ error: 'ID sản phẩm không hợp lệ' });
+    }
+
+    // Kiểm tra sản phẩm tồn tại
+    const itemCheck = await query('SELECT id FROM store_items WHERE id=$1', [itemId]);
+    if (!itemCheck.rows.length) {
+      return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+    }
+
+    const name = String(req.body.name || '').trim().slice(0, 200);
+    const price_original = String(req.body.price_original || '').trim().slice(0, 100);
+    const price_sale = String(req.body.price_sale || '').trim().slice(0, 100);
+    const sale_percent = Math.max(0, Math.min(100, parseInt(req.body.sale_percent, 10) || 0));
+    const stock = Math.max(0, parseInt(req.body.stock, 10) || 0);
+    const sort_order = parseInt(req.body.sort_order, 10) || 0;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Tên gói là bắt buộc' });
+    }
+
+    const t = now();
+    const result = await query(`
+      INSERT INTO store_packages (
+        store_item_id, name, price_original, price_sale,
+        sale_percent, stock, sort_order, created_at, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
+    `, [itemId, name, price_original, price_sale, sale_percent, stock, sort_order, t, t]);
+
+    res.json({ package: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể thêm gói' });
+  }
+});
+
+// PATCH: Sửa 1 gói
+app.patch('/api/admin/store/packages/:packageId', requireAdmin, async (req, res) => {
+  try {
+    const packageId = parseInt(req.params.packageId, 10);
+    if (!packageId) {
+      return res.status(400).json({ error: 'ID gói không hợp lệ' });
+    }
+
+    const oldResult = await query('SELECT * FROM store_packages WHERE id=$1', [packageId]);
+    const old = oldResult.rows[0];
+    if (!old) {
+      return res.status(404).json({ error: 'Không tìm thấy gói' });
+    }
+
+    const name = String(req.body.name ?? old.name).trim().slice(0, 200);
+    const price_original = String(req.body.price_original ?? old.price_original).trim().slice(0, 100);
+    const price_sale = String(req.body.price_sale ?? old.price_sale).trim().slice(0, 100);
+    const sale_percent = req.body.sale_percent === undefined
+      ? old.sale_percent
+      : Math.max(0, Math.min(100, parseInt(req.body.sale_percent, 10) || 0));
+    const stock = req.body.stock === undefined
+      ? old.stock
+      : Math.max(0, parseInt(req.body.stock, 10) || 0);
+    const sort_order = req.body.sort_order === undefined
+      ? old.sort_order
+      : (parseInt(req.body.sort_order, 10) || 0);
+
+    if (!name) {
+      return res.status(400).json({ error: 'Tên gói là bắt buộc' });
+    }
+
+    const result = await query(`
+      UPDATE store_packages SET
+        name=$1, price_original=$2, price_sale=$3,
+        sale_percent=$4, stock=$5, sort_order=$6, updated_at=$7
+      WHERE id=$8 RETURNING *
+    `, [name, price_original, price_sale, sale_percent, stock, sort_order, now(), packageId]);
+
+    res.json({ package: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể cập nhật gói' });
+  }
+});
+
+// DELETE: Xoá 1 gói
+app.delete('/api/admin/store/packages/:packageId', requireAdmin, async (req, res) => {
+  try {
+    const packageId = parseInt(req.params.packageId, 10);
+    if (!packageId) {
+      return res.status(400).json({ error: 'ID gói không hợp lệ' });
+    }
+
+    const oldResult = await query('SELECT * FROM store_packages WHERE id=$1', [packageId]);
+    const row = oldResult.rows[0];
+    if (!row) {
+      return res.status(404).json({ error: 'Không tìm thấy gói' });
+    }
+
+    await query('DELETE FROM store_packages WHERE id=$1', [packageId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể xoá gói' });
+  }
+});
+
+// PUT: Thay toàn bộ packages của 1 sản phẩm (dùng khi lưu form sản phẩm)
+// Body: { packages: [{ name, price_original, price_sale, sale_percent, stock, sort_order }, ...] }
+app.put('/api/admin/store/:id/packages', requireAdmin, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const itemId = parseInt(req.params.id, 10);
+    if (!itemId) {
+      return res.status(400).json({ error: 'ID sản phẩm không hợp lệ' });
+    }
+
+    const itemCheck = await client.query('SELECT id FROM store_items WHERE id=$1', [itemId]);
+    if (!itemCheck.rows.length) {
+      return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+    }
+
+    const packages = Array.isArray(req.body.packages) ? req.body.packages : [];
+
+    await client.query('BEGIN');
+
+    // Xoá hết packages cũ
+    await client.query('DELETE FROM store_packages WHERE store_item_id=$1', [itemId]);
+
+    // Insert lại
+    const inserted = [];
+    for (let i = 0; i < packages.length; i++) {
+      const p = packages[i];
+      const name = String(p.name || '').trim().slice(0, 200);
+      if (!name) continue; // bỏ qua gói không có tên
+
+      const price_original = String(p.price_original || '').trim().slice(0, 100);
+      const price_sale = String(p.price_sale || '').trim().slice(0, 100);
+      const sale_percent = Math.max(0, Math.min(100, parseInt(p.sale_percent, 10) || 0));
+      const stock = Math.max(0, parseInt(p.stock, 10) || 0);
+      const sort_order = parseInt(p.sort_order, 10) || i;
+
+      const t = now();
+      const result = await client.query(`
+        INSERT INTO store_packages (
+          store_item_id, name, price_original, price_sale,
+          sale_percent, stock, sort_order, created_at, updated_at
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
+      `, [itemId, name, price_original, price_sale, sale_percent, stock, sort_order, t, t]);
+
+      inserted.push(result.rows[0]);
+    }
+
+    await client.query('COMMIT');
+    res.json({ packages: inserted });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lưu danh sách gói' });
+  } finally {
+    client.release();
   }
 });
 

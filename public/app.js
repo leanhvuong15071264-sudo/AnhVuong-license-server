@@ -11,6 +11,14 @@ let storeItems = [];
 let userStatsData = { users: [], downloads: [] };
 let currentDetailItem = null;
 
+// State cho dialog mua hàng mới
+let storeBuyState = {
+  item: null,
+  packages: [],
+  selectedPackageId: null,
+  qty: 1
+};
+
 // =========================================================
 // CHERRY BLOSSOM
 // =========================================================
@@ -243,6 +251,13 @@ if (loginBtn) {
     if (msg) { msg.textContent = ''; }
     const form = $('#loginForm');
     if (form) { form.reset(); }
+    
+    // Reset Turnstile
+    if (window.turnstile) {
+      const widgets = document.querySelectorAll('#loginDialog .cf-turnstile');
+      widgets.forEach(w => { try { window.turnstile.reset(w); } catch {} });
+    }
+    
     openDialog('loginDialog');
   };
 }
@@ -254,6 +269,13 @@ if (registerBtn) {
     if (msg) { msg.textContent = ''; }
     const form = $('#registerForm');
     if (form) { form.reset(); }
+    
+    // Reset Turnstile
+    if (window.turnstile) {
+      const widgets = document.querySelectorAll('#registerDialog .cf-turnstile');
+      widgets.forEach(w => { try { window.turnstile.reset(w); } catch {} });
+    }
+    
     openDialog('registerDialog');
   };
 }
@@ -266,6 +288,13 @@ if (heroRegister) {
     if (msg) { msg.textContent = ''; }
     const form = $('#registerForm');
     if (form) { form.reset(); }
+
+    // Reset Turnstile
+    if (window.turnstile) {
+      const widgets = document.querySelectorAll('#registerDialog .cf-turnstile');
+      widgets.forEach(w => { try { window.turnstile.reset(w); } catch {} });
+    }
+
     openDialog('registerDialog');
   };
 }
@@ -274,7 +303,14 @@ const switchRegister = $('#switchRegister');
 if (switchRegister) {
   switchRegister.onclick = () => {
     closeDialog('loginDialog');
-    setTimeout(() => { openDialog('registerDialog'); }, 150);
+    setTimeout(() => { 
+      // Reset Turnstile trước khi mở register
+      if (window.turnstile) {
+        const widgets = document.querySelectorAll('#registerDialog .cf-turnstile');
+        widgets.forEach(w => { try { window.turnstile.reset(w); } catch {} });
+      }
+      openDialog('registerDialog'); 
+    }, 150);
   };
 }
 
@@ -282,7 +318,14 @@ const switchLogin = $('#switchLogin');
 if (switchLogin) {
   switchLogin.onclick = () => {
     closeDialog('registerDialog');
-    setTimeout(() => { openDialog('loginDialog'); }, 150);
+    setTimeout(() => { 
+      // Reset Turnstile trước khi mở login
+      if (window.turnstile) {
+        const widgets = document.querySelectorAll('#loginDialog .cf-turnstile');
+        widgets.forEach(w => { try { window.turnstile.reset(w); } catch {} });
+      }
+      openDialog('loginDialog'); 
+    }, 150);
   };
 }
 
@@ -295,14 +338,23 @@ if (loginForm) {
     const username = $('#loginUsername')?.value.trim() || '';
     const password = $('#loginPassword')?.value || '';
 
+    // ✅ THÊM: Lấy Turnstile token
+    const turnstileToken = document.querySelector('#loginDialog [name="cf-turnstile-response"]')?.value || '';
+
     const message = $('#loginMsg');
     if (message) { message.textContent = 'Đang đăng nhập...'; }
+
+    // ✅ THÊM: Kiểm tra token
+    if (!turnstileToken) {
+      if (message) { message.textContent = 'Vui lòng xác minh captcha'; }
+      return;
+    }
 
     try {
       try {
         const adminResult = await api('/api/admin/login', {
           method: 'POST',
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ username, password, turnstileToken })
         });
         if (adminResult && adminResult.role === 'admin') {
           adminLoggedIn = true;
@@ -323,13 +375,23 @@ if (loginForm) {
 
       const result = await api('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, turnstileToken })
       });
 
-      currentUser = result;
-      adminLoggedIn = false;
-      closeDialog('loginDialog');
-      updateUserUI();
+    currentUser = result;
+    adminLoggedIn = false;
+    closeDialog('loginDialog');
+    
+    // ✅ Reset Turnstile sau khi login thành công
+    if (window.turnstile) {
+      setTimeout(() => {
+        document.querySelectorAll('#loginDialog .cf-turnstile').forEach(w => {
+          try { window.turnstile.reset(w); } catch {}
+        });
+      }, 300);
+    }
+    
+    updateUserUI();
       document.querySelector('.admin-store-btn')?.classList.add('hidden');
       const floatingBtn = document.getElementById('floatingCreateKey');
       if (floatingBtn) floatingBtn.classList.remove('visible');
@@ -350,13 +412,22 @@ if (registerForm) {
     const username = $('#registerUsername')?.value.trim() || '';
     const password = $('#registerPassword')?.value || '';
 
+    // ✅ THÊM: Lấy Turnstile token
+    const turnstileToken = document.querySelector('#registerDialog [name="cf-turnstile-response"]')?.value || '';
+
     const message = $('#registerMsg');
     if (message) { message.textContent = 'Đang tạo tài khoản...'; }
+
+    // ✅ THÊM: Kiểm tra token
+    if (!turnstileToken) {
+      if (message) { message.textContent = 'Vui lòng xác minh captcha'; }
+      return;
+    }
 
     try {
       const result = await api('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ email, username, password })
+        body: JSON.stringify({ email, username, password, turnstileToken })
       });
       currentUser = result;
       adminLoggedIn = false;
@@ -519,6 +590,7 @@ async function loadPublicDownloads() {
   }
 }
 
+window.renderStorePackages = renderStorePackages;
 window.downloadItem = async function (id) {
   if (!currentUser) {
     showToast('Bạn cần đăng ký hoặc đăng nhập để tải xuống.', 'error');
@@ -684,14 +756,6 @@ async function loadReviews() {
           <div class="review-avatar">${DEFAULT_AVATAR_SVG}</div>
           <div class="review-info">
             <h4 class="review-name">${esc(review.name)}</h4>
-            <div class="review-meta">
-              <span class="review-badge">
-                <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Chưa mua hàng
-              </span>
-            </div>
           </div>
           <div class="review-stars">${renderStars(review.rating)}</div>
         </div>
@@ -883,49 +947,315 @@ window.goToContact = function() {
   showPublicPage('contact');
 };
 
+// Chọn 1 gói
+function selectStorePackage(packageId) {
+  storeBuyState.selectedPackageId = Number(packageId);
+
+  // Highlight gói được chọn
+  document.querySelectorAll('#storeBuyPackages .store-buy-package').forEach(el => {
+    el.classList.toggle('selected', Number(el.dataset.packageId) === Number(packageId));
+  });
+
+  // Cập nhật giá
+  const pkg = storeBuyState.packages.find(p => Number(p.id) === Number(packageId));
+  if (!pkg) return;
+
+  const priceEl = $('#storeBuyPrice');
+  const priceOrigEl = $('#storeBuyPriceOriginal');
+  const priceDiscountEl = $('#storeBuyPriceDiscount');
+
+  const hasSale = Number(pkg.sale_percent) > 0 && pkg.price_sale && pkg.price_sale.trim() !== '';
+  const finalPrice = hasSale ? pkg.price_sale : (pkg.price_original || pkg.price_sale || 'Miễn phí');
+
+  if (priceEl) priceEl.textContent = finalPrice || 'Miễn phí';
+
+  if (priceOrigEl) {
+    if (hasSale && pkg.price_original) {
+      priceOrigEl.textContent = pkg.price_original;
+      priceOrigEl.style.display = 'inline';
+    } else {
+      priceOrigEl.textContent = '';
+      priceOrigEl.style.display = 'none';
+    }
+  }
+
+  if (priceDiscountEl) {
+    if (hasSale && Number(pkg.sale_percent) > 0) {
+      priceDiscountEl.textContent = `-${pkg.sale_percent}%`;
+      priceDiscountEl.style.display = 'inline';
+    } else {
+      priceDiscountEl.textContent = '';
+      priceDiscountEl.style.display = 'none';
+    }
+  }
+
+  // Cập nhật kho khả dụng
+  const qtyStock = $('#storeBuyQtyStock');
+  if (qtyStock) {
+    const s = Number(pkg.stock) || 0;
+    qtyStock.textContent = s === 0 ? '∞ key' : `${s} key`;
+  }
+
+  updateStoreBuySummary();
+}
+
+// Render danh sách gói
+function renderStorePackages() {
+  const container = $('#storeBuyPackages');
+  if (!container) return;
+
+  if (!storeBuyState.packages.length) {
+    container.innerHTML = `<div class="store-buy-package-empty">Sản phẩm chưa có gói — vui lòng liên hệ Admin.</div>`;
+    return;
+  }
+
+  container.innerHTML = storeBuyState.packages.map(pkg => {
+    const hasSale = Number(pkg.sale_percent) > 0 && pkg.price_sale && pkg.price_sale.trim() !== '';
+    const stockText = Number(pkg.stock) === 0 ? '∞ key' : `${pkg.stock} key`;
+
+    const priceHtml = hasSale
+      ? `<span class="store-buy-package-price-original">${esc(pkg.price_original)}</span>
+         <span class="store-buy-package-price-discount">-${Number(pkg.sale_percent)}%</span>
+         <span class="store-buy-package-price-sale">${esc(pkg.price_sale)}</span>`
+      : `<span class="store-buy-package-price-sale">${esc(pkg.price_original || pkg.price_sale || 'Miễn phí')}</span>`;
+
+    return `
+      <div class="store-buy-package" data-package-id="${Number(pkg.id)}" onclick="selectStorePackage(${Number(pkg.id)})">
+        <div class="store-buy-package-info">
+          <div class="store-buy-package-name">${esc(pkg.name)}</div>
+          <div class="store-buy-package-stock">
+            <span class="stock-icon">🔑</span>
+            Còn <strong>${esc(stockText)}</strong>
+          </div>
+        </div>
+        <div class="store-buy-package-price">
+          ${priceHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Cập nhật box tổng kết
+function updateStoreBuySummary() {
+  const pkg = storeBuyState.packages.find(p => Number(p.id) === Number(storeBuyState.selectedPackageId));
+
+  // Lấy giá đơn vị
+  let unitPrice = '0';
+  if (pkg) {
+    const hasSale = Number(pkg.sale_percent) > 0 && pkg.price_sale && pkg.price_sale.trim() !== '';
+    const finalPrice = hasSale ? pkg.price_sale : (pkg.price_original || pkg.price_sale || '0');
+    unitPrice = String(finalPrice).replace(/[^\d]/g, '') || '0';
+  } else if (storeBuyState.item) {
+    const raw = String(storeBuyState.item.price_vnd || storeBuyState.item.price || '0');
+    unitPrice = raw.replace(/[^\d]/g, '') || '0';
+  }
+
+  const unitNum = parseInt(unitPrice, 10) || 0;
+  const qty = storeBuyState.qty || 1;
+  const total = unitNum * qty;
+
+  const fmt = (n) => n.toLocaleString('vi-VN') + 'đ';
+
+  const unitEl = $('#storeBuyUnitPrice');
+  if (unitEl) unitEl.textContent = fmt(unitNum);
+
+  const qtyEl = $('#storeBuyQtySummary');
+  if (qtyEl) qtyEl.textContent = qty;
+
+  const totalEl = $('#storeBuyTotal');
+  if (totalEl) totalEl.textContent = fmt(total);
+}
+
+// Tăng/giảm số lượng
+function initStoreBuyQty() {
+  const minusBtn = $('#storeBuyQtyMinus');
+  const plusBtn = $('#storeBuyQtyPlus');
+  const input = $('#storeBuyQtyInput');
+
+  if (minusBtn && input) {
+    minusBtn.onclick = () => {
+      const cur = parseInt(input.value, 10) || 1;
+      if (cur > 1) {
+        input.value = String(cur - 1);
+        storeBuyState.qty = cur - 1;
+        updateStoreBuySummary();
+      }
+    };
+  }
+
+  if (plusBtn && input) {
+    plusBtn.onclick = () => {
+      const cur = parseInt(input.value, 10) || 1;
+      // Giới hạn nếu có stock
+      const pkg = storeBuyState.packages.find(p => Number(p.id) === Number(storeBuyState.selectedPackageId));
+      const maxStock = pkg ? Number(pkg.stock) : 0;
+      if (maxStock > 0 && cur >= maxStock) {
+        showToast(`Chỉ còn ${maxStock} key trong kho`, 'error');
+        return;
+      }
+      input.value = String(cur + 1);
+      storeBuyState.qty = cur + 1;
+      updateStoreBuySummary();
+    };
+  }
+}
+
+// Mã giảm giá (UI demo — luôn báo không hợp lệ)
+function initStoreBuyCoupon() {
+  const btn = $('#storeBuyCouponBtn');
+  const input = $('#storeBuyCouponInput');
+  const msg = $('#storeBuyCouponMsg');
+
+  if (btn && input && msg) {
+    btn.onclick = () => {
+      const code = input.value.trim();
+      if (!code) {
+        msg.textContent = 'Vui lòng nhập mã giảm giá';
+        msg.className = 'store-buy-coupon-msg error';
+        return;
+      }
+      msg.textContent = '❌ Mã không hợp lệ, vui lòng liên hệ Admin để nhận mã';
+      msg.className = 'store-buy-coupon-msg error';
+    };
+  }
+}
+
+// Nút submit → chuyển sang tab Liên hệ
+function initStoreBuySubmit() {
+  const btn = $('#storeBuySubmit');
+  if (btn) {
+    btn.onclick = () => {
+      // Lưu thông tin để có thể log/debug
+      const pkg = storeBuyState.packages.find(p => Number(p.id) === Number(storeBuyState.selectedPackageId));
+      console.log('[StoreBuy] Đơn hàng:', {
+        item: storeBuyState.item?.title,
+        package: pkg?.name,
+        qty: storeBuyState.qty
+      });
+
+      showToast('Đang chuyển đến trang Liên hệ...', 'success');
+      closeDialog('storeDetailDialog');
+      setTimeout(() => goToContact(), 200);
+    };
+  }
+}
+
+// Export để onclick gọi được
+window.selectStorePackage = selectStorePackage;
+
 window.openStorePurchase = function(id) {
   const item = storeItems.find(x => Number(x.id) === Number(id));
   if (!item) { showToast('Không tìm thấy sản phẩm.', 'error'); return; }
 
-  const img = $('#storeDetailImage');
-  if (img) {
+  // Reset state
+  storeBuyState = {
+    item: item,
+    packages: Array.isArray(item.packages) ? item.packages : [],
+    selectedPackageId: null,
+    qty: 1
+  };
+  
+  // ===== HEADER =====
+  const brandName = $('#storeBuyBrandName');
+  if (brandName) brandName.textContent = (item.card_display_name || item.title || 'ANHVUONG').toUpperCase().slice(0, 30);
+
+  const titleEl = $('#storeBuyTitle');
+  if (titleEl) titleEl.textContent = item.title || 'Sản phẩm';
+
+  // ===== ẢNH =====
+  const img = $('#storeBuyImage');
+  const imgWrap = img?.parentElement;
+  if (img && imgWrap) {
     if (item.image_url && item.image_url.trim() !== '') {
       img.src = item.image_url;
       img.alt = item.title || '';
       img.style.display = 'block';
-      img.parentElement.classList.remove('image-error');
+      imgWrap.classList.remove('image-error');
     } else {
       img.src = '';
       img.alt = '';
       img.style.display = 'none';
-      img.parentElement.classList.add('image-error');
+      imgWrap.classList.add('image-error');
     }
   }
 
-  const breadcrumb = $('#storeDetailTitleBreadcrumb');
-  if (breadcrumb) breadcrumb.textContent = item.title || 'Sản phẩm';
-
-  const title = $('#storeDetailTitle');
-  if (title) title.textContent = item.title || 'Không có tên';
-
-  const price = $('#storeDetailPrice');
-  if (price) price.textContent = item.price || 'MIỄN PHÍ';
-
-  const tagEl = $('#storeDetailTag');
-  if (tagEl) { tagEl.textContent = item.tag || ''; }
-
-  const stockEl = $('#storeDetailStock');
-  if (stockEl) {
-    stockEl.textContent = (item.stock === null || item.stock === undefined) ? '' : `Kho: ${item.stock}`;
-  }
-
-  const featuresEl = $('#storeDetailFeatures');
+  // ===== FEATURES =====
+  const featuresEl = $('#storeBuyFeatures');
   if (featuresEl) {
-    const lines = String(item.description || '').split('\n').map((s) => s.trim()).filter(Boolean);
+    const lines = String(item.description || '').split('\n').map(s => s.trim()).filter(Boolean);
     featuresEl.innerHTML = lines.length
-      ? lines.map((line) => `<li>${esc(line)}</li>`).join('')
-      : `<li>Liên hệ với admin để biết thêm chi tiết sản phẩm.</li>`;
+      ? lines.slice(0, 8).map(line => `<li>${esc(line)}</li>`).join('')
+      : `<li>Liên hệ Admin để biết thêm chi tiết.</li>`;
   }
+
+  // ===== BADGES =====
+  const stockBadge = $('#storeBuyStockBadge');
+  if (stockBadge) {
+    const isActive = item.status !== 'inactive';
+    stockBadge.className = 'store-buy-badge ' + (isActive ? 'in-stock' : 'sale');
+    stockBadge.innerHTML = isActive
+      ? `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> CÒN HÀNG`
+      : `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> HẾT HÀNG`;
+  }
+
+  const saleBadge = $('#storeBuySaleBadge');
+  const saleText = $('#storeBuySaleText');
+  if (saleBadge && saleText) {
+    // Sale badge hiển thị khi có ít nhất 1 gói có sale, hoặc item có sale_percent > 0
+    const hasSale = (item.sale_percent > 0) || storeBuyState.packages.some(p => Number(p.sale_percent) > 0);
+    if (hasSale) {
+      saleBadge.style.display = 'inline-flex';
+      const sp = item.sale_percent > 0 ? item.sale_percent : (storeBuyState.packages.find(p => Number(p.sale_percent) > 0)?.sale_percent || 0);
+      saleText.textContent = `SALE -${sp}%`;
+    } else {
+      saleBadge.style.display = 'none';
+    }
+  }
+
+  // ===== GIÁ =====
+  const priceEl = $('#storeBuyPrice');
+  const priceOrigEl = $('#storeBuyPriceOriginal');
+  const priceDiscountEl = $('#storeBuyPriceDiscount');
+
+  // Render danh sách gói
+  renderStorePackages();
+
+  // Nếu có gói → lấy gói đầu tiên làm mặc định
+  if (storeBuyState.packages.length > 0) {
+    selectStorePackage(storeBuyState.packages[0].id);
+  } else {
+    // Không có gói → dùng price_vnd của item
+    const rawPrice = String(item.price_vnd || item.price || 'MIỄN PHÍ').trim();
+    if (priceEl) priceEl.textContent = rawPrice;
+    if (priceOrigEl) priceOrigEl.style.display = 'none';
+    if (priceDiscountEl) priceDiscountEl.style.display = 'none';
+
+    // Hiển thị thông báo chưa có gói
+    const pkgList = $('#storeBuyPackages');
+    if (pkgList) {
+      pkgList.innerHTML = `<div class="store-buy-package-empty">Sản phẩm chưa có gói — vui lòng liên hệ Admin để được tư vấn.</div>`;
+    }
+  }
+
+  // ===== META: Kho + Đã bán =====
+  const stockEl = $('#storeBuyStock');
+  if (stockEl) {
+    const s = (item.stock === null || item.stock === undefined || Number(item.stock) === 0) ? '∞' : item.stock;
+    stockEl.textContent = s;
+  }
+  const soldEl = $('#storeBuySold');
+  if (soldEl) soldEl.textContent = Number(item.sold_count) || 0;
+
+  // ===== RESET SỐ LƯỢNG + MÃ GIẢM GIÁ =====
+  const qtyInput = $('#storeBuyQtyInput');
+  if (qtyInput) qtyInput.value = '1';
+  const couponInput = $('#storeBuyCouponInput');
+  if (couponInput) couponInput.value = '';
+  const couponMsg = $('#storeBuyCouponMsg');
+  if (couponMsg) { couponMsg.textContent = ''; couponMsg.className = 'store-buy-coupon-msg'; }
+
+  updateStoreBuySummary();
 
   openDialog('storeDetailDialog');
 };
@@ -1197,8 +1527,142 @@ function openStoreForm(item = null) {
   if ($('#storeSoldCount')) { $('#storeSoldCount').value = item?.sold_count || 0; }
   if ($('#storeSalePercent')) { $('#storeSalePercent').value = item?.sale_percent || 0; }
   if ($('#storePackagesCount')) { $('#storePackagesCount').value = item?.packages_count || 0; }
+    // Render packages list trong form
+  renderAdminPackagesForm(item?.packages || []);
 
   openDialog('storeDialog');
+}
+
+// Render danh sách gói trong form admin
+function renderAdminPackagesForm(packages) {
+  const list = $('#storePackagesList');
+  if (!list) return;
+
+  if (!packages.length) {
+    list.innerHTML = `<div class="store-packages-empty">Chưa có gói nào. Nhấn "+ Thêm gói" để tạo gói mới.</div>`;
+    return;
+  }
+
+  list.innerHTML = packages.map((pkg, idx) => `
+    <div class="store-package-row" data-pkg-idx="${idx}">
+      <div class="pkg-field">
+        <label>Tên gói</label>
+        <input type="text" class="pkg-name" value="${esc(pkg.name || '')}" placeholder="PANEL 1 NGÀY">
+      </div>
+      <div class="pkg-field">
+        <label>Giá gốc</label>
+        <input type="text" class="pkg-price-original" value="${esc(pkg.price_original || '')}" placeholder="25.000đ">
+      </div>
+      <div class="pkg-field">
+        <label>Giá sale</label>
+        <input type="text" class="pkg-price-sale" value="${esc(pkg.price_sale || '')}" placeholder="20.000đ">
+      </div>
+      <div class="pkg-field">
+        <label>Sale %</label>
+        <input type="number" class="pkg-sale-percent" min="0" max="100" value="${Number(pkg.sale_percent) || 0}">
+      </div>
+      <div class="pkg-field">
+        <label>Số key</label>
+        <input type="number" class="pkg-stock" min="0" value="${Number(pkg.stock) || 0}">
+      </div>
+      <div class="pkg-field">
+        <label>Thứ tự</label>
+        <input type="number" class="pkg-sort-order" min="0" value="${Number(pkg.sort_order) || idx}">
+      </div>
+      <button type="button" class="pkg-remove-btn" onclick="removeAdminPackage(${idx})" title="Xoá gói">×</button>
+    </div>
+  `).join('');
+}
+
+// Thêm gói mới vào form
+function addAdminPackage() {
+  const list = $('#storePackagesList');
+  if (!list) return;
+
+  // Nếu đang empty → xoá thông báo
+  const empty = list.querySelector('.store-packages-empty');
+  if (empty) empty.remove();
+
+  const idx = list.querySelectorAll('.store-package-row').length;
+
+  const row = document.createElement('div');
+  row.className = 'store-package-row';
+  row.dataset.pkgIdx = String(idx);
+  row.innerHTML = `
+    <div class="pkg-field">
+      <label>Tên gói</label>
+      <input type="text" class="pkg-name" placeholder="PANEL 1 NGÀY">
+    </div>
+    <div class="pkg-field">
+      <label>Giá gốc</label>
+      <input type="text" class="pkg-price-original" placeholder="25.000đ">
+    </div>
+    <div class="pkg-field">
+      <label>Giá sale</label>
+      <input type="text" class="pkg-price-sale" placeholder="20.000đ">
+    </div>
+    <div class="pkg-field">
+      <label>Sale %</label>
+      <input type="number" class="pkg-sale-percent" min="0" max="100" value="0">
+    </div>
+    <div class="pkg-field">
+      <label>Số key</label>
+      <input type="number" class="pkg-stock" min="0" value="0">
+    </div>
+    <div class="pkg-field">
+      <label>Thứ tự</label>
+      <input type="number" class="pkg-sort-order" min="0" value="${idx}">
+    </div>
+    <button type="button" class="pkg-remove-btn" onclick="removeAdminPackage(${idx})" title="Xoá gói">×</button>
+  `;
+  list.appendChild(row);
+}
+
+// Xoá gói khỏi form
+function removeAdminPackage(idx) {
+  const list = $('#storePackagesList');
+  if (!list) return;
+  const row = list.querySelector(`.store-package-row[data-pkg-idx="${idx}"]`);
+  if (row) row.remove();
+
+  if (!list.querySelectorAll('.store-package-row').length) {
+    list.innerHTML = `<div class="store-packages-empty">Chưa có gói nào. Nhấn "+ Thêm gói" để tạo gói mới.</div>`;
+  }
+}
+
+// Thu thập packages từ form
+function collectAdminPackages() {
+  const list = $('#storePackagesList');
+  if (!list) return [];
+
+  const rows = list.querySelectorAll('.store-package-row');
+  const packages = [];
+
+  rows.forEach((row, i) => {
+    const name = row.querySelector('.pkg-name')?.value.trim() || '';
+    if (!name) return; // bỏ qua gói không có tên
+
+    packages.push({
+      name: name.slice(0, 200),
+      price_original: row.querySelector('.pkg-price-original')?.value.trim().slice(0, 100) || '',
+      price_sale: row.querySelector('.pkg-price-sale')?.value.trim().slice(0, 100) || '',
+      sale_percent: Math.max(0, Math.min(100, parseInt(row.querySelector('.pkg-sale-percent')?.value, 10) || 0)),
+      stock: Math.max(0, parseInt(row.querySelector('.pkg-stock')?.value, 10) || 0),
+      sort_order: parseInt(row.querySelector('.pkg-sort-order')?.value, 10) || i
+    });
+  });
+
+  return packages;
+}
+
+// Init nút "Thêm gói"
+function initAddPackageBtn() {
+  const addBtn = document.getElementById('addStorePackageBtn');
+  if (addBtn) {
+    addBtn.onclick = function() {
+      addAdminPackage();
+    };
+  }
 }
 
 window.editStoreItem = async function (id) {
@@ -1238,7 +1702,6 @@ if (storeForm) {
     event.preventDefault();
 
     const id = $('#storeId')?.value || '';
-
     const body = {
       title: $('#storeTitle')?.value || '',
       tag: $('#storeTag')?.value || '',
@@ -1255,7 +1718,8 @@ if (storeForm) {
       card_display_name: $('#storeCardDisplayName')?.value || '',
       sold_count: Number($('#storeSoldCount')?.value || 0),
       sale_percent: Number($('#storeSalePercent')?.value || 0),
-      packages_count: Number($('#storePackagesCount')?.value || 0)
+      packages_count: Number($('#storePackagesCount')?.value || 0),
+      packages: collectAdminPackages()
     };
 
     try {
@@ -2020,6 +2484,13 @@ if (floatingLoginBtn) {
     if (msg) { msg.textContent = ''; }
     const form = $('#loginForm');
     if (form) { form.reset(); }
+    
+    // Reset Turnstile
+    if (window.turnstile) {
+      const widgets = document.querySelectorAll('#loginDialog .cf-turnstile');
+      widgets.forEach(w => { try { window.turnstile.reset(w); } catch {} });
+    }
+    
     openDialog('loginDialog');
   };
 }
@@ -2084,7 +2555,39 @@ async function init() {
   initNavButtons();
   initAdminNav();
   initMobileMenu();
+  initStoreBuyQty();
+  initStoreBuyCoupon();
+  initStoreBuySubmit();
+  initAddPackageBtn();
 }
+
+// =========================================================
+// EXPORT FUNCTIONS RA WINDOW (để onclick trong HTML gọi được)
+// =========================================================
+window.closeDialog = closeDialog;
+window.openDialog = openDialog;
+window.showPublicPage = showPublicPage;
+window.addAdminPackage = addAdminPackage;
+window.removeAdminPackage = removeAdminPackage;
+window.renderAdminPackagesForm = renderAdminPackagesForm;
+window.addStoreItem = addStoreItem;
+window.editStoreItem = editStoreItem;
+window.deleteStoreItem = deleteStoreItem;
+window.openStorePurchase = openStorePurchase;
+window.selectStorePackage = selectStorePackage;
+window.renderStorePackages = renderStorePackages;
+window.downloadItem = downloadItem;
+window.goToContact = goToContact;
+window.editDownload = editDownload;
+window.deleteDownload = deleteDownload;
+window.editStoreItem = editStoreItem;
+window.copyKey = copyKey;
+window.toggleKey = toggleKey;
+window.resetHwid = resetHwid;
+window.deleteKey = deleteKey;
+window.resetUserPassword = resetUserPassword;
+window.deleteUser = deleteUser;
+window.viewUserDetail = viewUserDetail;
 
 init();
 
