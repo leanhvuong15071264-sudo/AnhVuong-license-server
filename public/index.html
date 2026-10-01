@@ -501,13 +501,18 @@
 
     <nav class="main-nav">
 
+      <button class="admin-nav" data-admin-page="home">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 8.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V8.5"/></svg></span>
+        Trang chủ
+      </button>
+
       <button class="admin-nav active" data-admin-page="dashboard">
         <span>⌂</span>
         Tổng quan
       </button>
 
       <button class="admin-nav" data-admin-page="keys">
-        <span>◆</span>
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg></span>
         License Keys
       </button>
 
@@ -534,6 +539,11 @@
       <button class="admin-nav" data-admin-page="userStats">
         <span>♙</span>
         Thống kê người dùng
+      </button>
+
+      <button class="admin-nav" data-admin-page="reviews">
+        <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+        Quản lý đánh giá
       </button>
 
       <button class="admin-nav" data-admin-page="api">
@@ -565,6 +575,71 @@
 
 
   <main class="content admin-content">
+
+    <!-- =========================================================
+         ADMIN HOME (Xem trang chủ như user guest)
+    ========================================================== -->
+    <section id="adminHome" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">PREVIEW MODE</span>
+          <h1>Trang chủ</h1>
+          <p class="top-description">
+            Xem trang chủ mà khách hàng thấy. Nội dung giống hệt user guest.
+          </p>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-content">
+          <span class="eyebrow">ANHVUONG LICENSE</span>
+          <h2>
+            Hệ thống dịch vụ hỗ trợ game
+            <span>uy tín & chất lượng.</span>
+          </h2>
+          <p>AnhVuong License - Hệ thống dịch vụ hỗ trợ chơi game uy tín chất lượng.</p>
+          <div class="hero-description">
+            <p>Chúng tôi cung cấp các giải pháp hỗ trợ kỹ thuật, tối ưu hệ thống và tư vấn cấu hình game.</p>
+            <p>Hoàn toàn không can thiệp vào game, đảm bảo an toàn cho tài khoản và thiết bị của bạn.</p>
+          </div>
+          <div class="hero-buttons">
+            <button class="primary-btn" data-page-target="store">Xem sản phẩm</button>
+          </div>
+        </div>
+        <div class="hero-logo">
+          <div class="hero-logo-inner">
+            <img src="/logo.png" alt="AnhVuong" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+          </div>
+        </div>
+      </section>
+
+      <!-- ĐÁNH GIÁ KHÁCH HÀNG -->
+      <section class="reviews-section">
+        <div class="reviews-header">
+          <span class="eyebrow">⭐ ĐÁNH GIÁ TỪ KHÁCH HÀNG</span>
+          <h2>Khách hàng nói gì về chúng tôi?</h2>
+          <p>Phản hồi chân thực từ các khách hàng đã mua và kích hoạt key tự động tại hệ thống.</p>
+        </div>
+        <div id="adminHomeReviews" class="reviews-grid">
+          <div class="loading-card">Đang tải đánh giá...</div>
+        </div>
+      </section>
+
+      <!-- TẢI XUỐNG -->
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">SOFTWARE</span>
+          <h2>Tải xuống</h2>
+        </div>
+      </div>
+      <div id="adminHomeDownloads" class="download-grid">
+        <div class="loading-card">Đang tải dữ liệu...</div>
+      </div>
+
+    </section>
+
 
     <!-- ADMIN DASHBOARD -->
     <section id="adminDashboard" class="admin-page">
@@ -807,6 +882,53 @@
           <div id="settingsMsg" class="form-message"></div>
         </form>
 
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         ADMIN REVIEWS
+    ========================================================== -->
+    <section id="adminReviews" class="admin-page hidden">
+
+      <div class="topbar">
+        <div>
+          <span class="eyebrow">REVIEW MANAGEMENT</span>
+          <h1>Quản lý đánh giá</h1>
+          <p class="top-description">Xem, sửa, xóa đánh giá của khách hàng.</p>
+        </div>
+        <button class="secondary-btn" id="refreshReviews">
+          🔄 Làm mới
+        </button>
+      </div>
+
+      <div class="toolbar" style="margin-bottom: 16px;">
+        <input id="reviewSearch" placeholder="Tìm theo tên, nội dung...">
+        <select id="reviewFilter">
+          <option value="all">Tất cả</option>
+          <option value="approved">Đã duyệt</option>
+          <option value="pending">Chờ duyệt</option>
+          <option value="rejected">Từ chối</option>
+        </select>
+      </div>
+
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên</th>
+              <th>Nội dung</th>
+              <th>Sao</th>
+              <th>Trạng thái</th>
+              <th>Ngày tạo</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="adminReviewsRows">
+            <tr><td colspan="7">Đang tải...</td></tr>
+          </tbody>
+        </table>
       </div>
 
     </section>
@@ -1305,6 +1427,47 @@
   </form>
 </dialog>
 
+<!-- =========================
+     DURATION DIALOG (Gia hạn key)
+========================= -->
+<dialog id="durationDialog">
+  <form id="durationForm" class="dialog">
+    <button type="button" class="dialog-close" onclick="closeDialog('durationDialog')">×</button>
+
+    <span class="eyebrow">EXTEND LICENSE</span>
+    <h2>Gia hạn License Key</h2>
+    <p>Key: <code id="durationKeyDisplay">—</code></p>
+
+    <input type="hidden" id="durationLicenseId">
+
+    <label>Chọn nhanh</label>
+    <div class="duration-presets">
+      <button type="button" class="duration-preset-btn" data-days="7">+7 ngày</button>
+      <button type="button" class="duration-preset-btn" data-days="30">+30 ngày</button>
+      <button type="button" class="duration-preset-btn" data-days="90">+90 ngày</button>
+      <button type="button" class="duration-preset-btn minus" data-days="-7">-7 ngày</button>
+      <button type="button" class="duration-preset-btn minus" data-days="-30">-30 ngày</button>
+      <button type="button" class="duration-preset-btn minus" data-days="-90">-90 ngày</button>
+      <button type="button" class="duration-preset-btn forever" id="durationForeverBtn">∞ Vĩnh viễn</button>
+    </div>
+
+    <label>Số ngày tùy chỉnh <span style="color: var(--muted); font-weight: 400;">(dương = tăng, âm = giảm)</span></label>
+    <input id="durationDays" type="number" step="1" placeholder="VD: 30 hoặc -7" required>
+
+    <div class="form-hint">
+      Hạn hiện tại: <strong id="durationCurrentExpires">—</strong>
+      <br>Hạn mới (dự kiến): <strong id="durationNewExpires" style="color: var(--green);">—</strong>
+    </div>
+
+    <div id="durationMsg" class="form-message"></div>
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" onclick="closeDialog('durationDialog')">Hủy</button>
+      <button type="submit" class="primary-btn">💾 Lưu thay đổi</button>
+    </div>
+  </form>
+</dialog>
+
 
 <!-- =========================
      LICENSE DIALOG
@@ -1623,6 +1786,51 @@
     </div>
   </form>
 </dialog>
+
+<!-- =========================
+     REVIEW ADMIN DIALOG (Sửa đánh giá)
+========================= -->
+<dialog id="reviewAdminDialog">
+  <form id="reviewAdminForm" class="dialog">
+    <button type="button" class="dialog-close" onclick="closeDialog('reviewAdminDialog')">×</button>
+
+    <span class="eyebrow">REVIEW EDITOR</span>
+    <h2>Sửa đánh giá</h2>
+
+    <input type="hidden" id="reviewAdminId">
+
+    <label>Tên khách hàng <span class="required">*</span></label>
+    <input id="reviewAdminName" type="text" maxlength="60" required placeholder="VD: Nguyễn Văn A">
+
+    <label>Nội dung đánh giá <span class="required">*</span></label>
+    <textarea id="reviewAdminContent" maxlength="1000" required placeholder="Nội dung..."></textarea>
+
+    <label>Số sao <span class="required">*</span></label>
+    <div class="review-rating-input" id="reviewAdminRatingInput">
+      <button type="button" class="star-btn" data-value="1"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="2"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="3"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="4"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button type="button" class="star-btn" data-value="5"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+    </div>
+    <input type="hidden" id="reviewAdminRating" value="5">
+
+    <label>Trạng thái</label>
+    <select id="reviewAdminStatus" style="width:100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; background: #080c11; color: #fff;">
+      <option value="approved">Đã duyệt</option>
+      <option value="pending">Chờ duyệt</option>
+      <option value="rejected">Từ chối (ẩn)</option>
+    </select>
+
+    <div id="reviewAdminMsg" class="form-message"></div>
+
+    <div class="dialog-buttons">
+      <button type="button" class="secondary-btn" onclick="closeDialog('reviewAdminDialog')">Hủy</button>
+      <button type="submit" class="primary-btn">💾 Lưu thay đổi</button>
+    </div>
+  </form>
+</dialog>
+
 
 <!-- =========================
      USER DETAIL DIALOG

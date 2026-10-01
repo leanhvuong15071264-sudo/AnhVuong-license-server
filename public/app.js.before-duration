@@ -1984,49 +1984,16 @@ async function loadKeys() {
     licenses = await api('/api/admin/licenses?q=' + encodeURIComponent(searchValue) + '&status=' + encodeURIComponent(filterValue));
     const rows = $('#rows');
     if (!rows) { return; }
-
-    // Helper: Che giữa key
-    function maskKey(key) {
-      const parts = String(key || '').split('-');
-      if (parts.length < 4) return key;
-      return `${parts[0]}-****-${parts[parts.length - 1]}`;
-    }
-
-    // Helper: Xác định status text + class
-    function getStatusInfo(row) {
-      // Ưu tiên status banned/disabled
-      const status = String(row.status || '').toLowerCase();
-      if (status === 'banned') return { text: 'BANNED', cls: 'banned' };
-      if (status === 'disabled') return { text: 'DISABLED', cls: 'disabled' };
-
-      // Status active → kiểm tra hết hạn
-      if (row.expires_at) {
-        const expTime = new Date(row.expires_at).getTime();
-        if (!isNaN(expTime) && expTime <= Date.now()) {
-          return { text: 'EXPIRED', cls: 'expired' };
-        }
-      }
-      return { text: 'ACTIVE', cls: 'active' };
-    }
-
     rows.innerHTML = licenses.length
       ? licenses.map((row) => {
           const nextStatus = row.status === 'banned' ? 'active' : 'banned';
           const buttonText = row.status === 'banned' ? 'Mở khóa' : 'Khóa';
           const maxDevices = row.max_devices || 1;
           const usedDevices = (row.hwids || []).length;
-          const statusInfo = getStatusInfo(row);
-          const maskedKey = maskKey(row.key);
-
           return `
             <tr>
-              <td data-label="Key">
-                <code class="key-masked">${esc(maskedKey)}</code>
-                <button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button>
-              </td>
-              <td data-label="Trạng thái">
-                <span class="status-badge ${statusInfo.cls}">${esc(statusInfo.text)}</span>
-              </td>
+              <td data-label="Key"><code>${esc(row.key)}</code><button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button></td>
+              <td data-label="Trạng thái"><span class="status ${esc(row.status)}">${esc(row.status)}</span></td>
               <td data-label="Hạn">${row.expires_at ? formatDate(row.expires_at) : 'Vĩnh viễn'}</td>
               <td data-label="HWID">${esc(row.hwid || '—')}</td>
               <td data-label="Thiết bị">${usedDevices}/${maxDevices}</td>
@@ -2034,10 +2001,6 @@ async function loadKeys() {
               <td class="actions" data-label="Thao tác">
                 <button class="small-btn" onclick="toggleKey(${Number(row.id)}, '${nextStatus}')">${buttonText}</button>
                 <button class="small-btn" onclick="resetHwid(${Number(row.id)})">Reset HWID</button>
-                <button class="small-btn" onclick="openDurationDialog(${Number(row.id)})">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Duration
-                </button>
                 <button class="small-btn danger-btn" onclick="deleteKey(${Number(row.id)})">Xóa</button>
               </td>
             </tr>
@@ -2164,131 +2127,6 @@ window.resetHwid = async function (id) {
     showToast(error.message, 'error');
   }
 };
-
-/* =========================================================
-   DURATION DIALOG — Gia hạn key
-========================================================= */
-
-window.openDurationDialog = function(id) {
-  const license = licenses.find(x => Number(x.id) === Number(id));
-  if (!license) {
-    showToast('Không tìm thấy key', 'error');
-    return;
-  }
-
-  // Fill form
-  document.getElementById('durationLicenseId').value = license.id;
-  document.getElementById('durationKeyDisplay').textContent = license.key || '—';
-  document.getElementById('durationDays').value = '';
-  
-  const currentExpires = license.expires_at
-    ? formatDate(license.expires_at)
-    : 'Vĩnh viễn';
-  document.getElementById('durationCurrentExpires').textContent = currentExpires;
-  document.getElementById('durationNewExpires').textContent = '—';
-  
-  const msg = document.getElementById('durationMsg');
-  if (msg) msg.textContent = '';
-
-  openDialog('durationDialog');
-};
-
-// Cập nhật "hạn mới" khi nhập số ngày
-function updateDurationPreview() {
-  const id = document.getElementById('durationLicenseId')?.value;
-  const days = parseInt(document.getElementById('durationDays')?.value, 10);
-  const previewEl = document.getElementById('durationNewExpires');
-  const license = licenses.find(x => Number(x.id) === Number(id));
-  
-  if (!license || !previewEl) return;
-  if (!Number.isFinite(days) || days === 0) {
-    previewEl.textContent = '—';
-    return;
-  }
-
-  let currentMs = license.expires_at
-    ? new Date(license.expires_at).getTime()
-    : Date.now();
-
-  const newMs = currentMs + days * 86400000;
-  previewEl.textContent = formatDate(new Date(newMs).toISOString());
-}
-
-// Init dialog duration
-function initDurationDialog() {
-  const form = document.getElementById('durationForm');
-  if (!form) return;
-
-  // Preset buttons
-  form.querySelectorAll('.duration-preset-btn').forEach(btn => {
-    btn.onclick = () => {
-      const days = btn.dataset.days;
-      if (days !== undefined) {
-        document.getElementById('durationDays').value = days;
-        updateDurationPreview();
-      }
-    };
-  });
-
-  // Nút vĩnh viễn
-  const foreverBtn = document.getElementById('durationForeverBtn');
-  if (foreverBtn) {
-    foreverBtn.onclick = async () => {
-      const id = document.getElementById('durationLicenseId').value;
-      if (!id) return;
-      if (!confirm('Chuyển key này thành VĨNH VIỄN (bỏ hạn)?')) return;
-
-      try {
-        const result = await api(`/api/admin/licenses/${id}/extend`, {
-          method: 'POST',
-          body: JSON.stringify({ days: 36500 }) // 100 năm = vĩnh viễn
-        });
-        showToast('✅ Đã chuyển thành Vĩnh viễn', 'success');
-        closeDialog('durationDialog');
-        await loadKeys();
-        await loadAdminDashboard();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
-    };
-  }
-
-  // Cập nhật preview khi nhập
-  document.getElementById('durationDays')?.addEventListener('input', updateDurationPreview);
-
-  // Submit
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-
-    const id = document.getElementById('durationLicenseId').value;
-    const days = parseInt(document.getElementById('durationDays').value, 10);
-    const msg = document.getElementById('durationMsg');
-
-    if (!Number.isFinite(days) || days === 0) {
-      if (msg) msg.textContent = 'Số ngày phải khác 0';
-      return;
-    }
-
-    if (msg) msg.textContent = 'Đang cập nhật...';
-
-    try {
-      await api(`/api/admin/licenses/${id}/extend`, {
-        method: 'POST',
-        body: JSON.stringify({ days })
-      });
-
-      if (msg) msg.textContent = '';
-      closeDialog('durationDialog');
-      showToast(`✅ Đã ${days > 0 ? 'cộng' : 'trừ'} ${Math.abs(days)} ngày`, 'success');
-
-      await loadKeys();
-      await loadAdminDashboard();
-      await loadAdminLogs();
-    } catch (err) {
-      if (msg) msg.textContent = err.message;
-    }
-  };
-}
 
 window.deleteKey = async function (id) {
   if (!confirm('Xóa key này?')) { return; }
@@ -2942,19 +2780,17 @@ async function init() {
   initAdminNav();
   initMobileMenu();
   initStoreBuyQty();
-  initStoreBuyQty();
   initStoreBuyCoupon();
   initStoreBuySubmit();
-  initDurationDialog();
-}                                 
 
-// Event: refresh + filter reviews
-document.getElementById('refreshReviews')?.addEventListener('click', () => loadAdminReviews());
-document.getElementById('reviewSearch')?.addEventListener('input', () => {
-  clearTimeout(window.__reviewSearchTimer);
-  window.__reviewSearchTimer = setTimeout(loadAdminReviews, 300);
-});
-document.getElementById('reviewFilter')?.addEventListener('change', () => loadAdminReviews());
+  // Event: refresh + filter reviews
+  document.getElementById('refreshReviews')?.addEventListener('click', () => loadAdminReviews());
+  document.getElementById('reviewSearch')?.addEventListener('input', () => {
+    clearTimeout(window.__reviewSearchTimer);
+    window.__reviewSearchTimer = setTimeout(loadAdminReviews, 300);
+  });
+  document.getElementById('reviewFilter')?.addEventListener('change', () => loadAdminReviews());
+}
 
 // =========================================================
 // EXPORT FUNCTIONS RA WINDOW (để onclick trong HTML gọi được)

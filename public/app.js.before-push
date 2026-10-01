@@ -9,6 +9,8 @@ let adminLoggedIn = false;
 let currentAdminPage = 'dashboard';
 let storeItems = [];
 let userStatsData = { users: [], downloads: [] };
+let adminReviewsData = [];
+let currentAdminReviewRating = 5;
 let currentDetailItem = null;
 
 // State cho dialog mua hàng mới
@@ -19,38 +21,6 @@ let storeBuyState = {
   qty: 1
 };
 
-// =========================================================
-// CHERRY BLOSSOM
-// =========================================================
-function createCherryBlossom() {
-  const oldContainer = document.querySelector('.cherry-container');
-  if (oldContainer) oldContainer.remove();
-
-  const container = document.createElement('div');
-  container.className = 'cherry-container';
-  document.body.appendChild(container);
-
-  const count = window.innerWidth < 600 ? 15 : 30;
-  for (let i = 0; i < count; i++) {
-    const petal = document.createElement('div');
-    petal.className = 'cherry';
-    petal.style.left = Math.random() * 100 + '%';
-    petal.style.animationDuration = (Math.random() * 6 + 4) + 's';
-    petal.style.animationDelay = (Math.random() * 10) + 's';
-    petal.style.width = (Math.random() * 10 + 8) + 'px';
-    petal.style.height = (Math.random() * 10 + 8) + 'px';
-    petal.style.opacity = Math.random() * 0.6 + 0.3;
-    container.appendChild(petal);
-  }
-}
-
-createCherryBlossom();
-
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(createCherryBlossom, 500);
-});
 
 // =========================================================
 // API HELPERS
@@ -192,6 +162,7 @@ function initAdminNav() {
       }
       const page = this.dataset.adminPage;
       const targets = {
+        home: '#adminHome',
         dashboard: '#adminDashboard',
         keys: '#adminKeys',
         adminDownloads: '#adminDownloads',
@@ -199,6 +170,7 @@ function initAdminNav() {
         logs: '#adminLogs',
         settings: '#adminSettings',
         userStats: '#adminUserStats',
+        reviews: '#adminReviews',
         api: '#adminApi'
       };
 
@@ -229,6 +201,7 @@ function initAdminNav() {
       
       updateFloatingButton(true);
 
+      if (page === 'home') loadAdminHome();
       if (page === 'dashboard') loadAdminDashboard();
       if (page === 'keys') loadKeys();
       if (page === 'adminDownloads') loadAdminDownloads();
@@ -236,6 +209,7 @@ function initAdminNav() {
       if (page === 'logs') loadAdminLogs();
       if (page === 'settings') loadSettingsAdmin();
       if (page === 'userStats') loadAdminUserStats();
+      if (page === 'reviews') loadAdminReviews();
     };
   });
 }
@@ -1915,6 +1889,81 @@ if (backToWeb) {
   };
 }
 
+// Load nội dung trang chủ vào admin panel
+async function loadAdminHome() {
+  // 1. Load đánh giá (dùng chung hàm render nhưng vào container khác)
+  await loadAdminHomeReviews();
+  // 2. Load downloads
+  await loadAdminHomeDownloads();
+}
+
+// Load reviews vào container admin
+async function loadAdminHomeReviews() {
+  const container = document.getElementById('adminHomeReviews');
+  if (!container) return;
+
+  try {
+    const data = await api('/api/reviews?limit=30');
+
+    if (!data || !data.length) {
+      container.innerHTML = `
+        <div class="reviews-empty">
+          <div>
+            <div style="font-size:32px;margin-bottom:8px;">💬</div>
+            <p style="margin:0;">Chưa có đánh giá nào.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = data.map(review => `
+      <article class="review-card">
+        <div class="review-card-header">
+          <div class="review-avatar">${DEFAULT_AVATAR_SVG}</div>
+          <div class="review-info">
+            <h4 class="review-name">${esc(review.name)}</h4>
+          </div>
+          <div class="review-stars">${renderStars(review.rating)}</div>
+        </div>
+        <p class="review-content">"${esc(review.content)}"</p>
+        <div class="review-card-footer">
+          <span class="review-footer-left">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            Tự động 24/7
+          </span>
+          <span class="review-time">${timeAgo(review.created_at)}</span>
+        </div>
+      </article>
+    `).join('');
+  } catch (error) {
+    console.error('Lỗi load admin home reviews:', error);
+    container.innerHTML = `<div class="reviews-empty"><p>Không thể tải đánh giá.</p></div>`;
+  }
+}
+
+// Load downloads vào container admin
+async function loadAdminHomeDownloads() {
+  const container = document.getElementById('adminHomeDownloads');
+  if (!container) return;
+
+  container.innerHTML = `<div class="loading-card">Đang tải dữ liệu...</div>`;
+
+  try {
+    const data = await api('/api/downloads');
+    if (!data.length) {
+      container.innerHTML = `<div class="empty-card">Chưa có phần mềm nào.</div>`;
+      return;
+    }
+    container.innerHTML = data.map(downloadCard).join('');
+  } catch (error) {
+    console.error('Lỗi load admin home downloads:', error);
+    container.innerHTML = `<div class="empty-card">Không thể tải danh sách.</div>`;
+  }
+}
+
 async function loadAdminDashboard() {
   try {
     const data = await api('/api/admin/stats');
@@ -1935,16 +1984,49 @@ async function loadKeys() {
     licenses = await api('/api/admin/licenses?q=' + encodeURIComponent(searchValue) + '&status=' + encodeURIComponent(filterValue));
     const rows = $('#rows');
     if (!rows) { return; }
+
+    // Helper: Che giữa key
+    function maskKey(key) {
+      const parts = String(key || '').split('-');
+      if (parts.length < 4) return key;
+      return `${parts[0]}-****-${parts[parts.length - 1]}`;
+    }
+
+    // Helper: Xác định status text + class
+    function getStatusInfo(row) {
+      // Ưu tiên status banned/disabled
+      const status = String(row.status || '').toLowerCase();
+      if (status === 'banned') return { text: 'BANNED', cls: 'banned' };
+      if (status === 'disabled') return { text: 'DISABLED', cls: 'disabled' };
+
+      // Status active → kiểm tra hết hạn
+      if (row.expires_at) {
+        const expTime = new Date(row.expires_at).getTime();
+        if (!isNaN(expTime) && expTime <= Date.now()) {
+          return { text: 'EXPIRED', cls: 'expired' };
+        }
+      }
+      return { text: 'ACTIVE', cls: 'active' };
+    }
+
     rows.innerHTML = licenses.length
       ? licenses.map((row) => {
           const nextStatus = row.status === 'banned' ? 'active' : 'banned';
           const buttonText = row.status === 'banned' ? 'Mở khóa' : 'Khóa';
           const maxDevices = row.max_devices || 1;
           const usedDevices = (row.hwids || []).length;
+          const statusInfo = getStatusInfo(row);
+          const maskedKey = maskKey(row.key);
+
           return `
             <tr>
-              <td data-label="Key"><code>${esc(row.key)}</code><button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button></td>
-              <td data-label="Trạng thái"><span class="status ${esc(row.status)}">${esc(row.status)}</span></td>
+              <td data-label="Key">
+                <code class="key-masked">${esc(maskedKey)}</code>
+                <button class="small-btn copy-key" onclick="copyKey(${Number(row.id)})">Sao chép</button>
+              </td>
+              <td data-label="Trạng thái">
+                <span class="status-badge ${statusInfo.cls}">${esc(statusInfo.text)}</span>
+              </td>
               <td data-label="Hạn">${row.expires_at ? formatDate(row.expires_at) : 'Vĩnh viễn'}</td>
               <td data-label="HWID">${esc(row.hwid || '—')}</td>
               <td data-label="Thiết bị">${usedDevices}/${maxDevices}</td>
@@ -1952,6 +2034,10 @@ async function loadKeys() {
               <td class="actions" data-label="Thao tác">
                 <button class="small-btn" onclick="toggleKey(${Number(row.id)}, '${nextStatus}')">${buttonText}</button>
                 <button class="small-btn" onclick="resetHwid(${Number(row.id)})">Reset HWID</button>
+                <button class="small-btn" onclick="openDurationDialog(${Number(row.id)})">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Duration
+                </button>
                 <button class="small-btn danger-btn" onclick="deleteKey(${Number(row.id)})">Xóa</button>
               </td>
             </tr>
@@ -2078,6 +2164,131 @@ window.resetHwid = async function (id) {
     showToast(error.message, 'error');
   }
 };
+
+/* =========================================================
+   DURATION DIALOG — Gia hạn key
+========================================================= */
+
+window.openDurationDialog = function(id) {
+  const license = licenses.find(x => Number(x.id) === Number(id));
+  if (!license) {
+    showToast('Không tìm thấy key', 'error');
+    return;
+  }
+
+  // Fill form
+  document.getElementById('durationLicenseId').value = license.id;
+  document.getElementById('durationKeyDisplay').textContent = license.key || '—';
+  document.getElementById('durationDays').value = '';
+  
+  const currentExpires = license.expires_at
+    ? formatDate(license.expires_at)
+    : 'Vĩnh viễn';
+  document.getElementById('durationCurrentExpires').textContent = currentExpires;
+  document.getElementById('durationNewExpires').textContent = '—';
+  
+  const msg = document.getElementById('durationMsg');
+  if (msg) msg.textContent = '';
+
+  openDialog('durationDialog');
+};
+
+// Cập nhật "hạn mới" khi nhập số ngày
+function updateDurationPreview() {
+  const id = document.getElementById('durationLicenseId')?.value;
+  const days = parseInt(document.getElementById('durationDays')?.value, 10);
+  const previewEl = document.getElementById('durationNewExpires');
+  const license = licenses.find(x => Number(x.id) === Number(id));
+  
+  if (!license || !previewEl) return;
+  if (!Number.isFinite(days) || days === 0) {
+    previewEl.textContent = '—';
+    return;
+  }
+
+  let currentMs = license.expires_at
+    ? new Date(license.expires_at).getTime()
+    : Date.now();
+
+  const newMs = currentMs + days * 86400000;
+  previewEl.textContent = formatDate(new Date(newMs).toISOString());
+}
+
+// Init dialog duration
+function initDurationDialog() {
+  const form = document.getElementById('durationForm');
+  if (!form) return;
+
+  // Preset buttons
+  form.querySelectorAll('.duration-preset-btn').forEach(btn => {
+    btn.onclick = () => {
+      const days = btn.dataset.days;
+      if (days !== undefined) {
+        document.getElementById('durationDays').value = days;
+        updateDurationPreview();
+      }
+    };
+  });
+
+  // Nút vĩnh viễn
+  const foreverBtn = document.getElementById('durationForeverBtn');
+  if (foreverBtn) {
+    foreverBtn.onclick = async () => {
+      const id = document.getElementById('durationLicenseId').value;
+      if (!id) return;
+      if (!confirm('Chuyển key này thành VĨNH VIỄN (bỏ hạn)?')) return;
+
+      try {
+        const result = await api(`/api/admin/licenses/${id}/extend`, {
+          method: 'POST',
+          body: JSON.stringify({ days: 36500 }) // 100 năm = vĩnh viễn
+        });
+        showToast('✅ Đã chuyển thành Vĩnh viễn', 'success');
+        closeDialog('durationDialog');
+        await loadKeys();
+        await loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+  }
+
+  // Cập nhật preview khi nhập
+  document.getElementById('durationDays')?.addEventListener('input', updateDurationPreview);
+
+  // Submit
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('durationLicenseId').value;
+    const days = parseInt(document.getElementById('durationDays').value, 10);
+    const msg = document.getElementById('durationMsg');
+
+    if (!Number.isFinite(days) || days === 0) {
+      if (msg) msg.textContent = 'Số ngày phải khác 0';
+      return;
+    }
+
+    if (msg) msg.textContent = 'Đang cập nhật...';
+
+    try {
+      await api(`/api/admin/licenses/${id}/extend`, {
+        method: 'POST',
+        body: JSON.stringify({ days })
+      });
+
+      if (msg) msg.textContent = '';
+      closeDialog('durationDialog');
+      showToast(`✅ Đã ${days > 0 ? 'cộng' : 'trừ'} ${Math.abs(days)} ngày`, 'success');
+
+      await loadKeys();
+      await loadAdminDashboard();
+      await loadAdminLogs();
+    } catch (err) {
+      if (msg) msg.textContent = err.message;
+    }
+  };
+}
 
 window.deleteKey = async function (id) {
   if (!confirm('Xóa key này?')) { return; }
@@ -2248,6 +2459,177 @@ if (adminLogout) {
     }
   };
 }
+
+/* =========================================================
+   ADMIN REVIEWS MANAGEMENT
+========================================================= */
+
+// Load danh sách đánh giá
+async function loadAdminReviews() {
+  const tbody = document.getElementById('adminReviewsRows');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="7">Đang tải...</td></tr>`;
+
+  try {
+    const data = await api('/api/admin/reviews');
+    adminReviewsData = Array.isArray(data) ? data : [];
+
+    // Filter theo search + status
+    const search = (document.getElementById('reviewSearch')?.value || '').toLowerCase().trim();
+    const statusFilter = document.getElementById('reviewFilter')?.value || 'all';
+
+    let filtered = adminReviewsData;
+    if (search) {
+      filtered = filtered.filter(r =>
+        (r.name || '').toLowerCase().includes(search) ||
+        (r.content || '').toLowerCase().includes(search)
+      );
+    }
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(r => r.status === statusFilter);
+    }
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="7">Không có đánh giá nào.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(r => {
+      const stars = '★'.repeat(Number(r.rating) || 0) + '☆'.repeat(5 - (Number(r.rating) || 0));
+      const statusClass = r.status === 'approved' ? 'active' : (r.status === 'rejected' ? 'banned' : 'disabled');
+      const statusText = r.status === 'approved' ? 'Đã duyệt' : (r.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt');
+
+      return `
+        <tr>
+          <td data-label="ID">${Number(r.id)}</td>
+          <td data-label="Tên">${esc(r.name)}</td>
+          <td data-label="Nội dung" style="max-width:300px; word-break:break-word;">${esc(r.content)}</td>
+          <td data-label="Sao" style="color:#ffc857; font-size:14px; white-space:nowrap;">${stars}</td>
+          <td data-label="Trạng thái"><span class="status ${statusClass}">${statusText}</span></td>
+          <td data-label="Ngày tạo">${formatDate(r.created_at)}</td>
+          <td class="actions" data-label="Thao tác">
+            <button class="small-btn" onclick="editReview(${Number(r.id)})">Sửa</button>
+            <button class="small-btn danger-btn" onclick="deleteReview(${Number(r.id)})">Xóa</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error('Lỗi load admin reviews:', error);
+    tbody.innerHTML = `<tr><td colspan="7">Không thể tải đánh giá. ${esc(error.message)}</td></tr>`;
+  }
+}
+
+// Mở form sửa đánh giá
+function editReview(id) {
+  const review = adminReviewsData.find(r => Number(r.id) === Number(id));
+  if (!review) {
+    showToast('Không tìm thấy đánh giá', 'error');
+    return;
+  }
+
+  // Điền form
+  document.getElementById('reviewAdminId').value = review.id;
+  document.getElementById('reviewAdminName').value = review.name || '';
+  document.getElementById('reviewAdminContent').value = review.content || '';
+  document.getElementById('reviewAdminRating').value = review.rating || 5;
+  document.getElementById('reviewAdminStatus').value = review.status || 'approved';
+
+  currentAdminReviewRating = Number(review.rating) || 5;
+  updateAdminReviewStars(currentAdminReviewRating);
+
+  // Xóa message cũ
+  const msg = document.getElementById('reviewAdminMsg');
+  if (msg) msg.textContent = '';
+
+  openDialog('reviewAdminDialog');
+}
+
+// Cập nhật UI sao trong form admin
+function updateAdminReviewStars(rating) {
+  const container = document.getElementById('reviewAdminRatingInput');
+  if (!container) return;
+  container.querySelectorAll('.star-btn').forEach(btn => {
+    const val = parseInt(btn.dataset.value, 10) || 0;
+    btn.classList.toggle('active', val <= rating);
+  });
+}
+
+// Init sao trong form admin (chỉ chạy 1 lần)
+function initAdminReviewStars() {
+  const container = document.getElementById('reviewAdminRatingInput');
+  if (!container) return;
+
+  container.querySelectorAll('.star-btn').forEach(btn => {
+    btn.onclick = () => {
+      const val = parseInt(btn.dataset.value, 10) || 5;
+      currentAdminReviewRating = val;
+      document.getElementById('reviewAdminRating').value = val;
+      updateAdminReviewStars(val);
+    };
+  });
+}
+
+// Submit form sửa đánh giá
+function initReviewAdminForm() {
+  const form = document.getElementById('reviewAdminForm');
+  if (!form) return;
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('reviewAdminId').value;
+    const name = document.getElementById('reviewAdminName').value.trim();
+    const content = document.getElementById('reviewAdminContent').value.trim();
+    const rating = parseInt(document.getElementById('reviewAdminRating').value, 10) || 5;
+    const status = document.getElementById('reviewAdminStatus').value;
+    const msg = document.getElementById('reviewAdminMsg');
+
+    if (msg) msg.textContent = 'Đang lưu...';
+
+    try {
+      await api(`/api/admin/reviews/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name, content, rating, status })
+      });
+
+      if (msg) msg.textContent = '';
+      closeDialog('reviewAdminDialog');
+      showToast('✅ Đã cập nhật đánh giá', 'success');
+
+      // Reload cả admin list + public list
+      await loadAdminReviews();
+      await loadReviews();
+    } catch (error) {
+      if (msg) msg.textContent = error.message;
+    }
+  };
+}
+
+// Xóa đánh giá
+window.deleteReview = async function(id) {
+  const review = adminReviewsData.find(r => Number(r.id) === Number(id));
+  if (!review) return;
+
+  const preview = (review.content || '').slice(0, 50);
+  if (!confirm(`Xóa đánh giá này?\n\n"${preview}..."`)) return;
+
+  try {
+    await api(`/api/admin/reviews/${id}`, { method: 'DELETE' });
+    showToast('Đã xóa đánh giá', 'success');
+    await loadAdminReviews();
+    await loadReviews();
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+};
+
+// Export
+window.editReview = editReview;
+window.loadAdminReviews = loadAdminReviews;
+
 
 // =========================================================
 // ADMIN - USER STATS & MANAGEMENT
@@ -2554,14 +2936,25 @@ async function init() {
   await loadSettings();
   await loadReviews();
   initReviewDialog();
+  initAdminReviewStars();
+  initReviewAdminForm();
   initNavButtons();
   initAdminNav();
   initMobileMenu();
   initStoreBuyQty();
+  initStoreBuyQty();
   initStoreBuyCoupon();
   initStoreBuySubmit();
-  initAddPackageBtn();
-}
+  initDurationDialog();
+}                                 
+
+// Event: refresh + filter reviews
+document.getElementById('refreshReviews')?.addEventListener('click', () => loadAdminReviews());
+document.getElementById('reviewSearch')?.addEventListener('input', () => {
+  clearTimeout(window.__reviewSearchTimer);
+  window.__reviewSearchTimer = setTimeout(loadAdminReviews, 300);
+});
+document.getElementById('reviewFilter')?.addEventListener('change', () => loadAdminReviews());
 
 // =========================================================
 // EXPORT FUNCTIONS RA WINDOW (để onclick trong HTML gọi được)

@@ -1427,47 +1427,6 @@
   </form>
 </dialog>
 
-<!-- =========================
-     DURATION DIALOG (Gia hạn key)
-========================= -->
-<dialog id="durationDialog">
-  <form id="durationForm" class="dialog">
-    <button type="button" class="dialog-close" onclick="closeDialog('durationDialog')">×</button>
-
-    <span class="eyebrow">EXTEND LICENSE</span>
-    <h2>Gia hạn License Key</h2>
-    <p>Key: <code id="durationKeyDisplay">—</code></p>
-
-    <input type="hidden" id="durationLicenseId">
-
-    <label>Chọn nhanh</label>
-    <div class="duration-presets">
-      <button type="button" class="duration-preset-btn" data-days="7">+7 ngày</button>
-      <button type="button" class="duration-preset-btn" data-days="30">+30 ngày</button>
-      <button type="button" class="duration-preset-btn" data-days="90">+90 ngày</button>
-      <button type="button" class="duration-preset-btn minus" data-days="-7">-7 ngày</button>
-      <button type="button" class="duration-preset-btn minus" data-days="-30">-30 ngày</button>
-      <button type="button" class="duration-preset-btn minus" data-days="-90">-90 ngày</button>
-      <button type="button" class="duration-preset-btn forever" id="durationForeverBtn">∞ Vĩnh viễn</button>
-    </div>
-
-    <label>Số ngày tùy chỉnh <span style="color: var(--muted); font-weight: 400;">(dương = tăng, âm = giảm)</span></label>
-    <input id="durationDays" type="number" step="1" placeholder="VD: 30 hoặc -7" required>
-
-    <div class="form-hint">
-      Hạn hiện tại: <strong id="durationCurrentExpires">—</strong>
-      <br>Hạn mới (dự kiến): <strong id="durationNewExpires" style="color: var(--green);">—</strong>
-    </div>
-
-    <div id="durationMsg" class="form-message"></div>
-
-    <div class="dialog-buttons">
-      <button type="button" class="secondary-btn" onclick="closeDialog('durationDialog')">Hủy</button>
-      <button type="submit" class="primary-btn">💾 Lưu thay đổi</button>
-    </div>
-  </form>
-</dialog>
-
 
 <!-- =========================
      LICENSE DIALOG

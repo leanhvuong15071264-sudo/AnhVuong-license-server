@@ -1252,6 +1252,61 @@ app.patch('/api/admin/licenses/:id', requireAdmin, async (req, res) => {
   }
 });
 
+/* =========================================================
+   EXTEND LICENSE DURATION
+========================================================= */
+
+app.post('/api/admin/licenses/:id/extend', requireAdmin, async (req, res) => {
+  try {
+    const days = Number(req.body.days);
+    if (!Number.isFinite(days)) {
+      return res.status(400).json({ error: 'Số ngày không hợp lệ' });
+    }
+
+    const result = await query('SELECT * FROM licenses WHERE id=$1', [req.params.id]);
+    const row = result.rows[0];
+    if (!row) {
+      return res.status(404).json({ error: 'Không tìm thấy key' });
+    }
+
+    let newExpiresAt = null;
+    let detailMsg = '';
+
+    if (days === 0) {
+      // Nếu days = 0 → không đổi expires_at
+      return res.status(400).json({ error: 'Số ngày không được bằng 0' });
+    }
+
+    // Nếu key hiện đang vĩnh viễn (expires_at = null) VÀ muốn giảm ngày
+    if (!row.expires_at && days < 0) {
+      return res.status(400).json({ error: 'Key vĩnh viễn không thể giảm ngày' });
+    }
+
+    if (!row.expires_at) {
+      // Key vĩnh viễn + muốn tăng ngày → đặt expires = now + days
+      newExpiresAt = new Date(Date.now() + days * 86400000).toISOString();
+      detailMsg = `extend_from_forever days=${days}`;
+    } else {
+      // Key có hạn → cộng/trừ từ expires_at hiện tại
+      const currentExpires = new Date(row.expires_at).getTime();
+      const newExpires = currentExpires + days * 86400000;
+      newExpiresAt = new Date(newExpires).toISOString();
+      detailMsg = `extend days=${days} from=${row.expires_at}`;
+    }
+
+    const updated = await query(`
+      UPDATE licenses SET expires_at=$1 WHERE id=$2 RETURNING *
+    `, [newExpiresAt, row.id]);
+
+    await audit(req, 'extend_duration', updated.rows[0], detailMsg);
+
+    res.json({ ok: true, license: updated.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể gia hạn key' });
+  }
+});
+
 app.post('/api/admin/licenses/:id/reset-hwid', requireAdmin, async (req, res) => {
   try {
     const result = await query('SELECT * FROM licenses WHERE id=$1', [req.params.id]);
@@ -1653,6 +1708,83 @@ app.post('/api/reviews', async (req, res) => {
     res.status(500).json({ error: 'Không thể gửi đánh giá' });
   }
 });
+
+/* =========================================================
+   ADMIN REVIEWS MANAGEMENT
+========================================================= */
+
+// GET: Lấy tất cả đánh giá (kể cả pending/rejected)
+app.get('/api/admin/reviews', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id, name, content, rating, ip, status, created_at
+      FROM reviews
+      ORDER BY id DESC
+      LIMIT 500
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể lấy danh sách đánh giá' });
+  }
+});
+
+// PATCH: Sửa đánh giá
+app.patch('/api/admin/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    const oldResult = await query('SELECT * FROM reviews WHERE id=$1', [req.params.id]);
+    const old = oldResult.rows[0];
+    if (!old) {
+      return res.status(404).json({ error: 'Không tìm thấy đánh giá' });
+    }
+
+    const name = String(req.body.name ?? old.name).trim().slice(0, 60);
+    const content = String(req.body.content ?? old.content).trim().slice(0, 1000);
+    const rating = req.body.rating === undefined
+      ? old.rating
+      : Math.max(1, Math.min(5, parseInt(req.body.rating, 10) || 5));
+    const status = String(req.body.status ?? old.status).trim().slice(0, 20);
+
+    if (!name || name.length < 2) {
+      return res.status(400).json({ error: 'Tên phải từ 2 ký tự trở lên' });
+    }
+    if (!content || content.length < 5) {
+      return res.status(400).json({ error: 'Nội dung phải từ 5 ký tự trở lên' });
+    }
+    if (!['approved', 'pending', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
+    }
+
+    const result = await query(`
+      UPDATE reviews SET
+        name=$1, content=$2, rating=$3, status=$4
+      WHERE id=$5 RETURNING *
+    `, [name, content, rating, status, old.id]);
+
+    res.json({ review: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể cập nhật đánh giá' });
+  }
+});
+
+// DELETE: Xóa đánh giá
+app.delete('/api/admin/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    const oldResult = await query('SELECT * FROM reviews WHERE id=$1', [req.params.id]);
+    const row = oldResult.rows[0];
+    if (!row) {
+      return res.status(404).json({ error: 'Không tìm thấy đánh giá' });
+    }
+
+    await query('DELETE FROM reviews WHERE id=$1', [row.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Không thể xóa đánh giá' });
+  }
+});
+
 
 /* =========================================================
    STORE API - RIÊNG BIỆT
