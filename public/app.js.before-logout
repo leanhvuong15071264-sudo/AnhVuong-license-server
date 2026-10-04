@@ -1878,6 +1878,16 @@ async function checkAdmin() {
   return false;
 }
 
+const backToWeb = $('#backToWeb');
+if (backToWeb) {
+  backToWeb.onclick = () => {
+    $('#adminApp')?.classList.add('hidden');
+    $('#publicApp')?.classList.remove('hidden');
+    document.querySelector('.admin-store-btn')?.classList.add('hidden');
+    showPublicPage('home');
+    updateFloatingButton(false);
+  };
+}
 
 // Load nội dung trang chủ vào admin panel
 async function loadAdminHome() {
@@ -2434,65 +2444,18 @@ window.deleteDownload = async function (id) {
 const adminLogout = $('#adminLogout');
 if (adminLogout) {
   adminLogout.onclick = async () => {
-    if (!confirm('Đăng xuất khỏi tài khoản Admin?')) return;
-
     try {
-      // 1. Gọi API logout để xóa session
-      await api('/api/auth/logout', { method: 'POST' });
-
-      // 2. Reset state
-      currentUser = null;
+      await api('/api/admin/logout', { method: 'POST' });
       adminLoggedIn = false;
       currentAdminPage = 'dashboard';
-      licenses = [];
-      storeItems = [];
-      userStatsData = { users: [], downloads: [] };
-      adminReviewsData = [];
-
-      // 3. Ẩn admin, hiện public
-      document.getElementById('adminApp')?.classList.add('hidden');
-      document.getElementById('publicApp')?.classList.remove('hidden');
-
-      // 4. Ẩn nút admin
+      $('#adminApp')?.classList.add('hidden');
+      $('#publicApp')?.classList.remove('hidden');
       document.querySelector('.admin-store-btn')?.classList.add('hidden');
-      const floatingBtn = document.getElementById('floatingCreateKey');
-      if (floatingBtn) floatingBtn.classList.remove('visible');
-
-      // 5. Hiện nút login nổi (mobile)
-      document.getElementById('floatingLoginBtn')?.classList.remove('hidden');
-
-      // 6. Hiện guestActions trong sidebar public
-      document.getElementById('guestActions')?.classList.remove('hidden');
-
-      // 7. Ẩn userActions (đăng xuất user)
-      document.getElementById('userActions')?.classList.add('hidden');
-
-      // 8. Ẩn nav chỉ dành cho user đã login
-      document.getElementById('accountNav')?.classList.add('hidden');
-      document.getElementById('historyNav')?.classList.add('hidden');
-
-      // 9. Reset avatar/tên về "Khách"
-      const sideUsername = document.getElementById('sideUsername');
-      if (sideUsername) sideUsername.textContent = 'Khách';
-      const userAvatar = document.getElementById('userAvatar');
-      if (userAvatar) userAvatar.textContent = 'U';
-
-      // 10. Về trang chủ public
       showPublicPage('home');
-
-      // 11. Cuộn lên đầu
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // 12. Toast
-      showToast('✅ Đã đăng xuất. Về trang chủ.', 'success');
-
+      updateFloatingButton(false);
+      showToast('Đã đăng xuất Admin', 'success');
     } catch (error) {
-      console.error('Logout error:', error);
-      // Nếu lỗi → vẫn force reload để clear sạch
-      showToast('Đã đăng xuất', 'success');
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
+      showToast(error.message, 'error');
     }
   };
 }
